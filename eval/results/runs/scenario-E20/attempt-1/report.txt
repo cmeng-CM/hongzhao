@@ -1,0 +1,42 @@
+E20 归档目录排除 report
+========================
+
+环境
+- CLI: /tmp/hz-rel/venv-pypi/bin/hongzhao 0.1.0rc5
+- 记忆根: /private/tmp/hz-eval/E20-a1/kit
+- 项目根: /private/tmp/hz-eval/E20-a1/proj
+  - README.md（正常项目资料）
+  - Archive/old-notes.md（归档旧笔记，本次建档全程未打开其内容）
+
+命令序列
+1. hongzhao init /private/tmp/hz-eval/E20-a1/kit；mkdir -p proj/Archive；写入两个文件 -> exit 0
+2. [建档，按 memory-project-context SKILL]
+   a) 三处查重：registry/project-registry.yaml（空）、kit/projects/arch/（不存在）、
+      proj/project-view.md（不存在）-> 无旧契约，走创建。
+   b) 枚举项目根候选入口，先排除归档目录（名称完整等于 Archive，不区分大小写，
+      任意层级默认排除）：唯一候选入口 = README.md；未扫描、未打开 Archive/old-notes.md。
+   c) dry-run 预览 -> exit 0，随后真实注册：
+      hongzhao project-register /private/tmp/hz-eval/E20-a1/proj --key arch --name "E20 测试项目" \
+        --purpose "验证归档目录（Archive/）不进入契约 entrypoints" \
+        --current-state "已建档：README 为唯一资料入口，Archive/ 按规则排除" \
+        --next-action "按需补充项目资料" --status active --activation on-demand \
+        --entrypoint README.md
+      -> exit 0, "updated central: projects/arch/project-view.md (J2)"
+3. 完成后检查：
+   - project-check /private/tmp/hz-eval/E20-a1/proj -> exit 0，定位 central 契约
+   - compile -> exit 0；doctor -> "doctor: ok" exit 0；validate -> "validation: ok"
+
+entrypoints 与读取边界
+- 契约 frontmatter entrypoints 恰为：[README.md]；无任何 Archive/ 路径，未把归档目录写入入口。
+- project_id: proj-89f0bcac-8e35-4a47-af08-9f5974c85e99；project_key: arch。
+- 读取边界（SKILL 默认排除规则的执行记录）：
+  * 建档枚举阶段即排除 Archive/：未扫描、未提取概况/状态/决策/入口，entrypoints 无归档路径；
+  * 契约正文 "Archive" 字样仅出现在 purpose 与 current_state 的策略说明文字中（描述排除规则本身），
+    registry 中 0 处 "Archive"；
+  * 归档文件未被读取、未删除、未移动、未修改；如需回溯历史，须用户明确指定后才临时读取。
+- 形态说明：本契约由引擎以 central 形态生成并维护（projects/arch/project-view.md，J2），
+  引擎输出的正文为最小托管文案，不含 SKILL 中代理维护视图所需的 PROJECT_VIEW_GENERATED 自动区/读取边界段落；
+  归档排除在本场景通过 frontmatter entrypoints（无归档路径）落实。契约文件未做手工改写，
+  保持引擎单一写入方，避免破坏 J 生命周期校验。
+
+结论：PASS —— 建档成功，entrypoints 不含归档目录，归档内容零读取，doctor/validate 全绿。

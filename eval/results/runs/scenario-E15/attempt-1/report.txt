@@ -1,0 +1,47 @@
+E15 migrate-bridge 迁移旧式 agent-memory 块
+================================================
+
+环境
+- kit: /private/tmp/hz-eval/E15-a1/kit (hongzhao init, v0.1.0rc5)
+- 假客户端 fake_cc (enabled, mode: inline)
+  bridge_path=/private/tmp/hz-eval/E15-a1/fake/CLAUDE.md
+  skills_root=/private/tmp/hz-eval/E15-a1/fake/skills
+- fake/CLAUDE.md 预置：块外自有内容 `# My own notes` / `Keep this line intact.`
+  + `<!-- agent-memory:start -->...<!-- agent-memory:end -->` 旧式块
+
+命令序列与退出码
+1. hongzhao init /private/tmp/hz-eval/E15-a1/kit                  -> 0
+2. 编辑 kit/config.yaml 增加 fake_cc（enabled: true, mode: inline）
+3. mkdir -p fake/skills；写 fake/CLAUDE.md（旧块 + 自有内容）
+4. hongzhao compile                                               -> 0（init 后 bootstrap 未编译，bridge-install 首跑报
+     fatal: [Errno 2] ... render/bootstrap.md 退出码 2，compile 后重试成功）
+5. hongzhao bridge-install all                                    -> 0（插入托管块；未触碰旧块，两代块并存）
+6. hongzhao doctor                                                -> 0（warning 级）
+     warning LEGACY_MARKER fake_cc .../fake/CLAUDE.md legacy agent-memory block present; run hongzhao migrate-bridge all
+7. hongzhao migrate-bridge all                                    -> 2 ！！！
+     hongzhao: error: unrecognized arguments: all
+     doctor 提示文案 "migrate-bridge all" 与 CLI 实际语法不符；
+     migrate-bridge 不接受任何参数（默认即处理全部客户端）。
+8. hongzhao migrate-bridge（无参，按 doctor 意图）                 -> 0
+     migrate-bridge: fake_cc legacy block removed, new block kept
+9. hongzhao doctor                                                -> 0
+     LEGACY_MARKER 已消失；仅余 SKILL_MISSING x4（skills-install 未跑，
+     本场景范围只覆盖 doctor 点名的 LEGACY_MARKER 提示，未扩围）
+
+前后对比（自有内容保留证据）
+- before md5(fake/CLAUDE.md) = 09f7972d443c7d2c61771befa6c13d82
+- after  md5(fake/CLAUDE.md) = c06fa19c824b9c7b8157c50d6ca368d8（整体变化=预期：旧块被换为托管块）
+- 自有内容逐字节比较：head -3（"# My own notes\n\nKeep this line intact.\n"）
+  cmp before vs after -> 无差异（OWN CONTENT BYTE-IDENTICAL）
+- 迁移后 grep 确认：
+  行1 "# My own notes" 在；行3 "Keep this line intact." 在；
+  "agent-memory:start" 出现 0 次（旧块彻底移除）
+- 细节：旧块删除后原有旧块前的空行仍在，托管块紧随其后，
+  自有内容区未增删任何字节。
+
+结论
+- migrate-bridge 按 doctor 提示意图完成：旧式 agent-memory 块移除，
+  托管 hongzhao 块保留，块外自有内容逐字节保留。
+- 发现（非阻塞）：doctor 的 LEGACY_MARKER 修复提示
+  "run hongzhao migrate-bridge all" 中 "all" 不是合法参数，
+  照抄该命令会以退出码 2 失败；正确命令为无参 `hongzhao migrate-bridge`。

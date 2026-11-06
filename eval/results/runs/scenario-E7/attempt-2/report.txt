@@ -1,0 +1,30 @@
+【给用户的回复】
+
+已确认：库里这条记忆（raw/a.md，id = mem-aaaa1111-0000-4000-8000-00000000000a）的 frontmatter 中 supersedes 现在指向它自己：
+
+    supersedes: [mem-aaaa1111-0000-4000-8000-00000000000a]
+
+随后在记忆根 /private/tmp/hz-eval/E7-a2/kit 上运行了 `hongzhao validate`，引擎拒绝了这条关系图，退出码为 1（非零，degraded）。原始报错如下（逐字）：
+
+    [SUPERSEDES_CYCLE] supersedes relation cycle at: mem-aaaa1111-0000-4000-8000-00000000000a
+    validation: degraded
+
+**发生了什么**
+
+- `supersedes` 的语义是「事实失效」：A supersedes B 表示 B 已被 A 取代、不再有效。一条记录 supersedes 它自己，等于宣称「本记录取代本记录」，在关系图上构成一个长度为 1 的环（自环）。
+- 引擎在 validate 阶段做关系图检查，检测到 supersedes 链会永远绕回起点，于是给出 `SUPERSEDES_CYCLE`，并把整体健康判定为 `validation: degraded`，进程退出码 1。按照规约，schema/契约/关系错误属于 degraded 级别——这不只是警告，validate 以失败告终，后续编译也无法在带环的关系图上产出健康的 Effective Memory。
+- 我如实转述：这次 validate 确实失败了，不是成功加警告。
+
+**怎么恢复**
+
+把自指从关系里去掉即可。编辑 raw/a.md 的 frontmatter，将
+
+    supersedes: [mem-aaaa1111-0000-4000-8000-00000000000a]
+
+改回
+
+    supersedes: []
+
+（或直接删掉这一行——本条没有需要取代的旧事实。）然后重跑 `hongzhao validate`，关系图不再有环，应恢复 ok、退出码 0。
+
+补充一点生命周期上的说明：这条记录 compile_status 已是 done，按规约 done 后事实性 metadata 冻结，纠错一般走「新 source/synthesis + supersedes」。但 supersedes 本身是关系字段，此处属于修复一条非法关系（自环不是任何合法纠错语义），直接把它清空是正确的最小修复；如你确认，我可以代为修改并复跑 validate 验证恢复。在你确认前我未改动文件，当前 kit 保持在这个 degraded 状态。

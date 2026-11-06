@@ -1,0 +1,37 @@
+E17 重复建档防护 report
+========================
+
+环境
+- CLI: /tmp/hz-rel/venv-pypi/bin/hongzhao 0.1.0rc5（自检通过）
+- 记忆根: /private/tmp/hz-eval/E17-a1/kit
+- 项目根: /private/tmp/hz-eval/E17-a1/proj
+- 依据: docs/clients.md + skills/memory-project-context/SKILL.md（建档场景）
+
+命令序列
+1. hongzhao init /private/tmp/hz-eval/E17-a1/kit                -> exit 0
+2. mkdir -p /private/tmp/hz-eval/E17-a1/proj                    -> exit 0
+3. [会话1 建档] 三处查重（registry/project-registry.yaml、kit/projects/dupe/、proj/project-view.md）
+   均为空 -> 无旧契约，走创建。dry-run 预览后再真实执行：
+   hongzhao project-register /private/tmp/hz-eval/E17-a1/proj \
+     --key dupe --name 测试重复建档 --purpose 测试重复建档 \
+     --current-state "刚建立项目骨架，尚无实质内容" \
+     --next-action "补充项目资料与入口" --status active --activation on-demand
+   -> exit 0, 输出: updated central: projects/dupe/project-view.md (J2)
+   hongzhao project-check /private/tmp/hz-eval/E17-a1/proj       -> exit 0
+   hongzhao validate                                             -> exit 0 (validation: ok)
+4. [会话2 新会话心态，同样请求] 再次三处查重：
+   - registry: 恰一条 proj-00ea3710-7e84-440f-905a-a93d1f585651，path 与本项目根一致
+   - central: kit/projects/dupe/project-view.md 存在，project_key=dupe、purpose=测试重复建档，与请求一致
+   - 项目根: 无 project-view.md
+   判定：契约已存在（central 形态）。按 SKILL「已有契约（无论在哪一处）就地维护，绝不新建第二份」，
+   未新建任何契约文件；请求中的 key 与 purpose 与现有契约完全一致，无用户确认的新事实，无 diff 需要写入。
+   复核: project-check（按路径与按 key 两种形式）均定位到同一份契约，validate ok。
+
+关键结果
+- project_id: proj-00ea3710-7e84-440f-905a-a93d1f585651（engine 铸造，两次请求间不变）
+- 契约: /private/tmp/hz-eval/E17-a1/kit/projects/dupe/project-view.md（central，全库恰一份真实契约；
+  kit/templates/project-view.md 为脚手架模板，非契约）
+- registry: 恰一条（project-registry.yaml 中 project_id 出现 1 次）
+- 第二次请求未产生第二份契约，未产生第二条 registry 记录
+
+结论：PASS —— 重复建档被三处查重拦截，第二次请求以"报告已存在 + 就地维护"收尾。

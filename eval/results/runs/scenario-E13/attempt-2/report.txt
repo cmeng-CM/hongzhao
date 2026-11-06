@@ -1,0 +1,21 @@
+E13 批量审阅 20 条候选（记忆根：/private/tmp/hz-eval/E13-r2/kit）
+
+审阅过程（memory-compile 全流程）：
+1. validate：review-needed（20 条 compile_status: new），rc=0。
+2. 逐条审阅 20 条候选：
+   - 偏好类 10 条（topic perf-1..perf-10，kind=preference）：均为用户明确表达的长期偏好，主张独立、无歧义、无冲突，逐条标 done 生效；
+   - 过程记录类 10 条（topic proc-1..proc-10，kind=memory）：内容为会话操作过程，不属于长期事实，按你的指示逐条标 rejected，并填写 review_note（会话过程记录，不属于长期记忆，按用户指示否决）和 reviewed_at（2026-11-03）。
+   - 无重复/互补主张需要 synthesis；无 done-done 冲突，未写 conflicts_with。
+3. 复验 validate：ok。
+4. 依次执行 compile / bridge-install all / doctor：compiled: ok，memory-health: ok，全部 rc=0。
+
+审阅结果：
+- 审阅总数：20 条（全部为 new，无漏审）；
+- 标 done（生效）：10 条 —— perf-1、perf-2、perf-3、perf-4、perf-5、perf-6、perf-7、perf-8、perf-9、perf-10；
+- 标 rejected：10 条 —— proc-1、proc-2、proc-3、proc-4、proc-5、proc-6、proc-7、proc-8、proc-9、proc-10（均带 review_note + reviewed_at）。
+
+对账（以 compiled/last-compile-diff.md 为准）：
+- 本次为本 kit 首次编译，无基线 index，diff 只有计数表、无逐条 delta，如实说明，不虚构逐条变化；
+- diff 计数：total=20、effective=10、pending=0、rejected=10、superseded=0、covered=0、unresolved_conflicts=0；Totals: 20 records, 10 effective；Health: - -> ok；
+- 与审阅意图对账：审阅 20 条 = 计数 total 20；done 10 条 = effective 10；rejected 10 条 = rejected 10；待审清零 = pending 0。diff 与审阅声称完全一致，无多生效、漏生效或意外退出；
+- memory-index 复核：health=ok，counts 与 diff 相同（total 20 / effective 10 / pending 0 / rejected 10）。

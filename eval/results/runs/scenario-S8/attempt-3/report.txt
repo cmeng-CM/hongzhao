@@ -1,0 +1,17 @@
+S8 三句话按三分流处理，逐项如下：
+
+1）项目进展「myapp 登录模块完成」——未写入，需您先确认
+- 核实事实源：registry/project-registry.yaml 为空（projects: []），记忆根下无 projects/ 目录，`hongzhao project-check` 返回 PATH_INVALID。
+- myapp 实际未建档，与您提到的「已建档」不符。按规约：不虚构契约；project 范围 raw 必须绑定已登记 project_id，因此也未写 raw。
+- 下一步请您提供 myapp 项目根路径并确认契约字段（purpose / current_state / next_action / status / project_key），我再执行建档登记，进展随后写入项目契约。
+
+2）长期偏好「喜欢简洁的 commit message」——已写入
+- 新增 raw 候选：raw/2026-11-03_commit-style_5614e64e.md
+- scope=global，kind=preference，activation=on-demand，compile_status=new。
+- 候选待您之后明确要求编译（memory-compile）时审阅生效。
+
+3）知识文档「SQLite 的 WAL 模式要点」——已写入知识根并登记
+- 知识正文：knowledge/sqlite-wal.md（WAL 机制、读写并发收益、单写者/单机/网络盘限制、checkpoint 策略、busy_timeout 实践建议）。
+- 已执行 `hongzhao knowledge-register knowledge/sqlite-wal.md --title "SQLite 的 WAL 模式要点" --topic sqlite --summary "SQLite WAL 模式的机制、收益、限制与 checkpoint 实践要点"`，登记成功（1 entries），派生输出自动重建。
+
+收尾检查：`hongzhao validate` 结果 review-needed（rc=0），含义是偏好候选合法写入待审阅，尚未进入 Effective Memory。三项去向未混写：进展停在待确认（未虚构契约）、偏好进 global raw、知识进知识根+registry。

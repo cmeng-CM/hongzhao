@@ -1,0 +1,20 @@
+# 有特征键（paths 含 raw+memory_index）但含未知顶层键——命中候选谓词后校验必须失败
+schema_version: 2
+zzz_unknown_key: oops
+paths:
+  raw: raw
+  memory_index: compiled/memory-index.yaml
+  project_registry: registry/project-registry.yaml
+  knowledge_registry: registry/knowledge-registry.yaml
+  current_state: compiled/current-state.md
+  corrections: compiled/corrections.md
+  bootstrap: render/bootstrap.md
+  knowledge_map: compiled/knowledge-map.md
+skills:
+  - memory-write
+clients:
+  claude_code:
+    enabled: false
+    bridge_path: ~/hongzhao-test-clients/claude/RULES.md
+    skills_root: ~/hongzhao-test-clients/claude/skills
+    mode: import

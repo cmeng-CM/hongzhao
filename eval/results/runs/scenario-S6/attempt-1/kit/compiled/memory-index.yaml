@@ -1,0 +1,62 @@
+schema_version: 2
+generated_at: '2026-11-03T01:14:16+08:00'
+health: ok
+counts:
+  total: 2
+  effective: 1
+  pending: 0
+  rejected: 0
+  superseded: 1
+  covered: 0
+  unresolved_conflicts: 0
+  pending_conflicts: 0
+  bootstrap: 0
+records:
+  mem-588b88d7-338f-4761-8b23-a1059d19af10:
+    path: raw/2026-11-03_linux-distro_588b88d7.md
+    kind: memory
+    scope: non-project
+    project_id: null
+    topic: linux-distro
+    created: 2026-11-03
+    summary: 用户的 Linux 发行版是 Debian
+    compile_status: done
+    record_type: source
+    activation: on-demand
+    derived_from: []
+    source_chain: []
+    covers: []
+    covered_by: []
+    supersedes:
+    - mem-aaaa1111-0000-4000-8000-00000000000a
+    superseded_by: []
+    conflicts_with: []
+    resolved_by: null
+    effective: true
+    bootstrap_eligible: false
+    exclusion_reason: null
+    output: compiled/effective-memory/non-project.md
+  mem-aaaa1111-0000-4000-8000-00000000000a:
+    path: raw/old.md
+    kind: memory
+    scope: non-project
+    project_id: null
+    topic: linux-distro
+    created: 2026-11-02
+    summary: 用户的 Linux 发行版是 Ubuntu
+    compile_status: done
+    record_type: source
+    activation: on-demand
+    derived_from: []
+    source_chain: []
+    covers: []
+    covered_by: []
+    supersedes: []
+    superseded_by:
+    - mem-588b88d7-338f-4761-8b23-a1059d19af10
+    conflicts_with: []
+    resolved_by: null
+    effective: false
+    bootstrap_eligible: false
+    exclusion_reason: superseded
+    output: null

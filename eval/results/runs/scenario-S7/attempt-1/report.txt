@@ -1,0 +1,25 @@
+发现一条需要你裁决的记忆冲突，我已按规约停下来，暂不编译。
+
+冲突的两条记录（同 scope: non-project、同 topic: main-editor，事实主张互斥）：
+
+| | 现有生效记录 | 新候选 |
+|---|---|---|
+| 文件 | raw/existing.md | raw/new-candidate.md |
+| id | mem-aaaa1111-0000-4000-8000-00000000000a | mem-bbbb2222-0000-4000-8000-00000000000b |
+| 主张 | 用户的主编辑器是 Vim | 用户的主编辑器是 VSCode |
+| 来源 | user，created 2026-11-02 | user，created 2026-11-03（本条消息） |
+| 状态 | done（当前生效） | new（pending，未进入生效视图） |
+
+具体冲突点：「主编辑器」是单一的当前状态主张，Vim 与 VSCode 不能同时成立。
+
+按规约目前的处理：
+- 旧的 done 记录保持有效；新候选保持 pending，未进入 Effective Memory。
+- 没有写 conflicts_with（规约要求用户确认冲突后才写），也没有改动两条记录的任何状态。
+- 尚未运行编译。
+
+请你三选一：
+1. 现状是 VSCode：我将新候选标记 done 并 supersedes 旧 Vim 记录，Vim 退出生效；
+2. 现状仍是 Vim：我将新候选标记 rejected（填写 reviewed_at 和 review_note）；
+3. 两条在不同环境下分别成立（如公司机用 Vim、个人机用 VSCode）：请告诉我具体环境划分，我按限定后的明确事实重新落地对应记录。
+
+你选定后我再继续编译收口。

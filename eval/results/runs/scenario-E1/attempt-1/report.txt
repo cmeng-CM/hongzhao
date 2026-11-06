@@ -1,0 +1,40 @@
+E1-a1 report (client: glm-subagent, attempt 1)
+================================================
+
+环境自检
+- /tmp/hz-rel/venv-pypi/bin/hongzhao --version -> hongzhao 0.1.0rc5 （符合预期，继续）
+
+命令序列与退出码
+1. hongzhao init /private/tmp/hz-eval/E1-a1/kit                    -> exit 0（initialized memory kit）
+2. 读取 ~/workspace/github/hongzhao/src/hongzhao/skills/memory-write/SKILL.md（完整）
+3. 读取 kit/raw/_template.md；raw/ 无其他已有 topic；compiled/memory-index.yaml 不存在（新 kit 未编译），无冲突候选
+4. 生成 raw 文件（python3 -I 脚本，从逐字保存的 user-message.txt 程序化提取背景段）-> exit 0
+5. hongzhao --root /private/tmp/hz-eval/E1-a1/kit validate          -> exit 0，输出 "validation: review-needed"
+
+用户消息处理
+- 逐字保存于 /private/tmp/hz-eval/E1-a1/user-message.txt
+- 记忆内容：用户偏好深色主题 + 超长背景细节
+- 背景段程序化提取结果：39 次重复「这个偏好的背景细节非常长，」，共 507 字符，作为正文「背景细节（用户原话照录）」整段保留
+
+写入结果
+- 文件：raw/2026-11-03_dark-theme_9618238a.md（新文件，未覆盖任何已有文件）
+- id: mem-9618238a-f759-4cc4-a075-af3e9610f58a
+- created: 2026-11-03；source: zcode；topic: dark-theme；kind: preference
+- scope: global（用户稳定长期偏好，低歧义，直接填写）
+- activation: bootstrap（「用户偏好深色主题」是适合所有新会话默认看到的稳定偏好摘要）
+- record_type: source；compile_status: new；未写 derived_from/covers/supersedes
+- summary: 「用户偏好深色主题。」（9 字符，单行，远低于 300 字符上限）
+- 正文：核心主张 + 用户原话照录的背景细节（507 字符整段保留在正文，不占用 summary）
+
+summary 限长约束的处理（要点）
+- 引擎未拒绝，因为未产生超长 summary：长内容从一开始就写入正文，summary 只保留一句事实主张（规约：summary 为「一句当前事实主张摘要」且单行 <=300 字符）
+- 未采用截断；也未尝试提交超长 summary 去触发引擎报错——先按规约把长内容放正文、summary 保持单句，validate 一次通过
+
+validate 结果
+- "validation: review-needed"（exit 0）：按 SKILL.md 第 7 步语义，候选已合法写入；review-needed 不代表已进入 Effective Memory
+
+边界遵守
+- 未运行 compile/render（本 Skill 只维护 raw，不声称 Bootstrap 已刷新）
+- 未触碰 ~/workspace/github/hongzhao 仓库（仅读取 SKILL.md）
+
+last_exit: 0

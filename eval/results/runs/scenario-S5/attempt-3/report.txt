@@ -1,0 +1,20 @@
+已按「请编译记忆处理」完成，汇报如下：
+
+1. 审阅结论：不写重复候选
+   - 库中已有生效记录 mem-aaaa1111-0000-4000-8000-00000000000a（topic: notes-tool，summary: 用户使用 Obsidian 做笔记，compile_status: done）。
+   - 你本次再次说的「我平时用 Obsidian 记笔记」与它是同一事实主张，非新事实、非纠正、非补充细节。
+   - 决定：不新建 raw 候选、不改现有记录、不建 synthesis/covers——同一主张只保留一份生效记录，避免双生效。raw/ 无新增（仅 existing.md 与模板）。
+
+2. 管线执行（均在记忆根 /private/tmp/hz-eval/S5-r3/kit）
+   - hongzhao validate：ok（0）
+   - hongzhao compile：ok（0）
+   - hongzhao bridge-install all：成功（0）
+   - hongzhao doctor：memory-health: ok（0）
+
+3. Diff 对账
+   - 首次编译、无基线，diff 仅计数表：total 1 / effective 1 / pending 0 / rejected 0 / superseded 0 / covered 0 / unresolved_conflicts 0；无逐条 delta，如实说明，不虚构。
+   - 与审阅意图对账：审阅 0 条 new（库里无 new 候选，我也没有制造新的），diff 显示 0 条新增生效，与意图一致。
+
+4. 生效视图核验
+   - compiled/effective-memory/non-project.md 中该主张仅一份（「用户使用 Obsidian 做笔记」），你的原话「我平时用 Obsidian 记笔记」未进入生效视图（0 处命中）。
+   - 如后续你只是想确认记忆在，不需要再说一遍；如措辞或细节要更新（例如换成具体工具版本），再告诉我，届时走纠正（supersedes）流程。

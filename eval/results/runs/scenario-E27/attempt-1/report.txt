@@ -1,0 +1,64 @@
+E27-a1 执行汇报（glm-subagent，attempt 1）
+================================================
+
+自检：hongzhao 0.1.0rc5，退出码 0。规约：完整读取 hongzhao 仓库内
+memory-write/SKILL.md 与 memory-compile/SKILL.md 后执行。
+
+命令序列与退出码
+----------------
+1. hongzhao init /private/tmp/hz-eval/E27-a1/kit        -> EXIT 0
+2. 生成 300 条种子 raw：
+   - 10 条 topic=resident-1..10，activation=bootstrap，compile_status=done，
+     summary=「常驻要点 N」
+   - 290 条 topic=ondemand-1..290，activation=on-demand，compile_status=done，
+     summary=「按需事实 N」
+   - 全部 scope=non-project，kind=memory，source=user，record_type=source
+3. 用户消息：「记忆根在 /private/tmp/hz-eval/E27-a1/kit（300 条记忆的大库）。
+   请编译一次，然后报告：bootstrap 行数、注入 token 估算、以及你注意到的
+   任何上下文膨胀风险。」
+4. memory-compile 流程：
+   - hongzhao validate -> EXIT 0（ok；300 条均已 done，无 new 候选可审）
+   - 审阅：无 new；无重复/互补需 synthesis；无冲突；未写任何关系
+   - hongzhao validate（再次）-> EXIT 0（ok）
+   - hongzhao compile -> EXIT 0（compiled: ok）
+   - hongzhao bridge-install all -> EXIT 0
+   - hongzhao doctor -> EXIT 0（memory-health: ok）
+   - 读 compiled/last-compile-diff.md 对账：首次编译无基线（如实说明）；
+     计数表 total=300、effective=300、pending=0、rejected=0、bootstrap=10，
+     健康 `-` -> ok。与种子意图（300 条全部生效、其中 10 条进 bootstrap）一致。
+
+三个要求的数字（实测）
+----------------
+1. bootstrap 行数：52 行
+   （render/bootstrap.md 共 52 行文本；末行无换行符，故 wc -l 计 51）
+2. 注入 token 估算（字符数÷4）：
+   - 全文件 2344 字符（UTF-8 计；字节数 2424）-> 约 586 token
+   - 其中 10 条常驻条目行（Non-Project Key Items）531 字符 -> 约 133 token（约 23%）
+   - 其余为固定骨架（frontmatter、标题、空区段、Memory Routing 指引）
+     1813 字符 -> 约 453 token（约 77%）
+   - 若按 UTF-8 字节数÷4 则约 606 token；本报告以字符数口径为准：约 586
+3. 上下文膨胀风险（如实观察）：
+   a) 骨架占比高：本次注入约 77% 是与记忆量无关的固定骨架（路由指引、
+      空区段占位、frontmatter）；记忆越少，骨架占比越高，属固定开销而非
+      记忆膨胀，但每会话都要支付。
+   b) 每条 bootstrap 记录内联完整 UUID（约 38 字符），占单条成本近半
+      （10 条共约 380 字符约 95 token 仅用于 id）；条目多时 id 是显著膨胀源。
+   c) 线性增长风险：activation 由 agent 判定，若把大量记录标成 bootstrap，
+      注入量随条数线性增长（本实验每条常驻条目约 53 字符/13 token）；
+      300 条若全部标 bootstrap，估算将超过 6-7k token。本次 290 条
+      on-demand 记录全部未进入 bootstrap，说明 on-demand 路由有效，
+      膨胀被正确限制在 bootstrap 激活的那一小部分。
+   d) 空区段占位（no confirmed global user context yet / no registered
+      current projects / Global Key Items none 等）即使为空也占行数与 token。
+
+结论
+----------------
+编译成功、健康 ok、对账一致。300 条大库下 bootstrap 注入仍然受控：
+52 行 / 约 586 token，其中仅约 133 token 来自 10 条常驻记忆；
+主要膨胀风险不在本次数据量本身，而在 bootstrap 激活数滥用的线性增长
+与每条内联 UUID 的固定成本。
+
+meta.json
+----------------
+{"scenario":"E27-a1","client":"glm-subagent","attempt":1,"last_exit":0}
+（last_exit 为本场景最后一条 hongzhao 命令 doctor 的退出码）

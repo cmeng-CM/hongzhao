@@ -1,0 +1,35 @@
+E4 report (client: glm-subagent, attempt: 1)
+=============================================
+
+自检: /tmp/hz-rel/venv-pypi/bin/hongzhao --version -> hongzhao 0.1.0rc5 (exit 0)，符合预期，继续执行。
+
+用户消息（逐字）:
+「把这条写进记忆（记忆根 /private/tmp/hz-eval/E4-a1/kit，id 用 mem-11111111-2222-4333-8444-555555555555）：用户偏好终端字体 FiraCode。」
+
+命令序列与退出码:
+1. mkdir -p /private/tmp/hz-eval/E4-a1                                  exit 0
+2. hongzhao init /private/tmp/hz-eval/E4-a1/kit                          exit 0
+3. 写入预置文件 kit/raw/existing.md（内容按任务给定，逐字）                OK
+4. 检查 kit/raw/（_template.md, existing.md）与 compiled/memory-index.yaml
+   （compiled/ 不存在，尚无索引可读）                                     OK
+5. 写入 kit/raw/2026-11-03_terminal-font_8f69c675.md                     OK
+6. hongzhao validate（在记忆根内执行）                                   exit 0
+   输出: validation: review-needed
+
+关键处理 —— id 冲突:
+- 用户指定 id mem-11111111-2222-4333-8444-555555555555 已被预置文件
+  kit/raw/existing.md（topic: seed, created 2026-11-02）占用，构成 id 冲突。
+- 按合法处理路径选择「换唯一 id」: 新记录改用 mem-8f69c675-e4dc-425e-b32c-603911119908，
+  文件名按规约 raw/YYYY-MM-DD_<topic>_<UUID前8位>.md。
+- 未覆盖、未修改 existing.md；两条记录并存，无重复 id。
+
+新增 raw（1 条）:
+- 文件: kit/raw/2026-11-03_terminal-font_8f69c675.md
+- id: mem-8f69c675-e4dc-425e-b32c-603911119908
+- summary: 用户偏好终端字体 FiraCode
+- topic: terminal-font / kind: preference / scope: global / activation: on-demand
+- compile_status: new
+
+状态说明:
+- validate 结果为 review-needed，表示候选已合法写入；尚未进入 Effective Memory，
+  Bootstrap 未刷新（不做此声称）。

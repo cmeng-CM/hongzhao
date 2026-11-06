@@ -1,0 +1,36 @@
+schema_version: 2
+paths:
+  raw: raw
+  memory_index: compiled/memory-index.yaml
+  project_registry: registry/project-registry.yaml
+  knowledge_registry: registry/knowledge-registry.yaml
+  current_state: compiled/current-state.md
+  corrections: compiled/corrections.md
+  bootstrap: render/bootstrap.md
+  knowledge_map: compiled/knowledge-map.md
+skills:
+- memory-write
+- memory-compile
+- memory-project-context
+- work-closeout
+clients:
+  claude_code:
+    enabled: false
+    bridge_path: ~/.claude/CLAUDE.md
+    skills_root: ~/.claude/skills
+    mode: import
+  codex:
+    enabled: false
+    bridge_path: ~/.codex/AGENTS.md
+    skills_root: ~/.codex/skills
+    mode: inline
+  zcode:
+    enabled: false
+    bridge_path: ~/.zcode/AGENTS.md
+    skills_root: ~/.zcode/skills
+    mode: inline
+  fake_cc:
+    enabled: true
+    bridge_path: /private/tmp/hz-eval/E16-a1/fake/CLAUDE.md
+    skills_root: /private/tmp/hz-eval/E16-a1/fake/skills
+    mode: inline

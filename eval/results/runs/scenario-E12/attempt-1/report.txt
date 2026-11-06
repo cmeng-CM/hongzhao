@@ -1,0 +1,105 @@
+场景 E12 报告（两轮编译 + 二次 memory-write）
+执行目录：/private/tmp/hz-eval/E12-a1/
+自检：hongzhao 0.1.0rc5（预期 0.1.0rc5，通过，exit 0）
+规约依据：hongzhao 包内 memory-write 与 memory-compile SKILL.md（已完整读取）
+
+== 命令序列与退出码 ==
+1. hongzhao init /private/tmp/hz-eval/E12-a1/kit                 -> exit 0
+2. 写入 kit/raw/a.md（种子候选，mem-aaaa1111-...-000a，compile_status: new）
+3. [第一轮编译] hongzhao validate                                -> review-needed, exit 0
+4. 审阅 a.md（new：独立、无歧义的 global 偏好主张）-> 标 compile_status: done
+5. hongzhao validate                                             -> ok, exit 0
+6. hongzhao compile                                              -> compiled: ok, exit 0
+7. hongzhao bridge-install all                                   -> exit 0（config 中各 client 均 disabled，无实际写入）
+8. hongzhao doctor                                               -> memory-health: ok / doctor: ok, exit 0
+9. [第二步 memory-write] 读 raw topic（theme）+ compiled/memory-index.yaml 后写
+   kit/raw/2026-11-03_theme_81cbc336.md
+   （mem-81cbc336-61e9-4079-b616-420c961a6d93，topic=theme，kind=preference，
+    scope=global，activation=on-demand，source=user，record_type=source，compile_status: new）
+10. hongzhao validate                                            -> review-needed, exit 0
+11. [第二轮审阅] 新候选「用户偏好浅色模式」与 done 的「用户偏好深色主题」
+    同 scope(global)、同 topic(theme)，主张互相矛盾 => 按 memory-compile 第 4 步：
+    旧 done 保持有效，新候选继续 pending；不写 conflicts_with（用户确认前），
+    不擅自标 done 或 supersedes；需用户裁决后才能闭合。
+12. hongzhao validate                                            -> review-needed, exit 0
+13. hongzhao compile                                             -> compiled: review-needed, exit 0
+14. hongzhao bridge-install all                                   -> exit 0
+15. hongzhao doctor                                              -> memory-health: review-needed / doctor: ok, exit 0
+
+== 关键状态（对账） ==
+- 第一轮：1 raw，1 effective（深色主题），0 pending，health ok
+- 第二轮：2 raw，1 effective（仅深色主题），1 pending（浅色模式），0 rejected，
+  health review-needed（pending 不阻断现有生效视图）
+- compiled/effective-memory/global.md 仅含「用户偏好深色主题」一条
+
+== 第二步 diff 是否只包含新变化 ==
+是。第二轮 last-compile-diff.md 相对第一轮基线仅含：
++1 total、pending 0->1、effective 1->1（change 0）、health ok->review-needed，
+逐条 delta 仅「Newly pending (1): mem-81cbc336 用户偏好浅色模式」，
+无新增生效、无退出生效——与审阅意图（新候选因与 done 冲突保持 pending）完全一致。
+
+== 对账说明 ==
+- 审阅了 1 条新候选（mem-81cbc336），意图：保持 pending（与 done 冲突，待用户裁决）。
+- diff 显示新增生效 0、退出生效 0、新候选 1、新拒绝 0 => 与意图一致，无偏差。
+- 首次编译无基线，diff 仅计数表，已如实说明，未虚构逐条 delta。
+- 遗留待用户裁决：深色主题（done）与浅色模式（pending）的冲突裁决；
+  裁决前两条均按现行采纳规则处理（旧 done 有效，新候选不进 Effective Memory）。
+
+== 第一轮 diff（kit/compiled/last-compile-diff.md，2026-11-03T01:13:07+08:00） ==
+---
+schema_version: 2
+generated_at: 2026-11-03T01:13:07+08:00
+baseline: first compile (no baseline index)
+health_before: -
+health_after: ok
+---
+
+# Compile Diff
+
+Health: `-` -> `ok`
+
+## Counts
+
+| metric | before | after | change |
+| --- | --- | --- | --- |
+| total | - | 1 | - |
+| effective | - | 1 | - |
+| pending | - | 0 | - |
+| rejected | - | 0 | - |
+| superseded | - | 0 | - |
+| covered | - | 0 | - |
+| unresolved_conflicts | - | 0 | - |
+| bootstrap | - | 0 | - |
+
+First compile against this baseline; per-record deltas unavailable.
+Totals: 1 records, 1 effective.
+
+== 最终 diff（第二轮编译后 kit/compiled/last-compile-diff.md 完整内容） ==
+---
+schema_version: 2
+generated_at: 2026-11-03T01:14:36+08:00
+baseline: baseline generated at 2026-11-03T01:13:07+08:00
+health_before: ok
+health_after: review-needed
+---
+
+# Compile Diff
+
+Health: `ok` -> `review-needed`
+
+## Counts
+
+| metric | before | after | change |
+| --- | --- | --- | --- |
+| total | 1 | 2 | +1 |
+| effective | 1 | 1 | 0 |
+| pending | 0 | 1 | +1 |
+| rejected | 0 | 0 | 0 |
+| superseded | 0 | 0 | 0 |
+| covered | 0 | 0 | 0 |
+| unresolved_conflicts | 0 | 0 | 0 |
+| bootstrap | 0 | 0 | 0 |
+
+## Newly pending (1)
+
+- mem-81cbc336-61e9-4079-b616-420c961a6d93 | 用户偏好浅色模式

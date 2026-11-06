@@ -1,0 +1,9 @@
+schema_version: 2
+knowledge:
+- path: knowledge/jinja2-template-inheritance.md
+  title: Jinja2 模板继承
+  topics:
+  - jinja2
+  summary: Jinja2 模板继承用 {% extends %}，块用 {% block %}。
+  registered_at: '2026-11-03'
+  last_checked_at: '2026-11-03'

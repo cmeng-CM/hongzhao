@@ -1,0 +1,72 @@
+E21 report — root contract + central contract coexist (hongzhao 0.1.0rc5)
+=========================================================================
+
+User message (verbatim):
+「记忆根在 /private/tmp/hz-eval/E21-a1/kit。项目根有自己的 project-view.md（根契约），
+同时记忆根 projects/ 下还有一份老的 central 契约。请编译并报告：两份契约现在的状态、
+哪份生效。」
+
+Setup performed
+---------------
+1. hongzhao init /private/tmp/hz-eval/E21-a1/kit                 -> exit 0
+2. mkdir -p /private/tmp/hz-eval/E21-a1/proj
+3. project-register /private/tmp/hz-eval/E21-a1/proj --key coexist
+   (first attempt without --current-state/--next-action -> [FIELD_INVALID]
+   missing required fields for J6, exit 1; retried with all fields -> exit 0)
+   Result: "registered new project: proj-605c1c44-dd41-47dc-8075-a29d14b4559e
+   at projects/coexist (J6; key from --key)"
+   Central contract created at kit/projects/coexist/project-view.md
+4. cp central contract -> proj/project-view.md (identical copy:
+   same project_id proj-605c1c44-dd41-47dc-8075-a29d14b4559e, same key coexist)
+
+Engine behavior observed
+------------------------
+compile (exit 0):
+  note: inline clients need `hongzhao bridge-install all` to refresh; run
+  `hongzhao doctor` to check.
+  compiled: ok
+  -> compile does NOT fail on the duplicate contract.
+
+validate (exit 0):
+  validation: ok
+  -> validate does NOT flag the duplicate either.
+
+doctor (exit 1, degraded):
+  degraded CONTRACT_DUPLICATE - /private/tmp/hz-eval/E21-a1/proj/project-view.md
+  id proj-605c1c44-dd41-47dc-8075-a29d14b4559e exists both as central and
+  project-root contract; fix: confirm which copy is canonical, then
+  hongzhao project-unregister <key> and re-register
+  memory-health: ok
+  doctor: degraded
+
+project-check /private/tmp/hz-eval/E21-a1/proj (exit 0, before and after compile):
+  contract: /private/tmp/hz-eval/E21-a1/kit/projects/coexist/project-view.md (central)
+  project_id: proj-605c1c44-dd41-47dc-8075-a29d14b4559e; key: coexist
+
+Two contracts' status / which one is effective
+----------------------------------------------
+- Central contract: kit/projects/coexist/project-view.md — exists, unchanged.
+- Root contract:    /private/tmp/hz-eval/E21-a1/proj/project-view.md — exists,
+  byte-identical to the central copy (diff clean after compile; compile
+  modified neither file).
+- Effective copy per the engine: the CENTRAL contract. project-check resolves
+  central first ("contract: .../kit/projects/coexist/project-view.md (central)").
+- rc5 semantics observed: the engine does NOT silently pick the root contract;
+  doctor flags the coexistence as degraded CONTRACT_DUPLICATE (exit 1) and
+  instructs the user to confirm which copy is canonical, then
+  project-unregister <key> + re-register. Compile/validate stay green.
+
+Per the user's request scope ("请编译并报告"), no unregister/re-register fix was
+executed — the duplicate state was left in place and is reported above.
+
+Command sequence and exit codes
+-------------------------------
+hongzhao --version                                                    -> 0
+hongzhao init .../E21-a1/kit                                          -> 0
+hongzhao --root .../kit project-register .../proj --key coexist ...   -> 1 (first attempt, FIELD_INVALID)
+hongzhao --root .../kit project-register .../proj --key coexist ...   -> 0 (with required fields)
+cp central -> proj/project-view.md                                    -> 0
+hongzhao --root .../kit compile                                       -> 0
+hongzhao --root .../kit validate                                      -> 0
+hongzhao --root .../kit doctor                                        -> 1 (degraded CONTRACT_DUPLICATE)
+hongzhao --root .../kit project-check .../proj                        -> 0 (resolves central)

@@ -1,0 +1,38 @@
+E16 uninstall 移除托管块、自有内容一字不动
+================================================
+
+环境
+- kit: /private/tmp/hz-eval/E16-a1/kit (hongzhao init, v0.1.0rc5)
+- 假客户端 fake_cc (enabled, mode: inline)
+  bridge_path=/private/tmp/hz-eval/E16-a1/fake/CLAUDE.md
+  skills_root=/private/tmp/hz-eval/E16-a1/fake/skills
+- fake/CLAUDE.md 自有内容：`# Keep me` + `MY-UNIQUE-CONTENT-12345`
+
+命令序列与退出码
+1. hongzhao init /private/tmp/hz-eval/E16-a1/kit                  -> 0
+2. 编辑 kit/config.yaml 增加 fake_cc（enabled: true, mode: inline）
+3. 写 fake/CLAUDE.md（仅自有内容，无任何块）
+4. hongzhao compile                                               -> 0
+5. hongzhao bridge-install all                                    -> 0（托管块追加在自有内容之后）
+6. hongzhao uninstall（默认 dry-run）                             -> 0
+     uninstall plan (dry-run; pass --yes to execute):
+       remove managed block: fake_cc /private/tmp/hz-eval/E16-a1/fake/CLAUDE.md
+       keep: memory root itself (/private/tmp/hz-eval/E16-a1/kit)
+   dry-run 后 md5(fake/CLAUDE.md)=a71e4cadf989207d415c08f19a0ad92b，
+   与装块后快照完全一致 -> dry-run 未写任何字节
+7. hongzhao uninstall --yes                                       -> 0
+     uninstall: block removed from /private/tmp/hz-eval/E16-a1/fake/CLAUDE.md
+8. hongzhao doctor                                                -> 0
+     BRIDGE_BLOCK（托管块已移除，符合 uninstall 后预期）+ SKILL_MISSING x4（未装 skills，范围外）
+
+自有内容保留证据
+- 安装前原始文件 md5 = a906857a67a4878209379ad9ba388acd
+  （printf '# Keep me\n\nMY-UNIQUE-CONTENT-12345\n' | md5 同值）
+- uninstall --yes 后 md5 = a906857a67a4878209379ad9ba388acd
+  -> 与安装前逐字节一致，托管块被干净移除、无残留空行或多余换行
+- grep 确认：行1 "# Keep me" 在；行3 "MY-UNIQUE-CONTENT-12345" 在
+- "hongzhao:start" 出现 0 次（托管块彻底移除）
+
+结论
+- uninstall dry-run 只打印清单不落盘；--yes 后托管块整块移除，
+  指令文件恢复到安装前的逐字节原始状态，自有内容一字不动。

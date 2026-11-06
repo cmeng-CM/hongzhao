@@ -1,0 +1,5 @@
+exit: 0
+records:
+  mem-aaaa1111-0000-4000-8000-00000000000a:
+    effective: false
+    exclusion_reason: superseded

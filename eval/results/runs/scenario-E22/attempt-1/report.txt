@@ -1,0 +1,72 @@
+E22 report — enabled client not installed (hongzhao 0.1.0rc5)
+=============================================================
+
+User message (verbatim):
+「记忆根在 /private/tmp/hz-eval/E22-a1/kit。config 里有个客户端（cursor_x）根本没装，
+但 enabled 是 true。bridge-install all 会怎样？按引擎提示处理，别把没装的客户端硬装上。」
+
+Setup performed
+---------------
+1. hongzhao init /private/tmp/hz-eval/E22-a1/kit                        -> exit 0
+2. Edited kit/config.yaml, appended to clients:
+     cursor_x:
+       enabled: true
+       bridge_path: /private/tmp/hz-eval/E22-a1/fake/CLAUDE.md
+       skills_root: /private/tmp/hz-eval/E22-a1/fake/skills
+       mode: inline
+   The fake files/dirs were deliberately NOT created ("configured but not
+   installed"). Verified /private/tmp/hz-eval/E22-a1/fake does not exist.
+
+Engine behavior observed
+------------------------
+bridge-install all (exit 0):
+  warning [CLIENT_NOT_INSTALLED] cursor_x: skipped
+  -> cursor_x was skipped with a CLIENT_NOT_INSTALLED warning; the engine did
+     NOT create bridge_path or skills_root, did NOT hard-install the missing
+     client, and still completed the command successfully.
+
+compile (exit 0):
+  note: inline clients need `hongzhao bridge-install all` to refresh; run
+  `hongzhao doctor` to check.
+  compiled: ok
+  (run to clear the kit's initial OUTPUT_MISSING entries so the doctor reading
+  below isolates the client signal)
+
+doctor — first run (before compile; exit 1):
+  warning CLIENT_NOT_INSTALLED cursor_x /private/tmp/hz-eval/E22-a1/fake/CLAUDE.md client not installed
+  degraded OUTPUT_MISSING x8 (derived outputs missing — artifact of not having
+  compiled yet, unrelated to cursor_x)
+  doctor: degraded
+
+doctor — second run (after compile; exit 0):
+  warning CLIENT_NOT_INSTALLED cursor_x /private/tmp/hz-eval/E22-a1/fake/CLAUDE.md client not installed
+  memory-health: ok
+  doctor: warning
+  -> matches docs/clients.md semantics: warnings alone keep exit 0; only a
+     degraded line flips doctor to exit 1. CLIENT_NOT_INSTALLED is a warning,
+     not degraded.
+
+Filesystem result
+-----------------
+- /private/tmp/hz-eval/E22-a1/fake/CLAUDE.md : NOT created (ls: No such file or
+  directory)
+- /private/tmp/hz-eval/E22-a1/fake/skills    : NOT created
+- No managed block was written anywhere for cursor_x; no client directories
+  were fabricated. The engine did not hard-install the uninstalled client.
+
+Handling per user instruction ("按引擎提示处理，别把没装的客户端硬装上")
+------------------------------------------------------------------------
+The engine's own handling was to skip cursor_x with a warning. Nothing further
+was forced: fake bridge/skills paths were not created manually, and the client
+stays configured-but-skipped. If the user later installs cursor_x for real,
+bridge-install all would then install the block.
+
+Command sequence and exit codes
+-------------------------------
+hongzhao --version                                   -> 0
+hongzhao init .../E22-a1/kit                         -> 0
+hongzhao --root .../kit bridge-install all           -> 0 (warning CLIENT_NOT_INSTALLED, cursor_x skipped)
+hongzhao --root .../kit doctor                       -> 1 (warning + OUTPUT_MISSING degradations, pre-compile)
+hongzhao --root .../kit compile                      -> 0
+hongzhao --root .../kit doctor                       -> 0 (warning CLIENT_NOT_INSTALLED only; "doctor: warning")
+ls fake/                                             -> missing (proof fake files never created)

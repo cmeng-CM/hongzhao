@@ -1,0 +1,14 @@
+schema_version: 2
+generated_at: '2026-11-03T01:42:12+08:00'
+health: ok
+counts:
+  total: 0
+  effective: 0
+  pending: 0
+  rejected: 0
+  superseded: 0
+  covered: 0
+  unresolved_conflicts: 0
+  pending_conflicts: 0
+  bootstrap: 0
+records: {}

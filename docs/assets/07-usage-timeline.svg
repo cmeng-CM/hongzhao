@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 560" font-family="Helvetica,Arial,sans-serif">
+  <rect width="1600" height="560" fill="#fafafa"/>
+  <text x="800" y="50" text-anchor="middle" font-size="30" font-weight="bold" fill="#1a1a1a">Usage timeline: four acts, one cycle</text>
+  <text x="800" y="84" text-anchor="middle" font-size="17" fill="#555">Each act = your move + the system's response. The blue gate keeps candidates out; the green gate builds views.</text>
+
+  <!-- timeline spine -->
+  <line x1="90" y1="300" x2="1510" y2="300" stroke="#bbb" stroke-width="3"/>
+
+  <!-- act 0 -->
+  <g>
+    <circle cx="230" cy="300" r="16" fill="#1c7ed6"/>
+    <rect x="80" y="150" width="310" height="120" rx="12" fill="#e7f5ff" stroke="#1c7ed6" stroke-width="2"/>
+    <text x="235" y="185" text-anchor="middle" font-size="18" font-weight="bold" fill="#1c7ed6">Act 0 · Prepare (once)</text>
+    <text x="235" y="215" text-anchor="middle" font-size="13" fill="#444">init a kit, enable clients,</text>
+    <text x="235" y="235" text-anchor="middle" font-size="13" fill="#444">register your projects</text>
+    <rect x="80" y="330" width="310" height="90" rx="12" fill="#fff" stroke="#999" stroke-width="1.5"/>
+    <text x="235" y="362" text-anchor="middle" font-size="12.5" fill="#555">hongzhao init ~/mem --client codex</text>
+    <text x="235" y="384" text-anchor="middle" font-size="12.5" fill="#555">hongzhao project-register &lt;path&gt; ...</text>
+    <text x="235" y="406" text-anchor="middle" font-size="12.5" fill="#555">hongzhao bridge-install · skills-install</text>
+  </g>
+
+  <!-- act 1 -->
+  <g>
+    <circle cx="620" cy="300" r="16" fill="#3b5bdb"/>
+    <rect x="465" y="150" width="310" height="120" rx="12" fill="#dbe4ff" stroke="#3b5bdb" stroke-width="2"/>
+    <text x="620" y="185" text-anchor="middle" font-size="18" font-weight="bold" fill="#3b5bdb">Act 1 · Capture</text>
+    <text x="620" y="215" text-anchor="middle" font-size="13" fill="#444">agent drafts a raw claim;</text>
+    <text x="620" y="235" text-anchor="middle" font-size="13" fill="#444">you review summary + relations</text>
+    <rect x="465" y="330" width="310" height="90" rx="12" fill="#fff" stroke="#999" stroke-width="1.5"/>
+    <text x="620" y="362" text-anchor="middle" font-size="12.5" fill="#555">raw/2026-10-30_&lt;topic&gt;_&lt;hex&gt;.md</text>
+    <text x="620" y="384" text-anchor="middle" font-size="12.5" fill="#555">candidate — not in any view yet</text>
+    <text x="620" y="406" text-anchor="middle" font-size="12.5" fill="#888">blue gate: nothing leaks</text>
+  </g>
+
+  <!-- act 2 -->
+  <g>
+    <circle cx="1010" cy="300" r="16" fill="#2f9e44"/>
+    <rect x="855" y="150" width="310" height="120" rx="12" fill="#d3f9d8" stroke="#2f9e44" stroke-width="2"/>
+    <text x="1010" y="185" text-anchor="middle" font-size="18" font-weight="bold" fill="#2f9e44">Act 2 · Compile</text>
+    <text x="1010" y="215" text-anchor="middle" font-size="13" fill="#444">deterministic gate rebuilds views;</text>
+    <text x="1010" y="235" text-anchor="middle" font-size="13" fill="#444">doctor confirms health</text>
+    <rect x="855" y="330" width="310" height="90" rx="12" fill="#fff" stroke="#999" stroke-width="1.5"/>
+    <text x="1010" y="362" text-anchor="middle" font-size="12.5" fill="#555">hongzhao validate &amp;&amp; compile</text>
+    <text x="1010" y="384" text-anchor="middle" font-size="12.5" fill="#555">hongzhao doctor</text>
+    <text x="1010" y="406" text-anchor="middle" font-size="12.5" fill="#888">green gate: views are effective</text>
+  </g>
+
+  <!-- act 3 -->
+  <g>
+    <circle cx="1400" cy="300" r="16" fill="#e8590c"/>
+    <rect x="1245" y="150" width="310" height="120" rx="12" fill="#fff4e6" stroke="#e8590c" stroke-width="2"/>
+    <text x="1400" y="185" text-anchor="middle" font-size="18" font-weight="bold" fill="#e8590c">Act 3 · Consume</text>
+    <text x="1400" y="215" text-anchor="middle" font-size="13" fill="#444">sessions start from the bootstrap,</text>
+    <text x="1400" y="235" text-anchor="middle" font-size="13" fill="#444">route by index, work per project</text>
+    <rect x="1245" y="330" width="310" height="90" rx="12" fill="#fff" stroke="#999" stroke-width="1.5"/>
+    <text x="1400" y="362" text-anchor="middle" font-size="12.5" fill="#555">bootstrap → index → project view</text>
+    <text x="1400" y="384" text-anchor="middle" font-size="12.5" fill="#555">raw/ only for evidence</text>
+    <text x="1400" y="406" text-anchor="middle" font-size="12.5" fill="#888">finds facts from last cycle → Act 1</text>
+  </g>
+
+  <defs><marker id="f" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 z" fill="#888"/></marker></defs>
+  <path d="M1560 300 C 1560 500, 230 500, 230 322" fill="none" stroke="#888" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#f)"/>
+  <text x="800" y="492" text-anchor="middle" font-size="14" fill="#666">the cycle repeats: capture → compile → consume → capture</text>
+
+  <text x="800" y="530" text-anchor="middle" font-size="13" fill="#888">Run each act's commands exactly as shown; everything else (views, blocks, links) is derived.</text>
+</svg>

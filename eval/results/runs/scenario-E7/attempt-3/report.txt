@@ -1,0 +1,15 @@
+已按您的要求执行，结果如下（这是引擎的预期防护，不是故障）：
+
+1）改动：raw/a.md（id: mem-aaaa1111-0000-4000-8000-00000000000a，compile_status: done）在 frontmatter 中加入 supersedes: [mem-aaaa1111-0000-4000-8000-00000000000a]，即该记录声明取代它自己。
+
+2）validate 结果（改动后）：
+- 输出：[SUPERSEDES_CYCLE] supersedes relation cycle at: mem-aaaa1111-0000-4000-8000-00000000000a
+- 结论行：validation: degraded
+- 退出码：1
+
+3）解读：
+- 引擎对 supersedes 关系做环检测；记录指向自己构成最短的可能环，被 SUPERSEDES_CYCLE 规则拦截，整体健康状态降级为 degraded，validate 以退出码 1 结束。
+- 这属于规约中的预期保护：supersedes 表达「事实失效、被新记录取代」，自指在语义上不成立（一条记录不能取代自己），因此关系图错误会使 kit 进入 degraded，阻断以此为基础的编译产物。
+- 对照：改动前基线 validate 为 validation: ok（rc=0），说明 degraded 完全由这条自指关系引起。
+
+4）当前状态：raw/a.md 仍保留您要求的自指写法，kit 处于 degraded。如需恢复健康，移除该行 supersedes（或告诉我改回），再跑 validate 即可回到 ok；我也说明一点：done 记录的事实性字段本应冻结，本次改动是按您的明确指示做的测试性修改。

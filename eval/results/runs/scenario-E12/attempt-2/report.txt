@@ -1,0 +1,83 @@
+E12 两次编译的 diff 链（记忆根：/private/tmp/hz-eval/E12-r2/kit）
+
+处理过程：
+- 第一步（编译记忆）：validate 显示 review-needed（1 条候选「用户偏好深色主题」topic=theme）。审阅：该主张独立、无歧义，标 done。复验 validate=ok 后依次执行 compile / bridge-install all / doctor，全部通过，health=ok。
+- 第二步（再记「用户偏好浅色模式」并再编译）：按 memory-write 新增候选 raw/2026-11-03_theme_7b2cf65c.md（id mem-7b2cf65c-4e4a-469d-8397-6eded4538744，kind=preference，scope=non-project，compile_status=new）。该主张与已生效的「深色主题」同 topic 且直接矛盾，属于用户明确提出的新偏好，按规约以新 source + supersedes（指向 mem-aaaa1111-0000-4000-8000-00000000000a）表达取代，而非留下两条矛盾的生效主张。validate=review-needed（候选合法写入）。第二轮编译审阅将其标 done，复验 validate=ok，compile / bridge-install all / doctor 全部通过，health=ok。
+
+两份 diff 如下。
+
+========== 第一份 diff（第一步编译，compiled/last-compile-diff.md 当时内容） ==========
+
+---
+schema_version: 2
+generated_at: 2026-11-03T09:25:31+08:00
+baseline: first compile (no baseline index)
+health_before: -
+health_after: ok
+---
+
+# Compile Diff
+
+Health: `-` -> `ok`
+
+## Counts
+
+| metric | before | after | change |
+| --- | --- | --- | --- |
+| total | - | 1 | - |
+| effective | - | 1 | - |
+| pending | - | 0 | - |
+| rejected | - | 0 | - |
+| superseded | - | 0 | - |
+| covered | - | 0 | - |
+| unresolved_conflicts | - | 0 | - |
+| bootstrap | - | 0 | - |
+
+First compile against this baseline; per-record deltas unavailable.
+Totals: 1 records, 1 effective.
+
+说明：第一轮是本 kit 首次编译，无基线 index，diff 只有计数表（1 条记录、1 条生效=深色主题），无逐条 delta，如实转述。
+
+========== 第二份 diff（第二步编译，只包含新变化） ==========
+
+第二份 diff 相对第一份只包含新变化，未重复第一份内容：
+- Newly effective (1)：浅色模式新记录生效；
+- No longer effective (1)：深色主题因 superseded 退出生效；
+- 计数变化：total 1→2（+1）、effective 1→1（持平：一进一出）、superseded 0→1（+1），pending/rejected 均为 0，health 保持 ok。
+
+当前状态：health=ok；effective=1（浅色模式）、superseded=1（深色主题）、pending=0。
+
+以下附最终 last-compile-diff.md 全文。
+
+---
+schema_version: 2
+generated_at: 2026-11-03T09:25:56+08:00
+baseline: baseline generated at 2026-11-03T09:25:31+08:00
+health_before: ok
+health_after: ok
+---
+
+# Compile Diff
+
+Health: `ok` (unchanged)
+
+## Counts
+
+| metric | before | after | change |
+| --- | --- | --- | --- |
+| total | 1 | 2 | +1 |
+| effective | 1 | 1 | 0 |
+| pending | 0 | 0 | 0 |
+| rejected | 0 | 0 | 0 |
+| superseded | 0 | 1 | +1 |
+| covered | 0 | 0 | 0 |
+| unresolved_conflicts | 0 | 0 | 0 |
+| bootstrap | 0 | 0 | 0 |
+
+## Newly effective (1)
+
+- mem-7b2cf65c-4e4a-469d-8397-6eded4538744 | 用户偏好浅色模式 -> compiled/effective-memory/non-project.md
+
+## No longer effective (1)
+
+- mem-aaaa1111-0000-4000-8000-00000000000a | 用户偏好深色主题 | reason: superseded

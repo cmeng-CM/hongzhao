@@ -1,0 +1,42 @@
+E23 手动篡改托管块 -> doctor 检出 BRIDGE_STALE -> 按提示修复
+================================================
+
+环境
+- kit: /private/tmp/hz-eval/E23-a1/kit (hongzhao init, v0.1.0rc5)
+- 假客户端 fake_cc (enabled, mode: inline)
+  bridge_path=/private/tmp/hz-eval/E23-a1/fake/CLAUDE.md
+  skills_root=/private/tmp/hz-eval/E23-a1/fake/skills
+- fake/CLAUDE.md 块外自有内容（行1-4）：
+  `# My precious notes` / `Own line one: keep everything outside the managed block.`
+  / `Own line two: untouched by tools.`
+
+命令序列与退出码
+1. hongzhao init /private/tmp/hz-eval/E23-a1/kit                  -> 0
+2. 编辑 kit/config.yaml 增加 fake_cc（enabled: true, mode: inline）
+3. 写 fake/CLAUDE.md（仅自有内容）
+4. hongzhao compile                                               -> 0
+5. hongzhao bridge-install all                                    -> 0
+6. hongzhao doctor（篡改前）                                      -> 0，无 BRIDGE_STALE
+7. 手动 Edit fake/CLAUDE.md 托管块内一行快照文本：
+     行29 "- (no confirmed global user context yet)"
+       -> "- (user context TAMPERED-BY-HAND here)"
+8. hongzhao doctor（篡改后）                                      -> 0（warning 级），检出：
+     warning BRIDGE_STALE fake_cc /private/tmp/hz-eval/E23-a1/fake/CLAUDE.md
+       managed block drifted; run hongzhao bridge-install
+9. hongzhao bridge-install fake_cc（按 doctor 提示）              -> 0
+     bridge-install: fake_cc -> /private/tmp/hz-eval/E23-a1/fake/CLAUDE.md
+10. hongzhao doctor（修复后）                                     -> 0
+     BRIDGE_STALE 已消失；仅余 SKILL_MISSING x4（未装 skills，本场景范围外）
+
+修复效果验证
+- BRIDGE_STALE：修复后 0 条
+- 篡改文本 "TAMPERED-BY-HAND"：出现 0 次（被规范快照覆盖）
+- 原快照文本 "no confirmed global user context yet"：恢复出现 1 次
+- 自有内容逐字节证据：装块后快照 head-6（含块外行1-4 与块首标记行）
+  cmp vs 修复后 head-6 -> 无差异（OWN CONTENT BYTE-IDENTICAL）
+
+结论
+- doctor 能检出托管块内快照文本被手动篡改（BRIDGE_STALE, warning 级，
+  exit 0），提示命令与 CLI 实际用法一致（bridge-install fake_cc 可执行）。
+- 按提示 bridge-install 后块内容恢复为当前 bootstrap 规范快照，
+  块外自有内容逐字节保留。

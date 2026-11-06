@@ -1,0 +1,8 @@
+schema_version: 2
+projects:
+- project_id: proj-00ea3710-7e84-440f-905a-a93d1f585651
+  location:
+    kind: external
+    path: /private/tmp/hz-eval/E17-a1/proj
+  registered_at: '2026-11-03'
+  last_checked_at: '2026-11-03'

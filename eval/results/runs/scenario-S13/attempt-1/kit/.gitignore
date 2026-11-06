@@ -1,0 +1,4 @@
+# hongzhao 运行期锁（D-36：绑定记忆根、持久存在）
+.hongzhao.lock
+# 常规忽略
+.DS_Store

@@ -1,0 +1,8 @@
+建档完成。
+
+- 契约：/private/tmp/hz-eval/S3-a2/proj/project-view.md（项目根形态，唯一一份）。
+- frontmatter：schema_version 2；project_id proj-f5b0020f-9f00-4cdd-bf15-b97fcef16b29；project_key blog；project_name 个人博客生成器；updated_at 2026-11-03；status active；purpose 个人博客生成器；current_state 初始化完成；next_action 写渲染器；activation on-demand；entrypoints []。
+- 字段来源说明：purpose/current_state/next_action 取你确认的原文；status 由「初始化完成」低歧义映射为 active；project_key 取 blog（你未指定，记忆库为空、无占用冲突）；activation 取保守默认 on-demand；项目根下尚无详细资料，entrypoints 为空，不写占位内容；人工区「关键决策」「问题、卡点与风险」暂空。
+- 注册：在记忆根执行 hongzhao project-register（key=blog），引擎复用根契约 ID（J1-a），未创建 central 契约，registry 已登记 path→proj-f5b0020f。
+- 完成后检查：hongzhao project-check（定位到 project-root 契约，ID 与注册表一致）、hongzhao render（compiled: ok）、hongzhao bridge-install all、hongzhao doctor（memory-health: ok / doctor: ok）全部通过；自动区块标记成对、含「读取边界」，entrypoints 无归档目录（目录为空）；Project Memory 链接 target=blog，当前无项目记忆，已明确标记待生成。
+- 过程披露：首次注册尝试出现过一次 CONTRACT_DUPLICATE——我先创建了自选 UUID 的根契约、随后带全部字段注册，引擎为 key=blog 确定性生成 proj-f5b0020f 并先建了 central 契约，形成双契约冲突（render/doctor 一度 degraded）。按 doctor 指引执行 project-unregister 清理注册表与临时契约、移除孤儿 central 后，改用引擎确定性 ID 重建根契约并重新注册，最终状态唯一契约、检查全绿。中间产物均已清除。

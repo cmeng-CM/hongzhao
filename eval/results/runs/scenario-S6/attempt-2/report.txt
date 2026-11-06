@@ -1,0 +1,24 @@
+纠正已按规约落库并编译完成，汇报如下：
+
+1. 纠正方式：新 source + supersedes（未动旧记录）
+   - 目标确认：raw/old.md，id mem-aaaa1111-0000-4000-8000-00000000000a，summary「用户的 Linux 发行版是 Ubuntu」，compile_status: done，与你的引述唯一匹配。
+   - 旧记录已 done、正文与事实性 metadata 冻结，因此不就地改写；按规约新建纠正候选并建立取代链：
+     - 新记录 id mem-94829ea1-df87-45f8-be27-d63b1bf3c0fa，topic: linux-distro，scope: non-project，activation: on-demand，record_type: source
+     - summary：用户的 Linux 发行版是 Debian
+     - supersedes: [mem-aaaa1111-0000-4000-8000-00000000000a]
+     - 文件：raw/2026-11-03_linux-distro_94829ea1.md
+   - 写入后 validate：review-needed（候选合法写入、尚未生效）。
+
+2. 审阅与编译
+   - memory-compile 审阅该 new 候选：属用户明确纠正、无歧义，标记 compile_status: done；旧记录保持原状，经 supersedes 链由引擎排除。
+   - 管线：validate ok（0）→ compile ok（0）→ bridge-install all 成功（0）→ doctor memory-health: ok（0）。
+
+3. 对账（含一次自查修正）
+   - 首次编译 diff（无基线，仅计数）：total 2 / effective 1 / superseded 1，与审阅意图一致（1 条新生效、1 条被取代退出）。
+   - 自查发现：新记录正文初稿引用了旧主张原文，导致「Ubuntu」字样残留在生效视图。按对账回路回到 raw 修正正文（当前事实 + 指向 corrections 的取代说明），重新走完 validate→compile→bridge→doctor，全部 ok（0）。
+   - 修正后 diff：较基线无变化（total 2 / effective 1 / superseded 1，health ok 持平）。
+
+4. 最终状态核验
+   - 生效视图 compiled/effective-memory/non-project.md：包含 Debian，0 处 Ubuntu。
+   - memory-index：新记录 effective: true；旧记录 mem-aaaa…000a effective: false，exclusion_reason: superseded。
+   - compiled/corrections.md 记录了 mem-94829ea1… → mem-aaaa…000a 的 supersedes 链，可追溯。

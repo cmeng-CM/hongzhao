@@ -1,0 +1,25 @@
+E7 最终汇报（给用户）：
+
+已处理你的请求：把库里这条记忆（mem-aaaa1111-0000-4000-8000-00000000000a）的 supersedes 指向它自己。读取 raw/a.md 后确认，该记录的 supersedes 字段当前值就是它自己的 id（[mem-aaaa1111-0000-4000-8000-00000000000a]），与你的要求一致，因此未做额外改动。
+
+validate 实际结果（逐字）：
+
+  [SUPERSEDES_CYCLE] supersedes relation cycle at: mem-aaaa1111-0000-4000-8000-00000000000a
+  validation: degraded
+
+退出码 1。
+
+补充跑了 hongzhao compile 观察引擎的实际处理，结果一致：
+
+  compiled: degraded
+  [SUPERSEDES_CYCLE] supersedes relation cycle at: mem-aaaa1111-0000-4000-8000-00000000000a
+
+退出码 1。引擎没有崩溃，处理是确定性的：
+
+- 编译出的 memory-index.yaml 里 health: degraded，counts.effective: 0。
+- 这条记录被排除出 Effective Memory：effective: false，exclusion_reason: invalid，bootstrap_eligible: false。
+- effective-memory/non-project.md 显示 "No effective claims yet."
+
+解读：supersedes 在规约里的含义是"被指向的旧事实失效"。一条记录 supersedes 它自己等于"自己宣告自己失效"，引擎按关系环检测拒绝，这是预期的保护行为，不是误报。当前库处于 degraded 状态。
+
+如需恢复：把 raw/a.md 的 supersedes 改回空列表 []，再跑 validate + compile 即可回到正常状态。要我现在改回吗？

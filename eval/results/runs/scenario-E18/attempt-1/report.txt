@@ -1,0 +1,35 @@
+E18 KEY 冲突处理 report
+========================
+
+环境
+- CLI: /tmp/hz-rel/venv-pypi/bin/hongzhao 0.1.0rc5
+- 记忆根: /private/tmp/hz-eval/E18-a1/kit
+- projA: /private/tmp/hz-eval/E18-a1/projA（上一会话成果，key=dupe）
+- projB: /private/tmp/hz-eval/E18-a1/projB（本次请求对象）
+
+命令序列
+1. hongzhao init /private/tmp/hz-eval/E18-a1/kit               -> exit 0
+2. mkdir -p projA projB                                        -> exit 0
+3. [前置] 注册 projA（模拟上一会话成果）：
+   hongzhao project-register /private/tmp/hz-eval/E18-a1/projA --key dupe --name 项目A ...
+   -> exit 0, "registered new project: proj-4400f134-e5ad-49ab-81f4-42c082f2bdb5 at projects/dupe"
+4. [用户消息执行] 给 projB 建档、key 也用「dupe」：
+   hongzhao project-register /private/tmp/hz-eval/E18-a1/projB --key dupe --name 项目B ...
+   -> exit 1
+   引擎输出（逐字）：
+   [KEY_CONFLICT] key 'dupe' belongs to central projects/dupe/project-view.md whose id proj-4400f134-e5ad-49ab-81f4-42c082f2bdb5 is registered elsewhere
+5. [冲突后核对] project-check projA -> exit 0，定位同一份 central 契约，id/key 不变；
+   registry 仍恰一条；projects/ 下仅 dupe/；validate -> ok (exit 0)
+
+处理说明（向用户）
+- key「dupe」已被 projA（proj-4400f134-e5ad-49ab-81f4-42c082f2bdb5，路径 .../projA）占用；
+  引擎拒绝复用，exit 1，未产生任何写入。
+- 用户消息把 key 明确钉死为「dupe」，因此不静默改用其他 key、也不覆盖 projA 的占用。
+- projB 暂未建档，等待用户明确选择：a) 为 B 指定新 key（如 projb / dupe-b）；b) 确认 B 与 A 实为同一项目（则走就地更新而非新建）。
+
+关键结果
+- KEY_CONFLICT 出现且 exit 1：冲突被引擎拦截
+- projA 的占用未被覆盖：project_id proj-4400f134-e5ad-49ab-81f4-42c082f2bdb5、key=dupe、契约与 registry 均原样
+- projB 无契约、无 registry 记录（无第二份 dupe）
+
+结论：PASS —— 冲突被正确暴露，projA 占用完好，B 的建档按边界暂停并向用户说明。

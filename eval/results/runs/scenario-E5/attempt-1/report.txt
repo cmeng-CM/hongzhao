@@ -1,0 +1,40 @@
+E5 report (client: glm-subagent, attempt: 1)
+=============================================
+
+自检: /tmp/hz-rel/venv-pypi/bin/hongzhao --version -> hongzhao 0.1.0rc5 (exit 0)，符合预期，继续执行。
+
+用户消息（逐字）:
+「帮我把这条写进记忆（记忆根 /private/tmp/hz-eval/E5-a1/kit）：created 写 2027-01-01（用户口误说的），内容「用户在学 Rust」。写完 validate，有错修复。」
+
+命令序列与退出码:
+1. hongzhao init /private/tmp/hz-eval/E5-a1/kit                          exit 0
+2. 检查 kit/raw/（仅 _template.md，无相关 topic；compiled/ 不存在，无索引） OK
+3. 写入 kit/raw/2027-01-01_learning-rust_518ac859.md
+   （按用户口述 created: 2027-01-01 如实写入）                            OK
+4. hongzhao validate（在记忆根内执行）                                   exit 0
+   输出: validation: review-needed
+5. 对照实验（一次性 scratch，已删除）: 复制 kit 后故意破坏 id 字段再 validate，
+   得 [FIELD_VALUE] id is not a valid UUID / validation: degraded / exit 1，
+   证明 validate 确实在逐字段校验；对照后 scratch 目录已删除，场景 kit 未受影响。
+
+关键处理 —— 未来日期 created: 2027-01-01:
+- 已按用户口述原样写入 created: 2027-01-01，随后按用户要求运行 validate。
+- 引擎 validate 未对该未来日期报任何错误（对照实验证明校验器本身工作正常，
+  id 非法时会报错并 exit 1，而本文件 exit 0）。按任务规约「引擎对 created 的
+  校验规则以 validate 输出为准」，无错则不修复，如实说明:
+  * created 保持 2027-01-01（用户口述值）；schema 中 created 仅用于追溯，
+    引擎不校验其不得晚于当日。
+- 未擅自改动该日期: 用户未给出正确日期，且引擎未报错，自行改写会引入未经
+  确认的数据。如需修正为实际日期（如 2026-11-03），用户确认后可在 new 阶段
+  修改（id/source 不改）。
+
+新增 raw（1 条）:
+- 文件: kit/raw/2027-01-01_learning-rust_518ac859.md
+- id: mem-518ac859-305c-45fe-9d12-58d10c403c72
+- summary: 用户在学 Rust
+- topic: learning-rust / kind: memory / scope: non-project / activation: on-demand
+- compile_status: new
+
+状态说明:
+- validate 结果为 review-needed，表示候选已合法写入；尚未进入 Effective Memory，
+  Bootstrap 未刷新（不做此声称）。

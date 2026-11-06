@@ -1,0 +1,23 @@
+还没有删除。你要删除的记忆 mem-aaaa1111-0000-4000-8000-00000000000a（用户在学 Rust）存在引用，按 memory-write「明确删除」流程，需要你确认后才会执行；raw/a.md 目前保留原状。
+
+目标记忆现状
+- 文件：raw/a.md
+- id：mem-aaaa1111-0000-4000-8000-00000000000a
+- summary：用户在学 Rust
+- topic：learning；kind：memory；scope：non-project；activation：on-demand
+- record_type：source；compile_status：done
+
+引用明细
+1. raw/b.md（mem-bbbb2222-0000-4000-8000-00000000000b「学 Rust 是为了写 CLI 工具」）正文引用了这条记忆：第 14 行「动机来自另一条记忆：mem-aaaa1111-0000-4000-8000-00000000000a（用户在学 Rust）。」
+2. 该引用写在 b 的正文中，不是 derived_from / covers / supersedes 关系字段（source 记录按引擎约束不设 derived_from）。
+3. compiled/memory-index.yaml 当前不存在（本记忆根从未运行过 compile），索引层面没有 derived_from、covers、supersedes 或冲突引用记录可查。
+4. 全记忆根范围内检索该 id，除 a.md 自身的 id 字段和上述 b.md 正文引用外，没有其他引用。
+
+删除影响
+- b.md 正文中的引用会变成断链：b 的动机说明将指向一条不存在的记忆。
+- 删除只移除 raw 文件本身，不会自动同步派生视图；Effective Memory、索引、Bootstrap 等派生视图需要之后运行 memory-compile 重建。当前记忆根尚未 compile，因此本次删除暂不涉及已生成视图的重建。
+- 删除也不代表清除任何形式的历史记录。
+
+请确认
+- 确认删除：我将删除 raw/a.md，并提示之后运行 memory-compile 重建派生视图；b.md 正文中对 a 的引用是否同步改写也请一并告知（默认不动 b，避免静默改写另一条记忆）。
+- 取消删除：raw/a.md 保持原样，无需其他操作。

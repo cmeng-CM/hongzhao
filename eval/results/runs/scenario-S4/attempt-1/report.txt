@@ -1,0 +1,48 @@
+S4 report (glm-subagent, attempt 1)
+====================================
+
+场景：项目已由「上一会话」建档（key=blog）；用户发出收尾请求，要求写回三件事（项目进展 / 长期偏好 / 成型知识）。
+
+前置准备（上一会话成果，S4 第 2 步）：
+- hongzhao init /private/tmp/hz-eval/S4-a1/kit                       (exit 0)
+- mkdir -p /private/tmp/hz-eval/S4-a1/proj                           (exit 0)
+- hongzhao project-register /private/tmp/hz-eval/S4-a1/proj --key blog --name 个人博客 --purpose 个人博客 --current-state 进行中 --next-action 写模板 --status active
+  -> proj-3bc2f9bf-e17d-4f50-b7ba-f933288c961b at projects/blog      (exit 0)
+- 就地补全 central 契约正文（自动区块 + 人工区，同 S3 结构）
+- project-check / render / bridge-install all / doctor 全部 exit 0（准备态健康）
+
+收尾命令序列与退出码：
+- 编辑 kit/projects/blog/project-view.md：人工区「关键决策」新增一行
+- Write kit/raw/2026-11-03_documentation_5a9a8283.md（raw 候选）
+- hongzhao validate -> review-needed                                 (exit 0)
+- Write kit/knowledge/jinja2-template-inheritance.md（知识正文就位）
+- hongzhao knowledge-register knowledge/jinja2-template-inheritance.md --title "Jinja2 模板继承" --topic jinja2 --summary "Jinja2 模板继承用 {% extends %}，块用 {% block %}。"
+  -> knowledge registered (1 entries)；derived outputs rebuilt; inline clients refreshed   (exit 0)
+- hongzhao project-check .../proj -> contract central, id/key 匹配    (exit 0)
+- hongzhao doctor -> doctor: ok；memory-health: review-needed（存在待编译 raw）  (exit 0)
+
+最后退出码：0（doctor）
+
+work-closeout 流程执行记录（分流表 + 确认判据）：
+1. 盘点：用户消息明示三项产出，无虚构、无额外自造条目。
+2. 分流确认：用户消息已逐项标注类型（项目进展/长期偏好/成型知识）并明确「请写回记忆」，归属无歧义，视为用户已一次性确认分流清单，未再重复询问。
+3. 逐类执行（每步落盘文件）：
+   a. 项目进展（模板引擎选型定为 Jinja2，项目决策）→ 先查 registry/project-registry.yaml（唯一项目 proj-3bc2f9bf-…，key=blog，路径与项目根一致）与项目契约，确认唯一对应后按 memory-project-context 更新：
+      - 仅在人工区「关键决策」写入决策摘要「模板引擎选型定为 Jinja2（2026-11-03，用户确认）」；
+      - 用户未确认 current_state/next_action/status 变化 → frontmatter 零改动（不推断状态）。
+   b. 长期偏好（喜欢在 README 里放架构图）→ 按 memory-write 创建 raw：
+      - raw/ 仅 _template.md、memory-index.yaml 0 条，无既有相关记忆；
+      - scope=global（跨项目长期偏好）、kind=preference、activation=on-demand、source=user、topic=documentation、record_type=source、compile_status=new、无 derived_from/covers；
+      - 文件 raw/2026-11-03_documentation_5a9a8283.md（id mem-5a9a8283-d3d8-4849-bf4a-fe6a20079bcc，符合 mem-<UUID> 与命名规约）；
+      - validate=review-needed：候选合法写入、未进入 Effective Memory。
+   c. 成型知识（Jinja2 模板继承）→ 知识正文先在知识根目录就位（kit/knowledge/jinja2-template-inheritance.md），再在记忆根执行 knowledge-register：注册表新增条目，compiled/knowledge-map.md 自动重建含该条目，inline 客户端快照已刷新。
+4. 编译收口判断：产生了新 raw 候选 → 不自动编译；已说明候选将在用户明确要求 memory-compile 时统一审阅编译。knowledge-register 已自动重建派生文件；doctor 仅作只读健康确认。
+5. 汇总清单（按 SKILL 输出模板）：
+
+   收尾完成：
+   - 契约：[[projects/blog/project-view.md]] — 更新了 人工区·关键决策（新增 Jinja2 选型决策）
+   - 记忆：raw/2026-11-03_documentation_5a9a8283.md（new，待编译）
+   - 知识：knowledge/jinja2-template-inheritance.md 已登记（已重建地图）
+   跳过：无
+
+边界遵守：未自动编译（raw 候选存在）；未动 ~/workspace/github/hongzhao 仓库；仅操作 /private/tmp/hz-eval/S4-a1/ 内文件。

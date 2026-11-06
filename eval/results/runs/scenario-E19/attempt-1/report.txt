@@ -1,0 +1,50 @@
+E19 项目搬家注册修复 report
+============================
+
+环境
+- CLI: /tmp/hz-rel/venv-pypi/bin/hongzhao 0.1.0rc5
+- 记忆根: /private/tmp/hz-eval/E19-a1/kit
+- 老位置: /private/tmp/hz-eval/E19-a1/old-proj（已 mv 走，不存在）
+- 新位置: /private/tmp/hz-eval/E19-a1/new-proj
+- key: moved（central 契约形态）
+
+命令序列
+1. hongzhao init /private/tmp/hz-eval/E19-a1/kit                -> exit 0
+2. mkdir -p old-proj；注册：
+   hongzhao project-register /private/tmp/hz-eval/E19-a1/old-proj --key moved --name 搬家测试项目 ...
+   -> exit 0, id=proj-e925bb56-7c00-45e1-9590-953ff8a1f262（搬家前 id，已记录）
+3. mv old-proj new-proj                                         -> exit 0
+4. 搬家后诊断：
+   - validate -> "validation: ok"（registry 里旧路径未被判错，validate 不查路径存活）
+   - doctor -> 仅 OUTPUT_MISSING（kit 未 compile 所致，与搬家无关）
+   - project-check old-proj -> exit 1, "[PATH_INVALID] no registered project for: .../old-proj"
+   - project-check new-proj -> exit 1, PATH_INVALID（新路径未注册）
+   - project-check moved（按 key）-> exit 0，central 契约仍在，id 未变
+5. 修复尝试与引擎提示：
+   a) 直接在新路径以同 key 注册 -> exit 1
+      "[KEY_CONFLICT] key 'moved' belongs to central projects/moved/project-view.md whose id proj-e925bb56-... is registered elsewhere"
+   b) 旧签名重指（project-register <id> --kind external --path new-proj）-> exit 0 但为 no-op
+      "registry upsert done ...; no contract files were read or written"，registry 未变（已弃用路径，不可用）
+   c) 按路径/按 key 注销均不可用（PATH_INVALID / 仅保留 orphan）
+   d) dry-run 按注销 id：
+      hongzhao --dry-run project-unregister proj-e925bb56-... --keep-contract --yes -> exit 0
+      引擎给出修复提示（逐字）："or claim via project-register <path> --key moved --yes"
+      随后真实执行同命令：输出 "[PATH_INVALID] no registry entry for: proj-e925bb56-..." 且 exit 1，
+      但 registry 条目实际已被删除（projects: []），central 契约保留——引擎在此步的退出码与实际效果不一致（观察记录）。
+   e) 按 d) 的引擎提示执行 J4 收养：
+      hongzhao project-register /private/tmp/hz-eval/E19-a1/new-proj --key moved --yes
+      -> exit 0, "claimed orphan central: projects/moved/project-view.md (id proj-e925bb56-..., J4)"
+6. 收尾检查：compile exit 0；doctor -> "doctor: ok" exit 0；validate -> "validation: ok"
+
+project_id 对照
+- 搬家前（registry + projects/moved/project-view.md）: proj-e925bb56-7c00-45e1-9590-953ff8a1f262
+- 修复后（registry + projects/moved/project-view.md）: proj-e925bb56-7c00-45e1-9590-953ff8a1f262
+- 结论：一致，id 未变。registry location.path 已从 old-proj 改指 new-proj；契约内容未改动。
+- project-check old-proj 仍为 PATH_INVALID（老位置已不存在，符合预期）。
+
+与场景预期的差异记录
+- 场景文案预期引擎提示 "CONTRACT_MISSING"；0.1.0rc5 实际出现的代码是
+  PATH_INVALID / KEY_CONFLICT / CONTRACT_ORPHAN(dry-run 预告) 与 J4 收养输出，
+  未出现字面 CONTRACT_MISSING。修复走的是引擎自提示的 orphan claim（J3/J4）路径，结果符合"id 不变"的验收。
+
+结论：PASS —— 注册已修复到新路径，project_id 搬家前后一致，doctor/validate 全绿。

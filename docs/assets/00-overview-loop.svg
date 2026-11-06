@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 560" font-family="Helvetica,Arial,sans-serif">
+  <rect width="1600" height="560" fill="#fafafa"/>
+  <text x="800" y="52" text-anchor="middle" font-size="30" font-weight="bold" fill="#1a1a1a">The whole loop: from "note it down" to the next session</text>
+  <text x="800" y="86" text-anchor="middle" font-size="17" fill="#555">Two gates keep candidates out of context. Blue = write gate, green = compile gate.</text>
+
+  <!-- person -->
+  <circle cx="130" cy="250" r="34" fill="#3b5bdb"/>
+  <text x="130" y="258" text-anchor="middle" font-size="20" fill="white">You</text>
+  <text x="130" y="310" text-anchor="middle" font-size="14" fill="#555">reviews facts</text>
+
+  <!-- agent -->
+  <circle cx="130" cy="430" r="34" fill="#2f9e44"/>
+  <text x="130" y="437" text-anchor="middle" font-size="18" fill="white">Agent</text>
+  <text x="130" y="490" text-anchor="middle" font-size="14" fill="#555">drafts candidates</text>
+
+  <!-- write gate -->
+  <rect x="300" y="360" width="150" height="140" rx="12" fill="#dbe4ff" stroke="#3b5bdb" stroke-width="3"/>
+  <text x="375" y="420" text-anchor="middle" font-size="18" font-weight="bold" fill="#3b5bdb">Write gate</text>
+  <text x="375" y="448" text-anchor="middle" font-size="13" fill="#444">schema check</text>
+  <text x="375" y="468" text-anchor="middle" font-size="13" fill="#444">rejection, no truncation</text>
+
+  <!-- raw ledger -->
+  <rect x="540" y="360" width="220" height="140" rx="12" fill="#fff" stroke="#999" stroke-width="2"/>
+  <text x="650" y="398" text-anchor="middle" font-size="18" font-weight="bold" fill="#1a1a1a">raw/ ledger</text>
+  <text x="650" y="426" text-anchor="middle" font-size="13" fill="#555">dated claims, one fact each</text>
+  <text x="650" y="446" text-anchor="middle" font-size="13" fill="#555">explicit relations only</text>
+  <text x="650" y="470" text-anchor="middle" font-size="12" fill="#2f9e44">candidates — never injected</text>
+
+  <!-- compile gate -->
+  <rect x="850" y="360" width="150" height="140" rx="12" fill="#d3f9d8" stroke="#2f9e44" stroke-width="3"/>
+  <text x="925" y="420" text-anchor="middle" font-size="18" font-weight="bold" fill="#2f9e44">Compile gate</text>
+  <text x="925" y="448" text-anchor="middle" font-size="13" fill="#444">deterministic</text>
+  <text x="925" y="468" text-anchor="middle" font-size="13" fill="#444">validate + render</text>
+
+  <!-- effective views -->
+  <rect x="1090" y="130" width="380" height="370" rx="12" fill="#fff" stroke="#2f9e44" stroke-width="2"/>
+  <text x="1280" y="170" text-anchor="middle" font-size="18" font-weight="bold" fill="#1a1a1a">Effective views (compiled/)</text>
+  <g font-size="14" fill="#333">
+    <rect x="1120" y="195" width="320" height="36" rx="8" fill="#ebfbee"/><text x="1280" y="219" text-anchor="middle">bootstrap.md — session entry</text>
+    <rect x="1120" y="243" width="320" height="36" rx="8" fill="#ebfbee"/><text x="1280" y="267" text-anchor="middle">effective-memory/index.md — routing</text>
+    <rect x="1120" y="291" width="320" height="36" rx="8" fill="#ebfbee"/><text x="1280" y="315" text-anchor="middle">global / non-project / project views</text>
+    <rect x="1120" y="339" width="320" height="36" rx="8" fill="#ebfbee"/><text x="1280" y="363" text-anchor="middle">current-state.md — one screen</text>
+    <rect x="1120" y="387" width="320" height="36" rx="8" fill="#ebfbee"/><text x="1280" y="411" text-anchor="middle">corrections.md / knowledge map</text>
+  </g>
+
+  <!-- next session -->
+  <rect x="540" y="130" width="380" height="120" rx="12" fill="#e7f5ff" stroke="#1c7ed6" stroke-width="2"/>
+  <text x="730" y="172" text-anchor="middle" font-size="18" font-weight="bold" fill="#1c7ed6">Next session</text>
+  <text x="730" y="200" text-anchor="middle" font-size="13" fill="#444">agent reads bootstrap, routes by task,</text>
+  <text x="730" y="220" text-anchor="middle" font-size="13" fill="#444">touches raw/ only to trace evidence</text>
+
+  <!-- arrows -->
+  <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 z" fill="#666"/></marker></defs>
+  <line x1="165" y1="430" x2="295" y2="430" stroke="#666" stroke-width="2.5" marker-end="url(#a)"/>
+  <line x1="450" y1="430" x2="535" y2="430" stroke="#666" stroke-width="2.5" marker-end="url(#a)"/>
+  <line x1="760" y1="430" x2="845" y2="430" stroke="#666" stroke-width="2.5" marker-end="url(#a)"/>
+  <line x1="1000" y1="430" x2="1085" y2="430" stroke="#666" stroke-width="2.5" marker-end="url(#a)"/>
+  <line x1="1280" y1="360" x2="1280" y2="258" stroke="#666" stroke-width="2.5" marker-end="url(#a)"/>
+  <path d="M730 190 C 900 90, 1100 100, 1240 150" fill="none" stroke="#666" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#a)"/>
+  <line x1="164" y1="278" x2="164" y2="392" stroke="#666" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#a)"/>
+</svg>

@@ -1,0 +1,7 @@
+三句话已按分流表分别处理，两项落盘、一项跳过待你补充信息：
+
+- 记忆：raw/2026-11-03_commit-message-style_0c9318b7.md — 已创建（compile_status: new，待编译）。scope: global、kind: preference、activation: on-demand。按 work-closeout 规则，产生新 raw 候选时不自动编译，待你明确要求 memory-compile 时统一审阅编译。
+- 知识：knowledge/sqlite-wal.md — 已写入知识根并完成登记（`hongzhao knowledge-register` 成功，知识地图 compiled/knowledge-map.md 已重建，inline 客户端快照已刷新）。
+- 跳过：1）「myapp 登录模块完成」的项目进展 — 原因：你说项目 myapp 已建档，但本记忆根的 registry/project-registry.yaml 为空，`hongzhao project-check myapp` 确认无注册项目，我无法定位对应项目契约（project-view.md）。按规约项目当前状态写契约、不重复写 raw，所以这一条我没有落盘。请告诉我 myapp 的项目根或契约位置（或先执行项目注册），我再按 memory-project-context 补写这条进展。
+
+健康检查：validate 为 review-needed（有一条待编译 raw 候选，属预期状态）、doctor 为 ok。

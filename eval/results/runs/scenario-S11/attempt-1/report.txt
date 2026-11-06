@@ -1,0 +1,55 @@
+S11-a1 执行汇报（glm-subagent，attempt 1）
+================================================
+
+自检：hongzhao 0.1.0rc5，退出码 0。规约：完整读取 hongzhao 仓库内
+memory-write/SKILL.md 与 memory-compile/SKILL.md 后执行。
+
+命令序列与退出码
+----------------
+1. hongzhao init /private/tmp/hz-eval/S11-a1/kit        -> EXIT 0
+2. 循环生成 60 条种子 raw：
+   - 1 条 topic=ci-system，summary=「用户的 CI 系统是 GitHub Actions」，
+     scope=non-project，activation=on-demand，compile_status=done
+     （文件 2026-11-03_ci-system_efe46279.md，id mem-efe46279-0795-4ce2-a410-5bee10bebf98）
+   - 59 条 topic=noise-1..59，summary=「干扰条目 N」，compile_status=new
+3. hongzhao --root .../kit validate                      -> EXIT 0（review-needed：59 条 new 合法待审）
+4. hongzhao --root .../kit compile                       -> EXIT 0（compiled: review-needed；
+   场景装配步骤：为使任务规定的「bootstrap 路由（index→视图）」可用而执行一次编译；
+   done 的 ci-system 进入 Effective Memory，59 条 new 保持 pending 不进入）
+5. hongzhao --root .../kit doctor                        -> EXIT 0（memory-health: review-needed，
+   由 59 条 pending 引起，不阻断现有有效视图）
+
+查找路径（用户消息：查「我在用的是哪个 CI 系统」，按引导块路由，先索引后视图，不全库扫描）
+----------------
+按顺序实际读取的文件（共 3 个）：
+1. render/bootstrap.md —— 路由指引：Entry index =
+   compiled/effective-memory/index.md，按需读匹配的 scope 视图；
+   另有 Health Notice：health=review-needed，pending 内容不得当已核实事实。
+2. compiled/effective-memory/index.md —— 索引给出两个 scope 视图：
+   global.md 与 non-project.md；CI 属非项目长期事项 -> 读 non-project 视图。
+3. compiled/effective-memory/non-project.md —— 命中条目：
+   「用户的 CI 系统是 GitHub Actions」（来源 trace 指向
+   raw/2026-11-03_ci-system_efe46279.md，id mem-efe46279-...，done 生效记录）。
+
+未做全库扫描：未读 raw/ 目录下任何文件（含 59 条干扰条目，一条都没打开），
+未使用 grep 遍历，未读 memory-index.yaml（bootstrap 入口索引指向
+effective-memory/index.md，按其路由即命中，无需再下钻）。
+
+探针回答（逐字记录）
+----------------
+  你在用的是 GitHub Actions。依据：记忆库 Effective Memory 的 non-project
+  视图（compiled/effective-memory/non-project.md）中的生效记录
+  「用户的 CI 系统是 GitHub Actions」（用户自述，2026-11-03，记录 id
+  mem-efe46279-0795-4ce2-a410-5bee10bebf98，compile_status=done）。
+  说明：当前记忆库健康状态为 review-needed（有 59 条待审新候选），但这与
+  本条无关——本条为 done 生效记录，可作已核实事实回答；待审内容未采用。
+
+查找效率要点
+----------------
+- 路由链：bootstrap -> effective-memory/index.md -> non-project.md，3 次读文件命中。
+- 干扰项隔离：59 条 noise（new/pending）既未进入视图，也未被读取。
+
+meta.json
+----------------
+{"scenario":"S11-a1","client":"glm-subagent","attempt":1,"last_exit":0}
+（last_exit 为本场景最后一条 hongzhao 命令 doctor 的退出码）

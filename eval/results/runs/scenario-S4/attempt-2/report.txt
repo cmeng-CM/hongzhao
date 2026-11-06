@@ -1,0 +1,9 @@
+收尾完成。
+
+- 契约：proj/project-view.md — 更新了人工区「关键决策」（新增：2026-11-03 模板引擎选型定为 Jinja2，项目决策）。frontmatter 的 status/purpose/current_state/next_action 无你确认的新变化，未改动；updated_at 保持 2026-11-03。更新后 hongzhao project-check / render / bridge-install all 全部通过。
+- 记忆：raw/2026-11-03_readme_4cf94616.md（new，待编译）——「用户喜欢在 README 中放置架构图」；scope=global（跨项目通用偏好）、kind=preference、activation=on-demand、source=user。hongzhao validate 返回 review-needed，表示候选已合法写入、尚未进入 Effective Memory。
+- 知识：knowledge/jinja2-template-inheritance.md 已登记（title「Jinja2 模板继承」，topic=jinja2，含 extends/block 用法整理与来源说明）；knowledge-register 已自动重建派生文件并刷新 inline 客户端快照，知识地图 compiled/knowledge-map.md 已含该条目。
+- 跳过：无。三项产出按你标明的类型各落一个去向，项目决策写入契约、未重复写 raw。
+- 编译收口：本次产生了新 raw 候选，按收尾协议不自动编译——候选将在你明确要求 memory-compile 时统一审阅编译；知识部分已由 knowledge-register 自动重建，无需额外编译。
+- 健康状态：hongzhao doctor 报告 doctor: ok；memory-health: review-needed（仅因存在一条待编译新候选，非错误）。
+- 会话背景：本次收尾前的项目建档（key=blog，用途「个人博客」，状态「进行中」→ active，下一步「写模板」）为上一会话成果，已按 memory-project-context 落为项目根契约并注册（J1-a 复用根契约 ID proj-79952585-cdb7-4841-a297-d2aab998e9fe），建档时 doctor 曾因 --dry-run 预演落盘 central 契约而报 CONTRACT_DUPLICATE，移除该多余 central 副本后复检全绿。

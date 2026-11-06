@@ -1,0 +1,9 @@
+已按 memory-write 规约把这条偏好保存为长期记忆 raw 候选：
+
+- 新增文件：/private/tmp/hz-eval/S1-a2/kit/raw/2026-11-03_shell-theme-preferences_63b9b7c8.md
+- 摘要：用户偏好使用 zsh 作为默认 shell，且喜欢深色主题。
+- 分类：kind=preference，scope=global（稳定用户长期偏好），activation=bootstrap（适合所有新会话默认看到）
+- 状态：record_type=source，compile_status=new；未使用 supersedes（无被纠正的既有记忆）
+- `hongzhao validate` 结果：review-needed——表示候选已合法写入，但尚未进入 Effective Memory。
+
+说明：本次只维护 raw，没有运行编译；Bootstrap 与 Effective Memory 尚未刷新。需要让它在新会话默认可见时，请运行编译归并（`hongzhao compile` / memory-compile 流程）。

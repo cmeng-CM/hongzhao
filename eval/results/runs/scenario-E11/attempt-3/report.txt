@@ -1,0 +1,22 @@
+E11 最终汇报（给用户）：
+
+翻案已按规约处理完毕：新结论「用户的主编辑器是 VSCode」生效，旧结论「Vim」退出生效视图（exclusion_reason: superseded）。没有通过擅改旧记录来实现翻案。
+
+处理方式（依据 memory-write 生命周期与 memory-compile 取代规则）：
+- A（mem-aaaa1111，done「主编辑器是 Vim」）的正文和事实性 metadata 已冻结，纠正只能走「新 source + supersedes」，不能直接改它。A 全程一个字节未动，仅由编译依据关系链标记 effective: false / superseded。
+- B（mem-bbbb2222，rejected）当年因「用户当时未确认」被拒，其 rejected 状态和审阅历史保持原样留档，没有把 B 擅自复活或改回 done。
+- 新建翻案记录 C：raw/2026-11-03_main-editor_e40a2acf.md，id mem-e40a2acf-2b63-4adf-9634-025f7cc95905，source: user，scope: non-project（与 A 同 scope，取代链不跨 scope），supersedes: [mem-aaaa1111-0000-4000-8000-00000000000a]。你在消息里已明确确认新事实，故按编译审阅标记 done；正文注明翻案依据及与 B 的历史关系。
+
+一处如实披露的引擎契约修复（非事实变更）：
+- seed 中 B 的 review_note/reviewed_at 字段写在了正文，而引擎要求 rejected 记录在 frontmatter 提供 review_note 与 reviewed_at（validate 报 [FIELD_VALUE] degraded）。我将这两行按原值移入 B 的 frontmatter（「用户当时未确认」/「2026-11-02」），正文原样保留未删改，B 的 rejected 状态与审阅结论不变。这是让 kit 恢复合法的最小修复，已在此明示。
+
+执行与验证：
+1. validate（seed 后）：degraded（B 缺 rejected 必填字段），退出码 1。
+2. B frontmatter 契约修复 → validate: ok，退出码 0。
+3. 创建 C（new，supersedes 已设）→ validate: review-needed，退出码 0。
+4. 审阅标记 C done → validate: ok，退出码 0。
+5. hongzhao compile: ok；bridge-install all: 退出码 0（无启用客户端，无外部写入）；doctor: memory-health ok，退出码 0。
+
+编译对账（last-compile-diff.md，首次编译无基线，只有计数表）：total 3，effective 1，rejected 1，superseded 1，health - → ok。与审阅意图一致：C 生效、A 失效、B 维持拒绝，无多生效/漏生效。
+
+当前索引状态：A effective:false（exclusion_reason: superseded，superseded_by: C）；B rejected；C effective:true（输出至 compiled/effective-memory/non-project.md）。

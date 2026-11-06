@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1060" viewBox="0 0 1600 1060" role="img" aria-labelledby="rltitle rldesc">
+  <title id="rltitle">五种关系：记忆的代数</title>
+  <desc id="rldesc">derived_from 表示证据溯源、covers 表示完整承担、supersedes 表示事实失效、conflicts_with 与 resolved_by 表示冲突与裁决；编译器只解释这些显式关系。</desc>
+  <defs>
+    <filter id="rl-shadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="7" stdDeviation="10" flood-color="#0f172a" flood-opacity="0.10"/></filter>
+    <marker id="rl-aGray" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" refX="15" refY="8" orient="auto"><path d="M0,0 L16,8 L0,16 Z" fill="#64748b"/></marker>
+    <marker id="rl-aPurple" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" refX="15" refY="8" orient="auto"><path d="M0,0 L16,8 L0,16 Z" fill="#7c3aed"/></marker>
+    <marker id="rl-aRed" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" refX="15" refY="8" orient="auto"><path d="M0,0 L16,8 L0,16 Z" fill="#dc2626"/></marker>
+    <marker id="rl-aOrange" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" refX="15" refY="8" orient="auto"><path d="M0,0 L16,8 L0,16 Z" fill="#ea580c"/></marker>
+    <marker id="rl-aGreen" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" refX="15" refY="8" orient="auto"><path d="M0,0 L16,8 L0,16 Z" fill="#059669"/></marker>
+    <style>.rl-bg{fill:#f8fafc}.rl-title{font:700 42px 'PingFang SC','Noto Sans CJK SC',sans-serif;fill:#0f172a}.rl-sub{font:400 22px 'PingFang SC','Noto Sans CJK SC',sans-serif;fill:#475569}.rl-h{font:700 24px 'PingFang SC','Noto Sans CJK SC',sans-serif;fill:#0f172a}.rl-t{font:400 16px 'PingFang SC','Noto Sans CJK SC',sans-serif;fill:#475569}.rl-node{font:700 17px 'PingFang SC','Noto Sans CJK SC',sans-serif;fill:#0f172a}.rl-mono{font:700 16px ui-monospace,SFMono-Regular,Menlo,monospace}.rl-note{font:400 15px 'PingFang SC','Noto Sans CJK SC',sans-serif;fill:#64748b}</style>
+  </defs>
+  <rect class="rl-bg" width="1600" height="1060" rx="24"/>
+  <text class="rl-title" x="800" y="70" text-anchor="middle">五种关系：记忆的代数</text>
+  <text class="rl-sub" x="800" y="108" text-anchor="middle">编译器只解释显式关系——不按时间、不按热度、不静默择一</text>
+
+  <!-- Q1 提炼 -->
+  <g filter="url(#rl-shadow)"><rect x="55" y="150" width="700" height="390" rx="22" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/></g>
+  <text class="rl-h" x="85" y="200">① 提炼 · <tspan fill="#1d4ed8">derived_from</tspan></text>
+  <g filter="url(#rl-shadow)"><rect x="100" y="250" width="230" height="95" rx="18" fill="#eff6ff" stroke="#93c5fd" stroke-width="2"/><text class="rl-node" x="215" y="290" text-anchor="middle">source · 事实主张</text><text class="rl-t" x="215" y="322" text-anchor="middle">仍在有效视图</text></g>
+  <path d="M330 297 L470 297" stroke="#64748b" stroke-width="3" stroke-dasharray="9 8" marker-end="url(#rl-aGray)"/>
+  <text class="rl-mono" x="400" y="275" text-anchor="middle" fill="#1d4ed8">derived_from</text>
+  <g filter="url(#rl-shadow)"><rect x="470" y="250" width="230" height="95" rx="18" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="2"/><text class="rl-node" x="585" y="290" text-anchor="middle">synthesis · 提炼</text><text class="rl-t" x="585" y="322" text-anchor="middle">新的 raw 主张</text></g>
+  <text class="rl-note" x="100" y="400">· 只记录直接来源；编译器递归展开完整来源链</text>
+  <text class="rl-note" x="100" y="430">· 证据溯源，不隐藏、不吞并来源记录</text>
+  <text class="rl-note" x="100" y="460">· 跨 scope / 跨项目提炼允许，但必须用户确认</text>
+  <text class="rl-note" x="100" y="490">· Effective Memory 中每条主张都带可折叠追溯区</text>
+
+  <!-- Q2 覆盖 -->
+  <g filter="url(#rl-shadow)"><rect x="845" y="150" width="700" height="390" rx="22" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/></g>
+  <text class="rl-h" x="875" y="200">② 覆盖 · <tspan fill="#6d28d9">covers</tspan></text>
+  <g filter="url(#rl-shadow)"><rect x="890" y="250" width="230" height="95" rx="18" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="2"/><text class="rl-node" x="1005" y="290" text-anchor="middle">synthesis</text><text class="rl-t" x="1005" y="322" text-anchor="middle">完整承担来源内容</text></g>
+  <path d="M1120 297 L1260 297" stroke="#7c3aed" stroke-width="4" marker-end="url(#rl-aPurple)"/>
+  <text class="rl-mono" x="1190" y="275" text-anchor="middle" fill="#6d28d9">covers</text>
+  <g filter="url(#rl-shadow)"><rect x="1260" y="250" width="230" height="95" rx="18" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/><text class="rl-node" x="1375" y="290" text-anchor="middle" fill="#94a3b8">source · 来源</text><text class="rl-t" x="1375" y="322" text-anchor="middle" fill="#94a3b8">covered-by 退出展示</text></g>
+  <text class="rl-note" x="890" y="400">· 只有「完整承担仍有效内容」才可使用 covers</text>
+  <text class="rl-note" x="890" y="430">· 来源退出当前有效视图，但记录保留、可审计</text>
+  <text class="rl-note" x="890" y="460">· 与 derived_from 不能混用：一个是证据，一个是承担</text>
+  <text class="rl-note" x="890" y="490">· 只允许同 scope、同 project_id；跨域只能用 derived_from</text>
+
+  <!-- Q3 纠正 -->
+  <g filter="url(#rl-shadow)"><rect x="55" y="580" width="700" height="390" rx="22" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/></g>
+  <text class="rl-h" x="85" y="630">③ 纠正 · <tspan fill="#b91c1c">supersedes</tspan></text>
+  <g filter="url(#rl-shadow)"><rect x="100" y="680" width="230" height="95" rx="18" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text class="rl-node" x="215" y="720" text-anchor="middle">新事实主张</text><text class="rl-t" x="215" y="752" text-anchor="middle">发现旧结论有误</text></g>
+  <path d="M330 727 L470 727" stroke="#dc2626" stroke-width="4" marker-end="url(#rl-aRed)"/>
+  <text class="rl-mono" x="400" y="705" text-anchor="middle" fill="#b91c1c">supersedes</text>
+  <g filter="url(#rl-shadow)"><rect x="470" y="680" width="230" height="95" rx="18" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/><text class="rl-node" x="585" y="720" text-anchor="middle" fill="#94a3b8">旧事实主张</text><text class="rl-t" x="585" y="752" text-anchor="middle" fill="#94a3b8">失效，退出有效视图</text></g>
+  <text class="rl-note" x="100" y="830">· 系统没有 expires / review_after：时间不能证明失效</text>
+  <text class="rl-note" x="100" y="860">· supersedes 是事实失效的唯一显式路径</text>
+  <text class="rl-note" x="100" y="890">· 旧记录不改不删，保留完整审计链</text>
+  <text class="rl-note" x="100" y="920">· 普通重复归并不用它——那是 synthesis 的工作</text>
+
+  <!-- Q4 冲突与裁决 -->
+  <g filter="url(#rl-shadow)"><rect x="845" y="580" width="700" height="390" rx="22" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/></g>
+  <text class="rl-h" x="875" y="630">④ 冲突与裁决 · <tspan fill="#c2410c">conflicts_with</tspan> / <tspan fill="#047857">resolved_by</tspan></text>
+  <g filter="url(#rl-shadow)"><rect x="890" y="680" width="200" height="80" rx="16" fill="#fff1f2" stroke="#fda4af" stroke-width="2"/><text class="rl-node" x="990" y="715" text-anchor="middle">主张 A</text><text class="rl-t" x="990" y="745" text-anchor="middle">done</text></g>
+  <path d="M1090 720 L1230 720" stroke="#ea580c" stroke-width="4" marker-end="url(#rl-aOrange)"/>
+  <path d="M1230 700 L1090 700" stroke="#ea580c" stroke-width="4" marker-end="url(#rl-aOrange)"/>
+  <text class="rl-mono" x="1160" y="675" text-anchor="middle" fill="#c2410c">conflicts_with</text>
+  <g filter="url(#rl-shadow)"><rect x="1230" y="680" width="200" height="80" rx="16" fill="#fff1f2" stroke="#fda4af" stroke-width="2"/><text class="rl-node" x="1330" y="715" text-anchor="middle">主张 B</text><text class="rl-t" x="1330" y="745" text-anchor="middle">done</text></g>
+  <path d="M1330 760 L1330 810" stroke="#059669" stroke-width="4" marker-end="url(#rl-aGreen)"/>
+  <text class="rl-mono" x="1360" y="795" fill="#047857">resolved_by</text>
+  <g filter="url(#rl-shadow)"><rect x="1230" y="810" width="200" height="80" rx="16" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="2"/><text class="rl-node" x="1330" y="845" text-anchor="middle">裁决 synthesis</text><text class="rl-t" x="1330" y="875" text-anchor="middle">闭合冲突</text></g>
+  <text class="rl-note" x="890" y="830">· new ↔ done：旧的继续生效，新的 pending，不写关系</text>
+  <text class="rl-note" x="890" y="860">· done ↔ done：必须请人裁决；确认前不改任何输出</text>
+  <text class="rl-note" x="890" y="890">· 确认但暂不裁决：两条局部排除，health = degraded</text>
+  <text class="rl-note" x="890" y="920">· 新记录错误 → rejected（终态，保留审计）</text>
+
+  <text class="rl-sub" x="800" y="1020" text-anchor="middle">一句话：谁覆盖谁、谁取代谁、谁和谁冲突——全部写在 raw 里，编译器照单执行。</text>
+</svg>

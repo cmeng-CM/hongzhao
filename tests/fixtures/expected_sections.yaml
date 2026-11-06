@@ -1,0 +1,32 @@
+#  章节基线（design 「章节完整」维）：每产物的英文有序**模板级固定章节**清单。
+# 口径：只收录 render 模板常量标题；数据驱动标题（claim 摘要/项目名）与条件节
+# （current-state 的 ## Issues、bootstrap 的 ## Health Notice）不进必含清单——
+# 切换后断言为「按序包含」而非全等。projects 族 H1=项目名（变量），无固定键，不设断言。
+# 维护：改 render 模板时同步本清单；AC-P3-20 每次以全新 `init --example` 编译验证本清单。
+"compiled/effective-memory/global.md":
+  - "# Global Memory"
+"compiled/effective-memory/non-project.md":
+  - "# Non-Project Memory"
+"compiled/effective-memory/projects/*.md": []
+"compiled/effective-memory/index.md":
+  - "# Effective Memory Index"
+  - "## Routing"
+  - "## Project Memory"
+  - "## Usage Protocol"
+"compiled/knowledge-map.md":
+  - "# Knowledge Map"
+  - "## Usage Protocol"
+"compiled/current-state.md":
+  - "# Current State"
+  - "## Project Status"
+  - "## Current Non-Project Items"
+  - "## Compile Status"
+"compiled/corrections.md":
+  - "# Corrections and Conflicts"
+"render/bootstrap.md":
+  - "# hongzhao Memory Bootstrap"
+  - "## User Background & Preferences"
+  - "## Current Work Topics"
+  - "## Global Key Items"
+  - "## Non-Project Key Items"
+  - "## Memory Routing"

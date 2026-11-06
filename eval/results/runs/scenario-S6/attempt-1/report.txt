@@ -1,0 +1,6 @@
+纠正已按规约完成编译，健康状态 ok。
+
+1. 旧记录「用户的 Linux 发行版是 Ubuntu」（raw/old.md，mem-aaaa1111-0000-4000-8000-00000000000a，done）正文已冻结，不能直接改写；按规约用「新 source + supersedes」方式修正。
+2. 已新建更正记录 raw/2026-11-03_linux-distro_588b88d7.md（mem-588b88d7-338f-4761-8b23-a1059d19af10，summary「用户的 Linux 发行版是 Debian」，supersedes 指向旧记录，source: user）：你在本条消息里已给出明确裁决，因此直接标记 done。
+3. 编译结果与审阅意图对账一致：生效 1 条（Debian，已核验生效视图 non-project.md 只含 Debian）、退出生效 1 条（Ubuntu，因被 supersedes 失效）、pending 0、无未解决冲突。本次为该记忆根首次编译，无上一轮基线，无逐条历史 delta，计数见 compiled/last-compile-diff.md（健康 `-` → `ok`）。
+4. 已依次运行 validate → compile → bridge-install all → doctor，全部通过。

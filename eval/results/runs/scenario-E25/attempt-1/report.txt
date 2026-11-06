@@ -1,0 +1,65 @@
+E25 report — user-owned skill with same name (hongzhao 0.1.0rc5)
+================================================================
+
+User message (verbatim):
+「记忆根在 /private/tmp/hz-eval/E25-a1/kit。我的客户端 skills 目录里已经有一个同名
+memory-write（内容是我自己写的）。skills-install 会怎么办？按引擎行为处理，
+别覆盖我原有的东西。」
+
+Setup performed
+---------------
+1. hongzhao init /private/tmp/hz-eval/E25-a1/kit                       -> exit 0
+2. Edited kit/config.yaml, appended to clients:
+     fake_cc:
+       enabled: true
+       bridge_path: /private/tmp/hz-eval/E25-a1/fake/AGENTS.md
+       skills_root: /private/tmp/hz-eval/E25-a1/fake/skills
+       mode: inline
+   (bridge_path added because custom clients require both fields per
+   docs/clients.md; the bridge file itself was never created)
+3. mkdir -p fake/skills/memory-write; wrote fake/skills/memory-write/SKILL.md
+   with exactly: USER OWNED SKILL - DO NOT REPLACE
+   sha256 before: e4f1804f62ee3f218c1ac4e298757f72d516299ac38f3935d66ab9fc6a74625e
+
+Engine behavior observed
+------------------------
+skills-install fake_cc (exit 1):
+  warning [SKILL_CONFLICT] /private/tmp/hz-eval/E25-a1/fake/skills/memory-write:
+  exists and is not a symlink; skipped
+  skills-install: fake_cc/memory-compile
+  skills-install: fake_cc/memory-project-context
+  skills-install: fake_cc/work-closeout
+
+  -> memory-write hit SKILL_CONFLICT (foreign non-symlink directory) and was
+     SKIPPED, not overwritten. The other three packaged skills were installed
+     as symlinks:
+       fake/skills/memory-compile          -> kit/skills/memory-compile
+       fake/skills/memory-project-context  -> kit/skills/memory-project-context
+       fake/skills/work-closeout           -> kit/skills/work-closeout
+     fake/skills/memory-write remained a plain directory (ls -la confirms).
+
+User-owned content integrity check
+----------------------------------
+cat fake/skills/memory-write/SKILL.md after install:
+  USER OWNED SKILL - DO NOT REPLACE
+sha256 after: e4f1804f62ee3f218c1ac4e298757f72d516299ac38f3935d66ab9fc6a74625e
+  -> byte-identical to before; nothing was overwritten.
+
+Decision per user instruction ("别覆盖我原有的东西")
+----------------------------------------------------
+Stopped at the conflict report. `skills-install fake_cc --force` was NOT run —
+the engine's --force would overwrite conflicts, which the user explicitly
+forbade. The engine's default (skip + SKILL_CONFLICT warning) already preserves
+user content, so no workaround or manual copy was performed either. The
+user-owned memory-write stays authoritative in the client skills root; the
+packaged copy remains available at kit/skills/memory-write if the user ever
+wants to reconcile manually.
+
+Command sequence and exit codes
+-------------------------------
+hongzhao --version                                    -> 0
+hongzhao init .../E25-a1/kit                          -> 0
+(printf user SKILL.md, sha256)                        -> 0
+hongzhao --root .../kit skills-install fake_cc        -> 1 (SKILL_CONFLICT warning on memory-write; other 3 skills symlinked)
+ls -la fake/skills/ (verify symlinks + plain dir)     -> 0
+sha256 user SKILL.md (verify unchanged)               -> unchanged

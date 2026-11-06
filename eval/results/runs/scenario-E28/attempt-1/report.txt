@@ -1,0 +1,70 @@
+E28-a1 执行汇报（glm-subagent，attempt 1）
+================================================
+
+自检：hongzhao 0.1.0rc5，退出码 0。规约：完整读取 hongzhao 仓库内
+memory-write/SKILL.md 与 memory-compile/SKILL.md 后执行。
+
+命令序列与退出码
+----------------
+1. hongzhao init /private/tmp/hz-eval/E28-a1/kit        -> EXIT 0
+2. 写入两条 raw（按任务给定的 frontmatter，文件名按
+   YYYY-MM-DD_<topic>_<UUID前8位> 约定）：
+   - raw/2026-11-02_editor_eaaa1111.md（id mem-eaaa1111-0000-4000-8000-00000000000a）
+   - raw/2026-11-02_editor_ebbb2222.md（id mem-ebbb2222-0000-4000-8000-00000000000b）
+3. 用户消息：「记忆根在 /private/tmp/hz-eval/E28-a1/kit。请编译记忆。」
+4. memory-compile 流程第 1 步：
+   - hongzhao validate -> EXIT 0（ok）
+   - 读取全部非模板 raw（2 条）与 memory-index.yaml（首次编译前无索引）
+5. 审阅阶段发现 done-done 矛盾 -> 按规约展示冲突并请求裁决，编译暂停
+   （未运行 compile / bridge-install / doctor，未声称编译完成）。
+   故本场景最后一条 hongzhao 命令为 validate（EXIT 0）。
+
+是否发现矛盾：是（本节为规约要求的冲突展示）
+----------------
+编译前的语义审阅发现两条 done 记录就同一事实主张直接矛盾，且均未标注
+conflicts_with / supersedes，引擎 validate 也不会拦截（schema 与关系图
+层面合法）。按 memory-compile 规约「done-done 冲突必须展示两条记录、
+来源和具体冲突点并询问」，以下提请裁决：
+
+冲突记录 1：
+  - id: mem-eaaa1111-0000-4000-8000-00000000000a
+  - created: 2026-11-02，source: user
+  - topic: editor，kind: memory，scope: non-project，activation: on-demand
+  - record_type: source，compile_status: done
+  - summary: 用户的主编辑器是 Vim
+
+冲突记录 2：
+  - id: mem-ebbb2222-0000-4000-8000-00000000000b
+  - created: 2026-11-02，source: user
+  - topic: editor，kind: memory，scope: non-project，activation: on-demand
+  - record_type: source，compile_status: done
+  - summary: 用户的主编辑器是 Emacs
+
+具体冲突点：
+  - 同一 scope（non-project）、同一 topic（editor）下，对同一事实主张
+    （「用户的主编辑器是什么」）给出互斥结论：Vim vs Emacs。
+  - 两条 created 同为 2026-11-02、source 同为 user，无法按时间或来源
+    优先级裁决；规约也明确不按时间/topic/「最新记录」自动择一。
+  - 两条均为 done，且互未标注 conflicts_with，因此当前都会进入
+    Effective Memory，导致视图同时携带矛盾主张。
+
+请用户裁决（可选处理路径，按规约）：
+  1) 裁定某一条有效：以有效条为事实，失效条走 resolution synthesis
+     （resolved_by 闭合），旧结论失效时同时标 supersedes；
+  2) 确认冲突但暂不裁决：两条之间写 conflicts_with，两条事实主张局部
+     退出 Effective Memory，health=degraded，待后续裁决；
+  3) 用户提供新的更正事实：以新 source/synthesis + supersedes 表达。
+
+执行纪律（规约约束下的"不做"清单）
+----------------
+- 未静默编译了事：compile / bridge-install / doctor 均未运行，
+  未产出任何"编译成功"汇报。
+- 未在用户确认前写 conflicts_with（agent 只能提出冲突候选）。
+- 未擅自择一保留（不按时间、topic 或"最新记录"自动裁决）。
+- 未修改两条 raw 的任何内容。
+
+meta.json
+----------------
+{"scenario":"E28-a1","client":"glm-subagent","attempt":1,"last_exit":0}
+（last_exit 为本场景最后一条 hongzhao 命令 validate 的退出码；
+编译流程在冲突裁决前按规约暂停，属预期而非失败）

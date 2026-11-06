@@ -1,0 +1,73 @@
+场景 E14 报告（跨会话续审 + 编译 + 对账）
+执行目录：/private/tmp/hz-eval/E14-a1/
+自检：hongzhao 0.1.0rc5（预期 0.1.0rc5，通过，exit 0）
+规约依据：hongzhao 包内 memory-write 与 memory-compile SKILL.md（已完整读取）
+
+== 种子准备（模拟上次会话已审 3 条） ==
+1. mkdir -p /private/tmp/hz-eval/E14-a1 && hongzhao init .../kit   -> exit 0
+2. 写 7 条候选：id=mem-eee7{N}000-0000-4000-8000-00000000000{N}（N=1..7，合法
+   UUID v4 形态），topic=resume-1..7，summary=「续审条目 N」，kind=memory，
+   scope=non-project，activation=on-demand，source=user，record_type=source，
+   created=2026-11-03，compile_status 全部先为 new；
+   文件名 raw/2026-11-03_resume-N_eee7N000.md
+3. 将前 3 条（resume-1..3）compile_status 改为 done（模拟上次会话已审）
+
+== 接续状态确认 ==
+- hongzhao validate -> review-needed, exit 0（4 条 new 合法待审；done 的 3 条不受影响）
+
+== 本次会话续审（只处理 new 的 4 条） ==
+- resume-4 / resume-5 / resume-6 / resume-7：各自为独立、无歧义的主张，
+  与现有 done 记录（续审条目 1..3）不同 topic、无冲突、无重复/互补
+  => 按 memory-compile 第 2 步标 compile_status: done 生效
+- 未改动 resume-1..3（上次会话已 done，正文与 metadata 冻结）
+- 无 synthesis、无冲突、未写 conflicts_with
+
+== 命令序列与退出码 ==
+1. hongzhao validate（接续确认）             -> review-needed, exit 0
+2. 续审 4 条 new -> done（逐条判断：无冲突、低歧义）
+3. hongzhao validate                         -> ok, exit 0
+4. hongzhao compile                          -> compiled: ok, exit 0
+5. hongzhao bridge-install all               -> exit 0（client 均 disabled，无实际写入）
+6. hongzhao doctor                           -> memory-health: ok / doctor: ok, exit 0
+7. 读取 compiled/last-compile-diff.md 对账
+
+== 对账（汇报数字与 diff 一致） ==
+- 审阅：本次续审 4 条（resume-4..7 全部标 done）；上次会话已审 3 条（done 未动）
+- diff 计数表：total 7，effective 7，pending 0，rejected 0，superseded 0，
+  covered 0，unresolved_conflicts 0，bootstrap 0
+- 审阅意图 vs diff：3（上次 done）+ 4（本次续审 done）= 7 生效，
+  0 意外 pending、0 拒绝、0 意外退出 => 完全一致，无偏差
+- effective-memory/non-project.md 实际列出续审条目 1..7 共 7 条，与意图一致
+- 本次为该 kit 首次编译、无基线，diff 仅含计数表、无逐条 delta，如实说明不虚构
+
+== 健康 ==
+- memory-health: ok / doctor: ok
+
+== 最终 diff（kit/compiled/last-compile-diff.md 完整内容） ==
+---
+schema_version: 2
+generated_at: 2026-11-03T01:18:27+08:00
+baseline: first compile (no baseline index)
+health_before: -
+health_after: ok
+---
+
+# Compile Diff
+
+Health: `-` -> `ok`
+
+## Counts
+
+| metric | before | after | change |
+| --- | --- | --- | --- |
+| total | - | 7 | - |
+| effective | - | 7 | - |
+| pending | - | 0 | - |
+| rejected | - | 0 | - |
+| superseded | - | 0 | - |
+| covered | - | 0 | - |
+| unresolved_conflicts | - | 0 | - |
+| bootstrap | - | 0 | - |
+
+First compile against this baseline; per-record deltas unavailable.
+Totals: 7 records, 7 effective.

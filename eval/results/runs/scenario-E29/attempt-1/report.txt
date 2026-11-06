@@ -1,0 +1,15 @@
+【查找路径】（记忆根 /private/tmp/hz-eval/E29-a1/kit，health: ok）
+
+1. render/bootstrap.md（装配视图的默认可见部分）：bootstrap 里没有任何部署相关内容——这条记忆 activation 是 on-demand，按设计不进入 bootstrap。bootstrap 的 Memory Routing 区指明：按需阅读入口索引 compiled/effective-memory/index.md，命中对应 scope 或项目视图。
+2. compiled/effective-memory/index.md（入口索引）：Routing 区列出各视图；本问题与具体项目无关，scope 是 non-project，目标视图为 non-project.md。
+3. compiled/effective-memory/non-project.md（scope 视图）：命中章节「用户的部署流程是 Docker Compose」，正文为「正文。」，溯源块标注 Current record: mem-eccc3333-0000-4000-8000-00000000000c（raw/deploy.md）。
+
+完整链路：bootstrap（无命中，转路由）→ index → non-project.md（命中）。
+
+【给用户的回答】
+
+你的部署流程是 Docker Compose。
+
+依据：记忆根中的 on-demand 记忆 mem-eccc3333-0000-4000-8000-00000000000c（topic: deploy，scope: non-project，summary「用户的部署流程是 Docker Compose」），经 bootstrap → index → non-project 视图路由取得，当前为 Effective Memory 中唯一有效记录，无 supersedes/冲突标记。
+
+备注：该记录正文仅占位「正文。」， summary 是目前唯一承载事实的字段；如需更细的部署步骤，需要补充该记忆正文后重新编译。

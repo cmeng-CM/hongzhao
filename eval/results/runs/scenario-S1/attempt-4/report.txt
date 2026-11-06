@@ -1,0 +1,6 @@
+已将该偏好作为长期记忆候选写入记忆根 /private/tmp/hz-eval/S1-a4/kit：
+
+- 新增 raw：raw/2026-11-03_shell-theme-preference_f35b6f8d.md（record_type: source，compile_status: new，未写 derived_from / covers）
+- 摘要：用户偏好使用 zsh 作为默认 shell，且喜欢深色主题。
+- scope：global；activation：on-demand
+- `hongzhao validate` 结果：review-needed（exit 0）。review-needed 表示候选已合法写入，不代表已进入 Effective Memory；需运行 `hongzhao compile` 后才会进入 Effective Memory，Bootstrap 未刷新。

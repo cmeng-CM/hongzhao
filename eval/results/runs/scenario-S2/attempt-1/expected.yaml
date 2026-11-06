@@ -1,0 +1,9 @@
+exit: 0
+health: ok
+views:
+  compiled/effective-memory/non-project.md:
+    contains:
+    - 预置候选已由用户确认
+report_contains:
+- effective=1
+- 一致

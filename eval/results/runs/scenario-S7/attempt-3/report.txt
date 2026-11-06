@@ -1,0 +1,32 @@
+这里出现一条新候选与已生效记忆的事实冲突，按规约必须先问你，裁决前我不动任何记录、不编译。
+
+一、两条记录对照
+
+| | 生效记录 | 新候选 |
+|---|---|---|
+| id | mem-aaaa1111-0000-4000-8000-00000000000a | mem-bbbb2222-0000-4000-8000-00000000000b |
+| 文件 | raw/existing.md | raw/new-candidate.md |
+| 来源 | user | user |
+| created | 2026-11-02 | 2026-11-02 |
+| topic / scope | main-editor / non-project | main-editor / non-project |
+| 主张 | 用户的主编辑器是 Vim | 用户的主编辑器是 VSCode |
+| compile_status | done（生效中） | new（待审，未生效） |
+
+二、冲突点
+
+「主编辑器」是单一事实槽位，Vim 与 VSCode 两个主张互斥，不能同时采纳生效。新候选冲撞的是已生效的 done 记录，孰是孰非只有你能定。
+
+三、我停在哪一步（规约要求）
+
+- 旧 done 记录保持有效，新候选继续 pending——两者 compile_status 均未改动。
+- 未写 conflicts_with：用户确认前 Agent 不得写入该关系。
+- 未做任何裁决（没标 done、没标 rejected），也未运行 compile。
+- validate 现状：review-needed（退出码 0）；pending 不阻断现有视图，生效记忆里目前仍是 Vim 那条。
+
+四、请裁决：主编辑器现在以哪个为准？
+
+- 选 A「VSCode 为准」：走纠正链，VSCode 候选生效并 supersedes 旧 Vim 记录，Vim 退出生效。
+- 选 B「Vim 为准」：VSCode 候选标 rejected（附 review_note 与 reviewed_at），Vim 继续生效。
+- 选 C「两者并存、确认冲突」：写 conflicts_with，两条主张局部退出且 health 转 degraded；单一主编辑器场景不建议，如确有分场景使用再选它。
+
+请回复 A / B / C（或直接告诉我以哪个为准），我再继续编译处理。

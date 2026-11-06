@@ -1,0 +1,23 @@
+纠正已完成并编译生效，汇报如下：
+
+1. 纠正落库方式（新 source + supersedes，不改旧记录）
+   - 目标核对：raw/old.md，id mem-aaaa1111-0000-4000-8000-00000000000a，summary「用户的 Linux 发行版是 Ubuntu」，compile_status: done，与你的引述唯一匹配；旧记录已冻结，不就地改写。
+   - 新建纠正候选：
+     - id mem-660756ea-f73b-4315-b90d-8a458151bd51，created 2026-11-03，source: user，topic: linux-distro，kind: memory，scope: non-project，activation: on-demand，record_type: source
+     - summary：用户的 Linux 发行版是 Debian
+     - supersedes: [mem-aaaa1111-0000-4000-8000-00000000000a]
+     - 文件：raw/2026-11-03_linux-distro_660756ea.md；正文只写当前确认事实（Debian），纠正历史由 supersedes 链与 corrections 视图承载，不在生效正文复述旧主张。
+   - 写入后 validate：review-needed（0），候选合法、尚未生效。
+
+2. 审阅与管线
+   - 审阅该 new 候选：用户明确纠正、主张无歧义，标记 compile_status: done；旧记录经 supersedes 由引擎排除。
+   - validate ok（0）→ compile ok（0）→ bridge-install all 成功（0）→ doctor memory-health: ok（0）。
+
+3. Diff 对账
+   - 首次编译无基线，diff 仅计数：total 2 / effective 1 / pending 0 / rejected 0 / superseded 1 / covered 0 / unresolved_conflicts 0。
+   - 与审阅意图对账：本轮审阅 1 条 new（已标 done 生效）、1 条旧记录被取代退出，diff 计数与意图一致，无漏生效或意外退出。
+
+4. 最终状态核验
+   - 生效视图 compiled/effective-memory/non-project.md：「用户的 Linux 发行版是 Debian」生效，Ubuntu 0 处命中。
+   - memory-index：新记录 effective: true；旧记录 mem-aaaa…000a effective: false、exclusion_reason: superseded。
+   - corrections.md 记录 mem-660756ea… supersedes mem-aaaa…000a，纠正链可追溯。

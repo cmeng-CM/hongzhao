@@ -1,0 +1,85 @@
+schema_version: 2
+generated_at: '2026-11-03T09:26:46+08:00'
+health: ok
+counts:
+  total: 3
+  effective: 1
+  pending: 0
+  rejected: 1
+  superseded: 1
+  covered: 0
+  unresolved_conflicts: 0
+  pending_conflicts: 0
+  bootstrap: 0
+records:
+  mem-6940bb4e-4e4b-4390-9eae-de16e7c162a3:
+    path: raw/2026-11-03_main-editor_6940bb4e.md
+    kind: memory
+    scope: non-project
+    project_id: null
+    topic: main-editor
+    created: 2026-11-03
+    summary: 用户的主编辑器是 VSCode
+    compile_status: done
+    record_type: source
+    activation: on-demand
+    derived_from: []
+    source_chain: []
+    covers: []
+    covered_by: []
+    supersedes:
+    - mem-aaaa1111-0000-4000-8000-00000000000a
+    superseded_by: []
+    conflicts_with: []
+    resolved_by: null
+    effective: true
+    bootstrap_eligible: false
+    exclusion_reason: null
+    output: compiled/effective-memory/non-project.md
+  mem-aaaa1111-0000-4000-8000-00000000000a:
+    path: raw/a.md
+    kind: memory
+    scope: non-project
+    project_id: null
+    topic: main-editor
+    created: 2026-11-02
+    summary: 用户的主编辑器是 Vim
+    compile_status: done
+    record_type: source
+    activation: on-demand
+    derived_from: []
+    source_chain: []
+    covers: []
+    covered_by: []
+    supersedes: []
+    superseded_by:
+    - mem-6940bb4e-4e4b-4390-9eae-de16e7c162a3
+    conflicts_with: []
+    resolved_by: null
+    effective: false
+    bootstrap_eligible: false
+    exclusion_reason: superseded
+    output: null
+  mem-bbbb2222-0000-4000-8000-00000000000b:
+    path: raw/b.md
+    kind: memory
+    scope: non-project
+    project_id: null
+    topic: main-editor
+    created: 2026-11-02
+    summary: 用户的主编辑器是 VSCode
+    compile_status: rejected
+    record_type: source
+    activation: on-demand
+    derived_from: []
+    source_chain: []
+    covers: []
+    covered_by: []
+    supersedes: []
+    superseded_by: []
+    conflicts_with: []
+    resolved_by: null
+    effective: false
+    bootstrap_eligible: false
+    exclusion_reason: rejected
+    output: null

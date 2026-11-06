@@ -1,0 +1,39 @@
+E3-a1 report (client: glm-subagent, attempt 1)
+================================================
+
+环境自检
+- /tmp/hz-rel/venv-pypi/bin/hongzhao --version -> hongzhao 0.1.0rc5 （符合预期，继续）
+
+命令序列与退出码
+1. hongzhao init /private/tmp/hz-eval/E3-a1/kit                    -> exit 0（initialized memory kit）
+2. 读取 ~/workspace/github/hongzhao/src/hongzhao/skills/memory-write/SKILL.md（完整）
+3. 检查 kit/raw/（仅 _template.md，无已有 topic）
+4. 生成 raw 文件（python3 -I，「用文件直接写」与规约步骤 5/6 一致）-> exit 0
+5. hongzhao --root /private/tmp/hz-eval/E3-a1/kit validate          -> exit 0，输出 "validation: review-needed"
+
+用户消息处理
+- 记忆内容：scope 用户说「全局」，内容是「我喜欢简洁回复」；要求写完跑 validate，有错修到通过
+- scope 映射（本场景关键点）：「全局」不是 schema 合法枚举值（合法值为 global | project | non-project），
+  写入前即映射为 scope: global，正文注明映射关系；未把「全局」字面量写进 frontmatter
+- 分类：用户沟通偏好 -> kind: preference
+- activation：简洁回复偏好适合所有新会话默认看到 -> bootstrap
+
+写入结果
+- 文件：raw/2026-11-03_concise-replies_1f900167.md（新文件，未覆盖已有文件）
+- id: mem-1f900167-fe3c-482f-a071-55c614f3b57e
+- created: 2026-11-03；source: zcode；topic: concise-replies；kind: preference
+- scope: global（由「全局」映射）；activation: bootstrap
+- record_type: source；compile_status: new；未写 derived_from/covers/supersedes
+- summary: 「用户喜欢简洁回复。」（9 字符，单行）
+- 正文：核心偏好 + 来源说明 + scope 映射说明
+
+validate 与修复
+- 首次 validate 即通过："validation: review-needed"（exit 0），无错误需修复
+- 原因：枚举映射在写入前完成，字段约束（单行、<=300 字符、id 形态）写入前均已自检
+- review-needed 语义：候选已合法写入，不代表已进入 Effective Memory
+
+边界遵守
+- 未运行 compile/render，未声称 Bootstrap 已刷新
+- 未触碰 ~/workspace/github/hongzhao 仓库（仅读取 SKILL.md）
+
+last_exit: 0

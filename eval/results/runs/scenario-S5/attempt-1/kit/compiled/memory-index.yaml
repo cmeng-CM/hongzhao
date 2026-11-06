@@ -1,0 +1,37 @@
+schema_version: 2
+generated_at: '2026-11-03T01:13:14+08:00'
+health: ok
+counts:
+  total: 1
+  effective: 1
+  pending: 0
+  rejected: 0
+  superseded: 0
+  covered: 0
+  unresolved_conflicts: 0
+  pending_conflicts: 0
+  bootstrap: 0
+records:
+  mem-aaaa1111-0000-4000-8000-00000000000a:
+    path: raw/existing.md
+    kind: memory
+    scope: non-project
+    project_id: null
+    topic: notes-tool
+    created: 2026-11-02
+    summary: 用户使用 Obsidian 做笔记
+    compile_status: done
+    record_type: source
+    activation: on-demand
+    derived_from: []
+    source_chain: []
+    covers: []
+    covered_by: []
+    supersedes: []
+    superseded_by: []
+    conflicts_with: []
+    resolved_by: null
+    effective: true
+    bootstrap_eligible: false
+    exclusion_reason: null
+    output: compiled/effective-memory/non-project.md

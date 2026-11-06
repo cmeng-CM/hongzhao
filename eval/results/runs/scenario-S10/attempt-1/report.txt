@@ -1,0 +1,64 @@
+S10-a1 执行汇报（glm-subagent，attempt 1）
+================================================
+
+自检：hongzhao 0.1.0rc5，退出码 0。规约：完整读取 hongzhao 仓库内
+memory-write/SKILL.md 与 memory-compile/SKILL.md 后执行。
+
+命令序列与退出码
+----------------
+1. hongzhao init /private/tmp/hz-eval/S10-a1/kit        -> EXIT 0
+2. hongzhao --root .../kit validate                      -> EXIT 0（review-needed：3 条 new 合法入库）
+3. （审阅 3 条 new 候选 -> 标记 done，见下）
+4. hongzhao --root .../kit validate                      -> EXIT 0（ok）
+5. hongzhao --root .../kit compile                       -> EXIT 0（compiled: ok）
+6. hongzhao --root .../kit bridge-install all            -> EXIT 0
+7. hongzhao --root .../kit doctor                        -> EXIT 0（memory-health: ok）
+8. 读 compiled/last-compile-diff.md 对账                 -> 一致
+
+第一会话汇报（用户消息：记 3 条偏好 + 编译记忆）
+----------------
+按 memory-write：
+- 新增 3 条 raw（均为 record_type: source、compile_status: new，文件名
+  2026-11-03_<topic>_<UUID前8位>.md，未覆盖已有文件）：
+  1) topic=concise-replies，summary=「用户喜欢简洁的回复风格」，
+     kind=preference，scope=global，activation=bootstrap，compile_status=new
+  2) topic=vim-keybindings，summary=「用户使用 vim 键位」，同上分类
+  3) topic=dark-theme，summary=「用户偏好深色主题」，同上分类
+- 分类依据：均为稳定用户偏好 -> scope=global；摘要适合所有新会话默认看到
+  -> activation=bootstrap；歧义低，未追问。
+- validate=review-needed（候选合法写入，未声称已进入 Effective Memory）。
+
+按 memory-compile：
+- validate -> 读全部非模板 raw（3 条）与 memory-index.yaml（首次编译前无索引）。
+- 审阅 3 条 new：事实主张相互独立、无歧义 -> 逐条标记 done；无需 synthesis
+  （无重复/互补归并）；无冲突；未写 conflicts_with。
+- 再次 validate -> ok。
+- compile -> ok；bridge-install all -> ok；doctor -> memory-health: ok。
+- 对账（last-compile-diff.md）：首次编译无基线（如实说明，无逐条 delta）；
+  计数表 total=3、effective=3、pending=0、rejected=0、bootstrap=3，
+  健康 `-` -> ok。与审阅意图（审阅 3 条、全部生效）一致，无偏差。
+
+第二会话探针回答（全新心态，唯一信息源 = kit 内 render/bootstrap.md）
+----------------
+用户消息：「你好，我是你的继任 agent。请告诉我这位用户的偏好是什么。」
+
+探针回答（逐字记录）：
+  根据 bootstrap（render/bootstrap.md 的 User Background & Preferences 一节），
+  这位用户有三条偏好：
+  1) 喜欢简洁的回复风格；
+  2) 偏好深色主题；
+  3) 使用 vim 键位。
+  以上三条全部来自 bootstrap 文件本身。除此之外我不知道更多：bootstrap 的
+  Current Work Topics 为 no registered current projects，Global/Non-Project
+  Key Items 均为 none，我无法得知这些偏好的具体背景、起始时间或更多细节
+  （例如具体是哪个编辑器、哪个主题设置），也不会去猜测。
+
+探针命中统计
+----------------
+- bootstrap 中偏好条目：3 条；探针答出：3 条 -> 命中 3/3。
+- 均标注来源为 bootstrap；未知部分（背景/细节）如实标注"不知道"，未虚构。
+
+meta.json
+----------------
+{"scenario":"S10-a1","client":"glm-subagent","attempt":1,"last_exit":0}
+（last_exit 为本场景最后一条 hongzhao 命令 doctor 的退出码）

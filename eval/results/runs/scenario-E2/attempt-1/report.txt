@@ -1,0 +1,39 @@
+E2-a1 report (client: glm-subagent, attempt 1)
+================================================
+
+环境自检
+- /tmp/hz-rel/venv-pypi/bin/hongzhao --version -> hongzhao 0.1.0rc5 （符合预期，继续）
+
+命令序列与退出码
+1. hongzhao init /private/tmp/hz-eval/E2-a1/kit                    -> exit 0（initialized memory kit）
+2. 读取 ~/workspace/github/hongzhao/src/hongzhao/skills/memory-write/SKILL.md（完整）
+3. 检查 kit/raw/（仅 _template.md，无已有 topic）与 registry/project-registry.yaml（projects: []）
+4. 生成 raw 文件（python3 -I）-> exit 0
+5. hongzhao --root /private/tmp/hz-eval/E2-a1/kit validate          -> exit 0，输出 "validation: review-needed"
+
+用户消息处理
+- 记忆内容：项目代号「紫罗兰（Violet）#1」的记忆系统设计笔记——纯文件方案，要点是确定性编译
+- scope 判定（本场景关键点）：内容以「项目代号」表述，倾向 project，但规约要求 project scope 必须绑定
+  已登记 project_id；本 kit 的 project-registry.yaml 为 projects: []，紫罗兰未登记，且 memory-write
+  边界是只维护 raw、不注册项目（project-register 属独立工作流）。因此不伪造 project_id、不越界注册，
+  取可执行的合法路径 scope: non-project，并在正文写明 scope 说明（项目登记后可经后续候选 + supersedes 重新归类）
+
+写入结果
+- 文件：raw/2026-11-03_violet-memory-design_3378784d.md（新文件，未覆盖已有文件）
+- id: mem-3378784d-ea91-44a8-88e2-4247fcd9ef4b
+- created: 2026-11-03；source: zcode；topic: violet-memory-design；kind: memory
+- scope: non-project（未登记项目无法用 project；正文留有 scope 说明）
+- activation: on-demand（特定设计笔记，非所有新会话默认所需摘要）
+- record_type: source；compile_status: new；未写 derived_from/covers/supersedes
+- summary: 「项目代号「紫罗兰（Violet）#1」的记忆系统设计：纯文件方案，要点是确定性编译。」
+  （约 38 字符，单行，低于 300 字符上限）
+- 正文：设计笔记要点两条（纯文件方案 / 确定性编译）+ 来源说明 + scope 说明，未复制对话过程
+
+validate 结果
+- "validation: review-needed"（exit 0）：候选已合法写入，不代表已进入 Effective Memory
+
+边界遵守
+- 未运行 compile/render，未声称 Bootstrap 已刷新
+- 未触碰 ~/workspace/github/hongzhao 仓库（仅读取 SKILL.md）
+
+last_exit: 0

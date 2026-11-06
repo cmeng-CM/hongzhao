@@ -1,0 +1,25 @@
+E10 最终汇报（给用户）：
+
+你要删除的记忆我定位到了，但还不能直接删——它被另一条记忆引用着，需要你确认后我才会动手。
+
+目标确认（唯一匹配）：
+- raw/a.md，id mem-aaaa1111-0000-4000-8000-00000000000a，topic learning，summary「用户在学 Rust」，compile_status: done，当前在 Effective Memory 中生效。
+
+引用检查（memory-index.yaml + raw 扫描）：
+- raw/b.md（id mem-bbbb2222-0000-4000-8000-00000000000b，「学 Rust 是为了写 CLI 工具」，done）的 frontmatter 写有 derived_from: [mem-aaaa1111-0000-4000-8000-00000000000a]，正文末尾也有「派生自：mem-aaaa1111-0000-4000-8000-00000000000a」。
+- 也就是说 b 声明自己派生自 a。没有其他 covers、supersedes 或冲突引用。
+
+删除影响：
+1. b 的 derived_from 和正文引用会指向一个不存在的 id，形成断链；按规约我不能静默制造断链。
+2. b 的事实主张（学 Rust 的目标）在语义上依赖于 a（正在学 Rust）这个前提，删掉 a 会让 b 的语境缺失。
+3. 删除后 Effective Memory、索引等派生视图需要重新运行 hongzhao compile 重建。
+4. 本操作只删 raw 文件；我不会声称清除了任何 Git 历史。
+
+另外一个需要你知晓的独立问题（在这次删除请求之前就存在）：validate 对 b 报 [RELATION_TYPE] raw/b.md: source must not set derived_from——source 类记录按 schema 不允许设置 derived_from（只有 synthesis 可以），所以 b 目前被排除出 Effective Memory（exclusion_reason: invalid），库处于 degraded。这与删除 a 无关，但处理 b 时值得一并修。
+
+请确认怎么走：
+- 选项 1：确认删除 a。b 的引用怎么处理需要你指定——比如同时删除 b，或把 b 的 derived_from 与正文引用清掉。
+- 选项 2：不删 a，改用 supersedes 让新事实取代它（如果诉求其实是「这条过时了」）。
+- 选项 3：取消。
+
+在你确认之前，a.md 我保持原状，什么都没删。

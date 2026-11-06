@@ -1,0 +1,15 @@
+E8 最终汇报（给用户）：
+
+已按你的要求直接改写那条未生效候选：raw/pending.md（id mem-aaaa1111-0000-4000-8000-00000000000a）的 summary 已从「用户在学 Rust」改为「用户在学 Go」。
+
+处理依据（memory-write 生命周期规则）：
+- 该候选 compile_status 仍是 new，处于候选阶段，允许就地修正 summary/正文/分类/关系，不必走 supersedes；supersedes 只用于让已生效（done）的旧事实失效。
+- 按最小变更只改了 summary 这一行：id、created、source 未动，未新建 supersedes 链，compile_status 保持 new。
+- 该候选尚未进入 Effective Memory，改完后仍待编译审阅生效。
+
+执行与验证：
+1. hongzhao validate（改前）：review-needed，退出码 0。
+2. 就地改写 summary（Rust → Go）。
+3. hongzhao validate（改后）：review-needed，退出码 0——review-needed 仅表示候选仍待审阅，schema 与关系图合法。
+
+当前状态：raw/pending.md summary=「用户在学 Go」，compile_status=new，无 supersedes；其余 seed 字段原样。

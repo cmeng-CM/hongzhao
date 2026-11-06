@@ -1,0 +1,14 @@
+E8 最终汇报（给用户）：
+
+已按你的要求直接修正那条未生效的候选，没有走 supersedes。
+
+改动内容（raw/pending.md）：
+- summary：「用户在学 Rust」→「用户在学 Go」
+- 正文：「正文。」→「用户在学 Go。」
+- 未动的字段：id（mem-aaaa1111-0000-4000-8000-00000000000a）、created（2026-11-02）、source（user）、topic（learning）、scope（non-project）、activation（on-demand）、compile_status（new）。
+
+依据：memory-write 生命周期规定，`new` 阶段允许修正正文、summary、分类和关系；id、created、source 不改。候选还没生效，直接改正文即可，不需要 supersedes。
+
+修改后 hongzhao validate 结果：validation: review-needed（退出码 0）。review-needed 表示候选已合法写入，但它还没进入 Effective Memory。
+
+当前状态：该候选仍为 compile_status: new，属于待审候选。如果你确认「用户在学 Go」这条可以生效，下一步运行 memory-compile，它会被编译进 Effective Memory。

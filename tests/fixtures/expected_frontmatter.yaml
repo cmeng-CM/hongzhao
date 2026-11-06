@@ -1,0 +1,39 @@
+#  基线：九类产物 frontmatter 键集（键冻结——英文化只改值，不改键）
+effective_file:
+  - schema_version
+  - generated_at
+  - health
+  - scope
+effective_file_project:
+  - schema_version
+  - generated_at
+  - health
+  - scope
+  - project_id
+effective_index:
+  - schema_version
+  - generated_at
+  - health
+knowledge_map:
+  - schema_version
+  - generated_at
+  - health
+current_state:
+  - schema_version
+  - generated_at
+  - health
+corrections:
+  - schema_version
+  - generated_at
+  - health
+bootstrap:
+  - schema_version
+  - generated_at
+  - engine_version
+  - health
+  - memory_root
+  - project_registry
+  - memory_index
+  - effective_memory_index
+  - knowledge_map
+  - raw_root

@@ -1,0 +1,9 @@
+编译完成。
+
+- 新增生效：1 条。raw/pre-seed.md（mem-22222222-3333-4444-8555-666677778888，topic=onboarding，scope=non-project，activation=on-demand），语义审阅后标记 done，已进入 Effective Memory（compiled/effective-memory/non-project.md）。
+- 健康状态：ok。compile 后 health=ok，doctor 报告 memory-health: ok、doctor: ok。
+- 审阅对账：本次审阅 new 候选共 1 条；该候选字段齐整、summary 与正文一致，且记忆库为空（无既有事实主张），独立且无歧义，故标记 done，无候选阶段修正、无 synthesis、无冲突项。last-compile-diff.md 显示 after：total 1 / effective 1 / pending 0 / rejected 0，与审阅意图一致，无多生效、漏生效或意外退出。
+- 首次编译无基线：diff 标注 "first compile (no baseline index)"，仅含计数表，无逐条 delta 可比，如实说明，不虚构逐条变化。
+- 健康迁移：-（无基线）→ ok。
+- 执行命令：hongzhao validate（编译前后各一次，第一次 review-needed / 第二次 ok）→ hongzhao compile（compiled: ok）→ hongzhao bridge-install all（刷新 inline 客户端托管块）→ hongzhao doctor（ok）。
+- 重建产物：compiled/effective-memory/{index,global,non-project}.md、compiled/memory-index.yaml、compiled/current-state.md、compiled/corrections.md、compiled/last-compile-diff.md、render/bootstrap.md。

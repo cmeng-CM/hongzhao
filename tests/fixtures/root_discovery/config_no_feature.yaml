@@ -1,0 +1,3 @@
+# 无特征键：普通项目的 config（缺 schema_version/paths）——不是记忆根，四源应继续上溯
+name: some-plain-project
+version: 1.0.0

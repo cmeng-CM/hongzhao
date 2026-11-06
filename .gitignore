@@ -1,0 +1,11 @@
+# 交付与本地材料不入仓（含 IP 报备等个人材料，PD-03）
+.delivery/
+# Python
+.venv/
+__pycache__/
+dist/
+build/
+*.egg-info/
+.DS_Store
+# 本地评测报告（内部交付物，不随公开树）
+report-eval/

@@ -1,0 +1,9 @@
+schema_version: 2
+knowledge:
+- path: knowledge/jinja2-template-inheritance.md
+  title: Jinja2 模板继承
+  topics:
+  - jinja2
+  summary: Jinja2 通过 {% extends %} 声明父模板、用 {% block %} 定义可覆盖块实现模板继承
+  registered_at: '2026-11-03'
+  last_checked_at: '2026-11-03'

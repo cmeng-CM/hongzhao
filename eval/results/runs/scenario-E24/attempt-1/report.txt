@@ -1,0 +1,53 @@
+E24 import vs inline 两种模式的编译后新旧内容对比
+================================================
+
+环境
+- kit: /private/tmp/hz-eval/E24-a1/kit (hongzhao init, v0.1.0rc5)
+- 两个假客户端（均 enabled）：
+  fake_import  mode=import  bridge_path=/private/tmp/hz-eval/E24-a1/fake1/CLAUDE.md
+  fake_inline  mode=inline  bridge_path=/private/tmp/hz-eval/E24-a1/fake2/AGENTS.md
+- 自有内容：fake1 `OWN-IMPORT-CONTENT-777`；fake2 `OWN-INLINE-CONTENT-888`
+
+命令序列与退出码
+1. hongzhao init /private/tmp/hz-eval/E24-a1/kit                  -> 0
+2. 编辑 kit/config.yaml 增加 fake_import（import）+ fake_inline（inline）
+3. 写 fake1/CLAUDE.md、fake2/AGENTS.md（仅自有内容）
+4. hongzhao compile（首次，bridge-install 前置必需）              -> 0
+5. hongzhao bridge-install all                                    -> 0
+     fake_import -> fake1/CLAUDE.md；fake_inline -> fake2/AGENTS.md
+6. hongzhao doctor（基线）                                        -> 0，无 BRIDGE_STALE
+7. hongzhao compile（第二次编译；bootstrap generated_at
+   01:42:03 -> 01:42:12）                                         -> 0
+8. 只跑 doctor，不重装                                            -> 0（warning 级）
+     warning BRIDGE_STALE fake_inline /private/tmp/hz-eval/E24-a1/fake2/AGENTS.md
+       managed block drifted; run hongzhao bridge-install
+     fake_import 无任何 BRIDGE 相关告警
+9. hongzhao bridge-install all（按用户消息要求补装）              -> 0
+10. hongzhao doctor（终态）                                       -> 0，BRIDGE_STALE 0 条
+
+内容差异证据（重装前）
+- fake_import 块 = 纯 @ 引用，块内无任何嵌入时间戳（grep generated_at = 0 次）：
+     <!-- hongzhao:start -->
+     # hongzhao bootstrap
+     @/private/tmp/hz-eval/E24-a1/kit/render/bootstrap.md
+     <!-- hongzhao:end -->
+  每次读取都解析当前 bootstrap.md -> 永远是"新内容"（实时 01:42:12）
+- fake_inline 块 = 安装时固化的嵌入快照，内嵌 generated_at:
+  2026-11-03T01:42:03+08:00（旧），而 render/bootstrap.md 已是
+  01:42:12（新）-> doctor 因此只对 fake_inline 报 BRIDGE_STALE
+
+重装后一致性
+- bridge-install all 后 fake2 内嵌快照更新为 01:42:12，与
+  render/bootstrap.md 完全一致 -> 两边一致
+- doctor 终态：两个客户端均无 BRIDGE_STALE（仅余各自 SKILL_MISSING x4，
+  未跑 skills-install，本场景范围外）
+- 自有内容逐字节证据：重装前后
+  fake1 head-5 cmp -> 无差异（FAKE1 OWN BYTE-IDENTICAL）
+  fake2 head-5 cmp -> 无差异（FAKE2 OWN BYTE-IDENTICAL）
+  grep 确认两个唯一标记行均在（各在行3）
+
+结论
+- import 模式：托管块只放 @ 引用，编译后无需重装即读到最新 bootstrap
+  （"新内容"）；inline 模式：托管块内嵌编译时快照，编译后变旧，
+  doctor 以 BRIDGE_STALE（仅指向 inline 客户端）准确区分二者。
+- bridge-install all 后 inline 快照与 import 引用指向的实时内容一致。

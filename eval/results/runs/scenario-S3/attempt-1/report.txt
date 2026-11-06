@@ -1,0 +1,36 @@
+S3 report (glm-subagent, attempt 1)
+====================================
+
+场景：空项目根，用户请求建档（用途「个人博客生成器」、当前状态「初始化完成」、下一步「写渲染器」；记忆根 /private/tmp/hz-eval/S3-a1/kit）。
+
+命令序列与退出码：
+- hongzhao init /private/tmp/hz-eval/S3-a1/kit                        (exit 0)
+- mkdir -p /private/tmp/hz-eval/S3-a1/proj                            (exit 0)
+- hongzhao project-register /private/tmp/hz-eval/S3-a1/proj --key blog --name 个人博客生成器 --purpose 个人博客生成器 --current-state 初始化完成 --next-action 写渲染器 --status active
+  -> registered new project: proj-c48402b4-11f0-4dd0-ad97-325ec06630c9 at projects/blog   (exit 0)
+- 编辑 kit/projects/blog/project-view.md：就地补全视图正文（自动区块 + 人工区）
+- hongzhao project-check /private/tmp/hz-eval/S3-a1/proj -> contract central, id/key 匹配   (exit 0)
+- hongzhao render                              -> compiled: ok         (exit 0)
+- hongzhao bridge-install all                  -> ok                   (exit 0)
+- hongzhao doctor                              -> memory-health: ok    (exit 0)
+
+最后退出码：0（doctor）
+
+memory-project-context 流程执行记录：
+1. 新建契约前查重：registry/project-registry.yaml 为空（projects: []）、记忆根 projects/ 不存在、项目根无 project-view.md——三处均无既有契约。
+2. 用户消息逐字给出 purpose（个人博客生成器）、current_state（初始化完成）、next_action（写渲染器）；status 用户未给，依「初始化完成且已有下一步」推断为 active（唯一合理项，非占位文字）；project_key 用户未给，取稳定短键 blog（小写合法、注册前确认未被占用）；activation 按默认 on-demand。
+3. 注册：hongzhao project-register 分配 project_id=proj-c48402b4-11f0-4dd0-ad97-325ec06630c9，并在记忆根 projects/blog/ 生成 central 契约（frontmatter 与用户确认字段一致）。
+4. 就地维护原则：project-check 确认引擎将 central 契约视为该项目唯一契约（contract: kit/projects/blog/project-view.md (central)），故不在项目根新建第二份 project-view.md，只就地补全 central 契约正文：唯一成对自动区块（项目概况 / 核心资料入口 / Project Memory 链接 [[blog]] 标记待生成 / 读取边界含 Archive、99-Archive 排除规则）+ 人工区（关键决策、问题、卡点与风险，均无虚构内容）。
+5. entrypoints=[]：项目根为空目录，无详细资料可列；无归档目录需排除。
+
+完成后检查结果：
+- project-check：frontmatter 可解析，project_id 与注册表一致（proj-c48402b4-11f0-4dd0-ad97-325ec06630c9，key=blog），exit 0。
+- entrypoints 不含归档目录；自动区含「读取边界」；PROJECT_VIEW_GENERATED:START/END 成对且仅一对；人工区标题在标记外、未被覆盖。
+- project memory 链接 [[blog]]：compiled/effective-memory/projects/ 尚不存在（无 project raw），链接按规约明确标记「待生成」。
+- render / bridge-install all / doctor 全部 exit 0；compiled/current-state.md 已显示「个人博客生成器 (active): 初始化完成 Next: 写渲染器」。
+- 未写任何 raw，未越界改动其他文件。
+
+判断说明（无交互用户的自主裁量）：
+- status=active、key=blog、activation=on-demand 为用户话语中低歧义或默认推导项，已在报告中如实记录；purpose/current_state/next_action 完全取用户原话。
+
+边界遵守：未动 ~/workspace/github/hongzhao 仓库；仅操作 /private/tmp/hz-eval/S3-a1/ 内文件。

@@ -1,0 +1,83 @@
+schema_version: 2
+generated_at: '2026-11-03T01:30:13+08:00'
+health: ok
+counts:
+  total: 3
+  effective: 3
+  pending: 0
+  rejected: 0
+  superseded: 0
+  covered: 0
+  unresolved_conflicts: 0
+  pending_conflicts: 0
+  bootstrap: 3
+records:
+  mem-dfcaf9cb-d942-4833-8f3e-280ee6e8a001:
+    path: raw/2026-11-03_concise-replies_dfcaf9cb.md
+    kind: preference
+    scope: global
+    project_id: null
+    topic: concise-replies
+    created: 2026-11-03
+    summary: 用户喜欢简洁的回复风格
+    compile_status: done
+    record_type: source
+    activation: bootstrap
+    derived_from: []
+    source_chain: []
+    covers: []
+    covered_by: []
+    supersedes: []
+    superseded_by: []
+    conflicts_with: []
+    resolved_by: null
+    effective: true
+    bootstrap_eligible: true
+    exclusion_reason: null
+    output: compiled/effective-memory/global.md
+  mem-2838f978-7c85-42ee-96db-2a22752b9d9b:
+    path: raw/2026-11-03_dark-theme_2838f978.md
+    kind: preference
+    scope: global
+    project_id: null
+    topic: dark-theme
+    created: 2026-11-03
+    summary: 用户偏好深色主题
+    compile_status: done
+    record_type: source
+    activation: bootstrap
+    derived_from: []
+    source_chain: []
+    covers: []
+    covered_by: []
+    supersedes: []
+    superseded_by: []
+    conflicts_with: []
+    resolved_by: null
+    effective: true
+    bootstrap_eligible: true
+    exclusion_reason: null
+    output: compiled/effective-memory/global.md
+  mem-a0a263d0-37ef-473a-b768-f2353edfb05d:
+    path: raw/2026-11-03_vim-keybindings_a0a263d0.md
+    kind: preference
+    scope: global
+    project_id: null
+    topic: vim-keybindings
+    created: 2026-11-03
+    summary: 用户使用 vim 键位
+    compile_status: done
+    record_type: source
+    activation: bootstrap
+    derived_from: []
+    source_chain: []
+    covers: []
+    covered_by: []
+    supersedes: []
+    superseded_by: []
+    conflicts_with: []
+    resolved_by: null
+    effective: true
+    bootstrap_eligible: true
+    exclusion_reason: null
+    output: compiled/effective-memory/global.md

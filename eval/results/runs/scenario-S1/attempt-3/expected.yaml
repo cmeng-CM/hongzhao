@@ -1,0 +1,5 @@
+exit: 0
+views:
+  compiled/effective-memory/global.md:
+    excludes:
+    - zsh

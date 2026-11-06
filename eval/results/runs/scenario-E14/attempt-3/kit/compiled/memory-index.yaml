@@ -1,0 +1,175 @@
+schema_version: 2
+generated_at: '2026-11-03T09:30:06+08:00'
+health: ok
+counts:
+  total: 7
+  effective: 7
+  pending: 0
+  rejected: 0
+  superseded: 0
+  covered: 0
+  unresolved_conflicts: 0
+  pending_conflicts: 0
+  bootstrap: 0
+records:
+  mem-eee71000-0000-4000-8000-000000000001:
+    path: raw/2026-11-02_resume-1_eee71000.md
+    kind: memory
+    scope: non-project
+    project_id: null
+    topic: resume-1
+    created: 2026-11-02
+    summary: 用户长期事实候选 resume-1（续作审阅批次）
+    compile_status: done
+    record_type: source
+    activation: on-demand
+    derived_from: []
+    source_chain: []
+    covers: []
+    covered_by: []
+    supersedes: []
+    superseded_by: []
+    conflicts_with: []
+    resolved_by: null
+    effective: true
+    bootstrap_eligible: false
+    exclusion_reason: null
+    output: compiled/effective-memory/non-project.md
+  mem-eee72000-0000-4000-8000-000000000002:
+    path: raw/2026-11-02_resume-2_eee72000.md
+    kind: memory
+    scope: non-project
+    project_id: null
+    topic: resume-2
+    created: 2026-11-02
+    summary: 用户长期事实候选 resume-2（续作审阅批次）
+    compile_status: done
+    record_type: source
+    activation: on-demand
+    derived_from: []
+    source_chain: []
+    covers: []
+    covered_by: []
+    supersedes: []
+    superseded_by: []
+    conflicts_with: []
+    resolved_by: null
+    effective: true
+    bootstrap_eligible: false
+    exclusion_reason: null
+    output: compiled/effective-memory/non-project.md
+  mem-eee73000-0000-4000-8000-000000000003:
+    path: raw/2026-11-02_resume-3_eee73000.md
+    kind: memory
+    scope: non-project
+    project_id: null
+    topic: resume-3
+    created: 2026-11-02
+    summary: 用户长期事实候选 resume-3（续作审阅批次）
+    compile_status: done
+    record_type: source
+    activation: on-demand
+    derived_from: []
+    source_chain: []
+    covers: []
+    covered_by: []
+    supersedes: []
+    superseded_by: []
+    conflicts_with: []
+    resolved_by: null
+    effective: true
+    bootstrap_eligible: false
+    exclusion_reason: null
+    output: compiled/effective-memory/non-project.md
+  mem-eee74000-0000-4000-8000-000000000004:
+    path: raw/2026-11-02_resume-4_eee74000.md
+    kind: memory
+    scope: non-project
+    project_id: null
+    topic: resume-4
+    created: 2026-11-02
+    summary: 用户长期事实候选 resume-4（续作审阅批次）
+    compile_status: done
+    record_type: source
+    activation: on-demand
+    derived_from: []
+    source_chain: []
+    covers: []
+    covered_by: []
+    supersedes: []
+    superseded_by: []
+    conflicts_with: []
+    resolved_by: null
+    effective: true
+    bootstrap_eligible: false
+    exclusion_reason: null
+    output: compiled/effective-memory/non-project.md
+  mem-eee75000-0000-4000-8000-000000000005:
+    path: raw/2026-11-02_resume-5_eee75000.md
+    kind: memory
+    scope: non-project
+    project_id: null
+    topic: resume-5
+    created: 2026-11-02
+    summary: 用户长期事实候选 resume-5（续作审阅批次）
+    compile_status: done
+    record_type: source
+    activation: on-demand
+    derived_from: []
+    source_chain: []
+    covers: []
+    covered_by: []
+    supersedes: []
+    superseded_by: []
+    conflicts_with: []
+    resolved_by: null
+    effective: true
+    bootstrap_eligible: false
+    exclusion_reason: null
+    output: compiled/effective-memory/non-project.md
+  mem-eee76000-0000-4000-8000-000000000006:
+    path: raw/2026-11-02_resume-6_eee76000.md
+    kind: memory
+    scope: non-project
+    project_id: null
+    topic: resume-6
+    created: 2026-11-02
+    summary: 用户长期事实候选 resume-6（续作审阅批次）
+    compile_status: done
+    record_type: source
+    activation: on-demand
+    derived_from: []
+    source_chain: []
+    covers: []
+    covered_by: []
+    supersedes: []
+    superseded_by: []
+    conflicts_with: []
+    resolved_by: null
+    effective: true
+    bootstrap_eligible: false
+    exclusion_reason: null
+    output: compiled/effective-memory/non-project.md
+  mem-eee77000-0000-4000-8000-000000000007:
+    path: raw/2026-11-02_resume-7_eee77000.md
+    kind: memory
+    scope: non-project
+    project_id: null
+    topic: resume-7
+    created: 2026-11-02
+    summary: 用户长期事实候选 resume-7（续作审阅批次）
+    compile_status: done
+    record_type: source
+    activation: on-demand
+    derived_from: []
+    source_chain: []
+    covers: []
+    covered_by: []
+    supersedes: []
+    superseded_by: []
+    conflicts_with: []
+    resolved_by: null
+    effective: true
+    bootstrap_eligible: false
+    exclusion_reason: null
+    output: compiled/effective-memory/non-project.md

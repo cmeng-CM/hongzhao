@@ -1,0 +1,7 @@
+exit: 0
+health: ok
+records:
+  mem-11111111-2222-4333-8444-555555555555: {effective: true, compile_status: done}
+views:
+  compiled/effective-memory/global.md: {contains: ["Demo summary"]}
+diff: {"Newly effective": 1}

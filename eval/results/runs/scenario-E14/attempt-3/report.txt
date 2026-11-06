@@ -1,0 +1,21 @@
+E14 审阅中断续作（记忆根：/private/tmp/hz-eval/E14-r3/kit）
+
+续作过程（memory-compile 全流程）：
+1. validate：review-needed（待审 new 候选 4 条：resume-4..resume-7），rc=0。
+2. 续作审阅，只处理未审的 4 条：
+   - resume-4、resume-5、resume-6、resume-7：均为独立、无歧义的长期事实主张，与前 3 条无重复、无冲突，逐条标 done 生效；
+   - 前 3 条（resume-1..resume-3，上次会话已审 done）未做任何改动，无重复审阅；
+   - 无需 synthesis；无冲突，未写 conflicts_with。
+3. 复验 validate：ok。
+4. 依次执行 compile / bridge-install all / doctor：compiled: ok，memory-health: ok，全部 rc=0。
+
+审阅结果：
+- 本次续作审阅：4 条（resume-4、resume-5、resume-6、resume-7）全部标 done；
+- 上次已审：3 条（resume-1..resume-3）保持 done，未动；
+- 全批次 7 条处置完毕，待审清零。
+
+对账（以 compiled/last-compile-diff.md 为准）：
+- 本次为本 kit 首次编译（上次会话只完成了 raw 审阅、未编译，无基线 index），diff 只有计数表、无逐条 delta，如实说明，不虚构逐条变化；
+- diff 计数：total=7、effective=7、pending=0、rejected=0、superseded=0、covered=0、unresolved_conflicts=0；Totals: 7 records, 7 effective；Health: - -> ok；
+- 与审阅意图对账：全批 7 条 = total 7；前 3 条已审 done + 本次续作 4 条 done = effective 7；无剩余待审 = pending 0；无拒绝 = rejected 0。diff 与审阅声称完全一致，无漏审、无重复审、无意外退出；
+- memory-index 复核：health=ok，counts 与 diff 相同（total 7 / effective 7 / pending 0 / rejected 0）。

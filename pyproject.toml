@@ -1,0 +1,35 @@
+# hongzhao 包定义（P0 骨架：引擎模块在 P1 按设计 F-1 迁入）
+# 约定：注释中文、用户可见文本英文（D-30）
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hongzhao"
+version = "0.1.0"
+description = "A file-based, human-gated memory ledger for AI coding agents"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "Apache-2.0" }
+authors = [{ name = "hongzhao contributors" }]
+dependencies = ["PyYAML"]
+
+[project.optional-dependencies]
+# dev 附加：pytest（CI/测试）与 pytest-cov（A-20 的 coverage 维，设计 §10.3）
+dev = ["pytest", "pytest-cov"]
+
+[project.scripts]
+hongzhao = "hongzhao.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# F-4：skills/templates/example 必须随包分发（package data）
+[tool.setuptools.package-data]
+hongzhao = ["skills/*/SKILL.md", "templates/*"]
+
+[tool.coverage.run]
+source = ["hongzhao"]
+
+[tool.coverage.report]
+show_missing = true

@@ -1,0 +1,8 @@
+exit: 0
+records:
+  mem-aaaa1111-0000-4000-8000-00000000000a:
+    effective: true
+views:
+  compiled/effective-memory/non-project.md:
+    excludes:
+    - 我平时用 Obsidian 记笔记

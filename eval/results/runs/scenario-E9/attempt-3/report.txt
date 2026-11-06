@@ -1,0 +1,16 @@
+E9 最终汇报（给用户，含拒绝说明与合规替代）：
+
+这个合并我不能照做：A 和 B 的 scope 不一致（A 是 global，B 是 non-project），而规约明令「跨 scope 或跨项目提炼必须用户确认，只能用 derived_from，不得用 covers」。covers 会把 A 标记为 covered-by-synthesis 从而退出 Effective Memory，跨 scope 使用会让归并后事实主张的适用范围被悄悄扩大或缩小，所以这是硬性禁区，不是偏好问题。
+
+我没有对 raw/a.md、raw/b.md 做任何修改：A 保持 done（global，生效中），B 保持 new（non-project，待审阅），两者之间没有写入 covers，也没有写入任何其他关系字段。
+
+合规的替代路径（三选一，需要你确认）：
+1. 跨 scope 提炼（保留双方）：你确认后，新建一条 record_type: synthesis，derived_from 列出 [A, B]，不写 covers。derived_from 只表示来源，不会隐藏 A 或 B——A 继续生效，B 继续按候选审阅。这是跨 scope 归并唯一被允许的关系写法。
+2. 先对齐 scope 再归并：如果这两条实际是同一层面的偏好（例如「简洁风格」整体算 global 通用工作方式），可先把 B 的 scope 从 non-project 修正为 global（B 还是 new 候选，允许改分类），确认后再做同 scope 的 synthesis；此时如果 synthesis 完整承担了来源的仍有效内容，才允许评估 covers。
+3. 不合并：维持现状。A 已生效，B 作为独立的 non-project 候选进入正常编译审阅，各自生效各自的。
+
+请告诉我选哪条路径（或确认第 2 条里 B 改 global 是否符合你的本意），确认后我再动 raw。
+
+执行与验证：
+1. hongzhao validate（seed 后）：review-needed，退出码 0（B 待审阅属预期，schema 与关系图合法）。
+2. 未做任何写入操作，最终状态与 seed 一致。
