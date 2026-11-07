@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1060" viewBox="0 0 1600 1060" role="img" aria-labelledby="rltitle rldesc">
+  <title id="rltitle">Five relations: the algebra of memory</title>
+  <desc id="rldesc">derived_from marks evidence provenance, covers marks full takeover, supersedes marks fact invalidation, conflicts_with and resolved_by mark conflict and resolution; the compiler interprets only these explicit relations.</desc>
+  <defs>
+    <filter id="rl-shadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="7" stdDeviation="10" flood-color="#0f172a" flood-opacity="0.10"/></filter>
+    <marker id="rl-aGray" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" refX="15" refY="8" orient="auto"><path d="M0,0 L16,8 L0,16 Z" fill="#64748b"/></marker>
+    <marker id="rl-aPurple" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" refX="15" refY="8" orient="auto"><path d="M0,0 L16,8 L0,16 Z" fill="#7c3aed"/></marker>
+    <marker id="rl-aRed" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" refX="15" refY="8" orient="auto"><path d="M0,0 L16,8 L0,16 Z" fill="#dc2626"/></marker>
+    <marker id="rl-aOrange" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" refX="15" refY="8" orient="auto"><path d="M0,0 L16,8 L0,16 Z" fill="#ea580c"/></marker>
+    <marker id="rl-aGreen" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" refX="15" refY="8" orient="auto"><path d="M0,0 L16,8 L0,16 Z" fill="#059669"/></marker>
+    <style>.rl-bg{fill:#f8fafc}.rl-title{font:700 42px 'PingFang SC','Noto Sans CJK SC',sans-serif;fill:#0f172a}.rl-sub{font:400 22px 'PingFang SC','Noto Sans CJK SC',sans-serif;fill:#475569}.rl-h{font:700 24px 'PingFang SC','Noto Sans CJK SC',sans-serif;fill:#0f172a}.rl-t{font:400 16px 'PingFang SC','Noto Sans CJK SC',sans-serif;fill:#475569}.rl-node{font:700 17px 'PingFang SC','Noto Sans CJK SC',sans-serif;fill:#0f172a}.rl-mono{font:700 16px ui-monospace,SFMono-Regular,Menlo,monospace}.rl-note{font:400 15px 'PingFang SC','Noto Sans CJK SC',sans-serif;fill:#64748b}</style>
+  </defs>
+  <rect class="rl-bg" width="1600" height="1060" rx="24"/>
+  <text class="rl-title" x="800" y="70" text-anchor="middle">Five relations: the algebra of memory</text>
+  <text class="rl-sub" x="800" y="108" text-anchor="middle">The compiler interprets only explicit relations — not by time, not by popularity, no silent pick</text>
+
+  <!-- Q1 Synthesis -->
+  <g filter="url(#rl-shadow)"><rect x="55" y="150" width="700" height="390" rx="22" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/></g>
+  <text class="rl-h" x="85" y="200">① Synthesis · <tspan fill="#1d4ed8">derived_from</tspan></text>
+  <g filter="url(#rl-shadow)"><rect x="100" y="250" width="230" height="95" rx="18" fill="#eff6ff" stroke="#93c5fd" stroke-width="2"/><text class="rl-node" x="215" y="290" text-anchor="middle">source · claim</text><text class="rl-t" x="215" y="322" text-anchor="middle">still in the effective view</text></g>
+  <path d="M330 297 L470 297" stroke="#64748b" stroke-width="3" stroke-dasharray="9 8" marker-end="url(#rl-aGray)"/>
+  <text class="rl-mono" x="400" y="275" text-anchor="middle" fill="#1d4ed8">derived_from</text>
+  <g filter="url(#rl-shadow)"><rect x="470" y="250" width="230" height="95" rx="18" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="2"/><text class="rl-node" x="585" y="290" text-anchor="middle">synthesis</text><text class="rl-t" x="585" y="322" text-anchor="middle">a new raw claim</text></g>
+  <text class="rl-note" x="100" y="400">· Records direct sources only; the compiler recursively expands the full chain</text>
+  <text class="rl-note" x="100" y="430">· Evidence provenance — never hides or absorbs source records</text>
+  <text class="rl-note" x="100" y="460">· Cross-scope / cross-project synthesis allowed, but requires user confirmation</text>
+  <text class="rl-note" x="100" y="490">· Every claim in Effective Memory carries a collapsible provenance section</text>
+
+  <!-- Q2 Coverage -->
+  <g filter="url(#rl-shadow)"><rect x="845" y="150" width="700" height="390" rx="22" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/></g>
+  <text class="rl-h" x="875" y="200">② Coverage · <tspan fill="#6d28d9">covers</tspan></text>
+  <g filter="url(#rl-shadow)"><rect x="890" y="250" width="230" height="95" rx="18" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="2"/><text class="rl-node" x="1005" y="290" text-anchor="middle">synthesis</text><text class="rl-t" x="1005" y="322" text-anchor="middle">fully takes over the source</text></g>
+  <path d="M1120 297 L1260 297" stroke="#7c3aed" stroke-width="4" marker-end="url(#rl-aPurple)"/>
+  <text class="rl-mono" x="1190" y="275" text-anchor="middle" fill="#6d28d9">covers</text>
+  <g filter="url(#rl-shadow)"><rect x="1260" y="250" width="230" height="95" rx="18" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/><text class="rl-node" x="1375" y="290" text-anchor="middle" fill="#94a3b8">source</text><text class="rl-t" x="1375" y="322" text-anchor="middle" fill="#94a3b8">covered-by, no longer shown</text></g>
+  <text class="rl-note" x="890" y="400">· covers only when it fully takes over still-valid content</text>
+  <text class="rl-note" x="890" y="430">· The source leaves the effective view, but the record stays for audit</text>
+  <text class="rl-note" x="890" y="460">· Never mix with derived_from: one is evidence, the other takeover</text>
+  <text class="rl-note" x="890" y="490">· Same scope and project_id only; cross-domain must use derived_from</text>
+
+  <!-- Q3 Correction -->
+  <g filter="url(#rl-shadow)"><rect x="55" y="580" width="700" height="390" rx="22" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/></g>
+  <text class="rl-h" x="85" y="630">③ Correction · <tspan fill="#b91c1c">supersedes</tspan></text>
+  <g filter="url(#rl-shadow)"><rect x="100" y="680" width="230" height="95" rx="18" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text class="rl-node" x="215" y="720" text-anchor="middle">new claim</text><text class="rl-t" x="215" y="752" text-anchor="middle">old conclusion found wrong</text></g>
+  <path d="M330 727 L470 727" stroke="#dc2626" stroke-width="4" marker-end="url(#rl-aRed)"/>
+  <text class="rl-mono" x="400" y="705" text-anchor="middle" fill="#b91c1c">supersedes</text>
+  <g filter="url(#rl-shadow)"><rect x="470" y="680" width="230" height="95" rx="18" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/><text class="rl-node" x="585" y="720" text-anchor="middle" fill="#94a3b8">old claim</text><text class="rl-t" x="585" y="752" text-anchor="middle" fill="#94a3b8">invalid, leaves the effective view</text></g>
+  <text class="rl-note" x="100" y="830">· No expires / review_after in the system: time proves nothing</text>
+  <text class="rl-note" x="100" y="860">· supersedes is the only explicit path to invalidate a fact</text>
+  <text class="rl-note" x="100" y="890">· Old records are never edited or deleted — the full audit trail is kept</text>
+  <text class="rl-note" x="100" y="920">· Not for ordinary dedup and merging — that is synthesis's job</text>
+
+  <!-- Q4 Conflict and resolution -->
+  <g filter="url(#rl-shadow)"><rect x="845" y="580" width="700" height="390" rx="22" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/></g>
+  <text class="rl-h" x="875" y="630">④ Conflict and resolution · <tspan fill="#c2410c">conflicts_with</tspan> / <tspan fill="#047857">resolved_by</tspan></text>
+  <g filter="url(#rl-shadow)"><rect x="890" y="680" width="200" height="80" rx="16" fill="#fff1f2" stroke="#fda4af" stroke-width="2"/><text class="rl-node" x="990" y="715" text-anchor="middle">claim A</text><text class="rl-t" x="990" y="745" text-anchor="middle">done</text></g>
+  <path d="M1090 720 L1230 720" stroke="#ea580c" stroke-width="4" marker-end="url(#rl-aOrange)"/>
+  <path d="M1230 700 L1090 700" stroke="#ea580c" stroke-width="4" marker-end="url(#rl-aOrange)"/>
+  <text class="rl-mono" x="1160" y="675" text-anchor="middle" fill="#c2410c">conflicts_with</text>
+  <g filter="url(#rl-shadow)"><rect x="1230" y="680" width="200" height="80" rx="16" fill="#fff1f2" stroke="#fda4af" stroke-width="2"/><text class="rl-node" x="1330" y="715" text-anchor="middle">claim B</text><text class="rl-t" x="1330" y="745" text-anchor="middle">done</text></g>
+  <path d="M1330 760 L1330 810" stroke="#059669" stroke-width="4" marker-end="url(#rl-aGreen)"/>
+  <text class="rl-mono" x="1360" y="795" fill="#047857">resolved_by</text>
+  <g filter="url(#rl-shadow)"><rect x="1230" y="810" width="200" height="80" rx="16" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="2"/><text class="rl-node" x="1330" y="845" text-anchor="middle">resolution synthesis</text><text class="rl-t" x="1330" y="875" text-anchor="middle">closes the conflict</text></g>
+  <text class="rl-note" x="890" y="830">· new ↔ done: the old stays effective, the new stays pending, no relation written</text>
+  <text class="rl-note" x="890" y="860">· done ↔ done: a human must resolve; no output changes before confirmation</text>
+  <text class="rl-note" x="890" y="890">· Confirmed but unresolved: both locally excluded, health = degraded</text>
+  <text class="rl-note" x="890" y="920">· New record wrong → rejected (terminal, kept for audit)</text>
+
+  <text class="rl-sub" x="800" y="1020" text-anchor="middle">In short: who covers whom, who supersedes whom, who conflicts with whom — all written in raw, and the compiler follows to the letter.</text>
+</svg>

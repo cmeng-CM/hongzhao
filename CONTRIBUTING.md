@@ -11,12 +11,16 @@ where your change lands:
 | --- | --- |
 | CLI help / diagnostics / error messages | English |
 | Rendered outputs, managed blocks, templates | English |
-| README, docs, SKILL.md, issue templates | English |
+| `README.md`, `docs/` (incl. diagrams), issue templates | **Chinese (中文)** |
+| `README.en.md`, `docs/en/` | English mirror — keep in sync with the Chinese side |
+| SKILL.md | Chinese (中文) |
 | **Code comments and docstrings (tests included)** | **Chinese (中文)** |
 | Identifiers (function/variable/file names, error codes) | English |
 
-The Chinese-comment convention is intentional: it keeps the maintainer's
-review context native while all user-facing surfaces stay English.
+Docs are Chinese-primary: the Chinese tree is the default and the source of
+truth; `docs/en/` mirrors it. When you change one side, update the other in the
+same PR. The Chinese-comment convention is intentional: it keeps the
+maintainer's review context native while engine surfaces stay English.
 
 ## Sign your work (DCO)
 

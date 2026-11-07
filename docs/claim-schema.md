@@ -1,77 +1,56 @@
-# Claim schema
+# 事实主张 Schema
 
-A **claim** is the atomic unit of memory: one fact, one owner moment, one file.
+[English](en/claim-schema.md) | **简体中文**
 
-## Raw record
+事实主张（claim）是记忆的原子单元（atomic unit）：一条事实、一个归属时刻、一个文件。
 
-Files live under `raw/`, named `YYYY-MM-DD_<topic>_<8-hex>.md`. Frontmatter
-(single line per value; all fields validated — over-length or multi-line values
-are **rejected, never truncated**):
+## raw 记录
 
-Required fields (all of them, validated exactly):
+文件位于 `raw/` 下，命名为 `YYYY-MM-DD_<topic>_<8-hex>.md`。frontmatter（每个值占一行；所有字段均经校验——超长或多行的值会被**直接拒绝，绝不截断**）：
 
-| Field | Type | Meaning |
+必填字段（全部必填，逐一精确校验）：
+
+| 字段 | 类型 | 含义 |
 | --- | --- | --- |
-| `schema_version` | `2` | record schema |
-| `id` | `mem-<uuid>` | stable identity |
-| `created` | date | human date of the fact (not the file mtime) |
-| `source` | enum | who wrote it (`user`, `claude-code`, `codex`, `zcode`, ...) |
-| `topic` | slug | grouping key (e.g. `agent-core-learning`) |
-| `kind` | `profile` \| `preference` \| `memory` | fact class |
-| `scope` | `global` \| `non-project` \| `project` | routing scope |
-| `activation` | enum | when it may enter context (e.g. `on-demand`, `bootstrap`) |
-| `record_type` | `source` \| `synthesis` | raw note or synthesized view |
-| `summary` | ≤ 300 chars, one line | the claim itself, in one sentence |
-| `compile_status` | enum | review state (e.g. `done`) |
+| `schema_version` | `2` | 记录 schema |
+| `id` | `mem-<uuid>` | 稳定标识 |
+| `created` | date | 事实的日期（人为确定，不是文件 mtime） |
+| `source` | enum | 由谁写入（`user`、`claude-code`、`codex`、`zcode` 等） |
+| `topic` | slug | 分组键（例如 `agent-core-learning`） |
+| `kind` | `profile` \| `preference` \| `memory` | 事实类别 |
+| `scope` | `global` \| `non-project` \| `project` | 路由作用域 |
+| `activation` | enum | 何时可进入上下文（例如 `on-demand`、`bootstrap`） |
+| `record_type` | `source` \| `synthesis` | raw 笔记或提炼视图 |
+| `summary` | ≤ 300 字符，单行 | 事实主张本身，用一句话表述 |
+| `compile_status` | enum | 审阅状态（例如 `done`） |
 
-Optional relation fields (empty by default): `project_id` (required when scope
-is `project`), `supersedes` (this fact replaces those), `derived_from`
-(evidence chain; only synthesis may set it), `covers` (only synthesis may set
-it), `conflicts_with`, `resolved_by`, `review_note`, `reviewed_at`. The
-compiler additionally maintains computed fields on the index (`effective`,
-`exclusion_reason`, `superseded_by`) — you never write those by hand.
+可选关系字段（默认为空）：`project_id`（scope 为 `project` 时必填）、`supersedes`（本事实取代那些记录）、`derived_from`（证据链；仅 synthesis 可设置）、`covers`（仅 synthesis 可设置）、`conflicts_with`、`resolved_by`、`review_note`、`reviewed_at`。编译器还会在索引上额外维护计算字段（`effective`、`exclusion_reason`、`superseded_by`）——这些你从不手写。
 
-The body is free markdown — context, quotes, caveats. The summary is what gets
-rendered into views; the body stays in `raw/` as evidence.
+正文是自由格式的 markdown——背景、引文、注意事项。被渲染进视图的是 summary；正文则留在 `raw/` 中作为证据。
 
-## Five relations
+## 五种关系
 
 ```
-supersedes   A ──▶ B     A replaces B (B becomes ineffective)
-covers       A ──▶ B     A is a synthesis covering raw B (both may stay effective)
-derived_from A ──▶ B     A's evidence includes B (trace only)
-conflicts    A ◀─▶ B     A and B disagree; one must be resolved
-resolves     A ──▶ C     correction A settles conflict C
+supersedes   A ──▶ B     A 取代 B（B 变为已失效）
+covers       A ──▶ B     A 是覆盖 raw 记录 B 的提炼记录（两者都可保持有效）
+derived_from A ──▶ B     A 的证据包含 B（仅作溯源）
+conflicts    A ◀─▶ B     A 与 B 不一致；必须裁决其一
+resolves     A ──▶ C     纠正 A 裁决冲突 C
 ```
 
-The compiler only interprets these **explicit** relations — never timestamps,
-never popularity, never silent preference. See
-[06 — claim relations](assets/06-claim-relations.svg) and
-[04 — claim lifecycle](assets/04-claim-lifecycle.svg).
+编译器只解释这些**显式**关系——绝不依据时间戳，绝不依据热度，也绝不无声地偏向。参见 [06 — 事实主张关系](assets/06-claim-relations.svg) 和 [04 — 事实主张生命周期](assets/04-claim-lifecycle.svg)。
 
-## Effectiveness
+## 有效性
 
-A record is **effective** unless the compiler computes otherwise — typically
-because it is superseded (`superseded_by` computed from the supersedes
-relation), or it is a source record covered by a synthesis (`exclusion_reason`
-is a compiler output, not a hand-set field). `compile` recomputes this on every run.
+一条记录默认**有效**，除非编译器计算出相反结果——典型情况是它被取代（`superseded_by` 由 supersedes 关系计算得出），或它是一条被提炼记录（synthesis）覆盖的源记录（source）（`exclusion_reason` 是编译器输出，不是手工设置的字段）。`compile` 每次运行都会重新计算。
 
-`compile` recomputes effectiveness for every record, then renders views. The
-count of effective records is the number agents actually route through —
-see `compiled/memory-index.yaml: records.*.effective`.
+`compile` 为每条记录重新计算有效性，然后渲染视图。有效记录的条数，就是各 agent 实际路由时真正用到的数量——见 `compiled/memory-index.yaml: records.*.effective`。
 
-## Corrections
+## 纠正
 
-A correction is a normal claim with `resolved_by` set on the conflicting
-records. Corrections are never destructive: the old text stays in `raw/`,
-marked; the correction renders in `compiled/corrections.md` until both sides
-age out. "Updated" does not mean "correct" — a correction is a new fact that
-explicitly wins.
+纠正（correction）是一条普通的事实主张，并在冲突记录上设置 `resolved_by`。纠正从不具破坏性：旧文本带着标记留在 `raw/` 中；纠正渲染进 `compiled/corrections.md`，直到双方都老化出局。“已更新”不等于“已正确”——纠正是一条显式胜出的新事实。
 
-## Field limits and why
+## 字段限制及其原因
 
-- **300 characters, one line, no control characters** on every rendered field:
-  injection defense and diff hygiene (a claim you cannot grep in one line is a
-  note, not a claim).
-- Filenames carry the date and topic so sorting is meaningful without opening
-  files; the trailing hex makes collisions impossible.
+- 所有被渲染的字段一律**300 字符、单行、无控制字符**：注入防御（injection defense）与 diff 卫生（保持可 diff 性）——无法在一行内 grep 到的事实主张是一条笔记，而不是事实主张。
+- 文件名携带日期和主题，因此无需打开文件，排序就有意义；末尾的十六进制串让重名冲突不可能发生。

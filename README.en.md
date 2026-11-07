@@ -1,0 +1,129 @@
+**English** | [简体中文](README.md)
+
+<div align="center">
+
+# hongzhao
+
+**A file-based, human-gated memory ledger for AI coding agents — deterministic, zero lock-in.**
+
+[Getting started](docs/en/getting-started.md) · [Install](docs/en/INSTALL.md) · [Design](docs/en/design.md) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md)
+
+[![PyPI](https://img.shields.io/pypi/v/hongzhao?label=PyPI)](https://pypi.org/project/hongzhao/)
+[![Python](https://img.shields.io/badge/python-3.9%2B-3776ab)](https://pypi.org/project/hongzhao/)
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-8a8a8a)](#support-matrix)
+[![License](https://img.shields.io/badge/license-Apache--2.0-3da639)](LICENSE)
+[![Docs](https://img.shields.io/badge/docs-中文%C2%B7English-7016d5)](docs/)
+
+</div>
+
+Agents take notes constantly; most of those notes rot in chat logs. hongzhao gives
+your agent a small set of plain-text ledgers — claims, project contracts, knowledge
+entries — with deterministic validation and compilation. Nothing enters an agent's
+context until you (or a rule you wrote) say so.
+
+- **Plain files, no lock-in.** Markdown + YAML under one root. No server, no database, no cloud.
+- **Two gates.** Raw notes are candidates; `compile` turns reviewed candidates into effective views. Candidates never leak into context.
+- **Deterministic core.** Validation, compilation and rendering are pure scripts; only semantic judgment (what is a fact, what supersedes what) belongs to the agent.
+
+> **Status: pre-release (v0.1).** Interfaces may change before `v0.1.0`.
+
+## Install with your AI agent (one line)
+
+Tell your coding agent (Claude Code, Codex CLI, ZCode, ...):
+
+```text
+Read https://github.com/cmeng-CM/hongzhao/blob/main/docs/en/INSTALL.md and install hongzhao for me. My client is claude_code.
+```
+
+It will follow the [agent install protocol](docs/en/INSTALL.md#agent-install-protocol)
+and report a pass/fail table. Prefer typing yourself? [Manual install](docs/en/INSTALL.md#manual-install)
+is three commands.
+
+## Support matrix
+
+| | Status |
+| --- | --- |
+| macOS / Linux | Supported (Python 3.9+; CI-tested on 3.12/3.13) |
+| Windows native | Not supported — `init` fails fast (symlink-based skill linking; revisit in v0.2) |
+| Python | 3.9+ (CI-tested on 3.12/3.13; single runtime dependency: PyYAML) |
+| Preset clients | Claude Code, Codex CLI, ZCode (more via custom config in v0.1) |
+| Install | `pip` / `uv` / `pipx` |
+
+## With / without
+
+| Concern | Without hongzhao | With hongzhao |
+| --- | --- | --- |
+| Agent notes | Scattered across chat logs, gone on close | Versioned raw records with schema and trace |
+| What the agent "knows" | Whatever is pasted into the prompt | Compiled effective views, routed by task |
+| Conflicting facts | Last message wins | Explicit relations (supersedes / conflicts) resolved at compile time |
+| Onboarding a new agent session | Re-explain everything | One bootstrap block injected into the client file |
+| Leaving the tool | — | Delete the managed block; your files remain plain markdown |
+
+## 60-second quickstart
+
+```bash
+pip install hongzhao            # or: uv tool install hongzhao
+hongzhao init ~/my-memory --example
+hongzhao --root ~/my-memory compile
+hongzhao --root ~/my-memory validate
+```
+
+You now have a green demo kit: raw notes, a compiled index, and a rendered
+bootstrap. Explore `~/my-memory/compiled/` — every view is plain markdown.
+
+Daily loop:
+
+```bash
+hongzhao --root ~/my-memory validate     # schema + containment checks
+hongzhao --root ~/my-memory compile      # rebuild derived views
+hongzhao --root ~/my-memory doctor       # client / blocks / output health
+```
+
+## Agent installation block
+
+Paste this into your agent client's instruction file (or let `bridge-install`
+manage the block for you — see [docs/en/clients.md](docs/en/clients.md)):
+
+```text
+# hongzhao memory routing
+memory_root: ~/my-memory
+Read compiled/bootstrap.md first; route tasks via compiled/effective-memory/index.md.
+Never read raw/ except for evidence tracing. Run `hongzhao --root ~/my-memory compile`
+after writing records; treat compile errors as stop signals.
+```
+
+## How it works
+
+```
+raw/ (claims, dated truth)        ──compile──▶  compiled/ (effective views)
+registry/ + project contracts     ──compile──▶  render/   (bootstrap, client blocks)
+knowledge registry                ──compile──▶  knowledge map
+```
+
+Five explicit relations between claims (supersedes, covers, derives, conflicts,
+resolves) replace "newest wins". See [docs/en/claim-schema.md](docs/en/claim-schema.md)
+and the diagrams in [docs/en/design.md](docs/en/design.md).
+
+## Non-goals
+
+- No MCP server, no vector search, no RAG, no auto-extraction, no web UI.
+- No team sharing / multi-machine sync (single-writer by design).
+- No Windows native support in v0.1.
+- No background daemons — every command is explicit, every write is atomic.
+
+## Why-not
+
+Approaches we deliberately did **not** take (and what to use instead):
+
+- **Vector DB / embeddings:** file paths and titles already route a coding agent well; retrieval quality was not the bottleneck, review discipline was.
+- **Auto-summarization on every turn:** unreviewed summaries are how memory rots; hongzhao makes candidates explicit and gates them.
+- **A server / API:** a memory you cannot `grep`, diff, and back up with git is not your memory.
+- **An embedded database:** merge conflicts and plain-text portability beat query power at this data scale.
+
+---
+
+Full documentation: [docs/](docs/) (中文) · [docs/en/](docs/en/) (English). Security
+model: [SECURITY.md](SECURITY.md). Contributing (DCO required):
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
+License: Apache-2.0 — see [LICENSE](LICENSE).

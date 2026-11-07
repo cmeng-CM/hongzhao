@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 560" font-family="Helvetica,Arial,sans-serif">
+  <rect width="1600" height="560" fill="#fafafa"/>
+  <text x="800" y="52" text-anchor="middle" font-size="30" font-weight="bold" fill="#1a1a1a">The work loop: organize, retrieve, process</text>
+  <text x="800" y="86" text-anchor="middle" font-size="17" fill="#555">Done is not "explained in chat" — it is information in the right place, findable next time.</text>
+
+  <!-- three stages in a cycle -->
+  <g>
+    <rect x="120" y="150" width="400" height="230" rx="14" fill="#fff4e6" stroke="#e8590c" stroke-width="2.5"/>
+    <rect x="120" y="150" width="400" height="54" rx="14" fill="#e8590c"/>
+    <text x="320" y="185" text-anchor="middle" font-size="20" font-weight="bold" fill="white">1 · Organize</text>
+    <g font-size="14" fill="#444">
+      <text x="320" y="245" text-anchor="middle">agent drafts a raw claim (candidate)</text>
+      <text x="320" y="275" text-anchor="middle">you review the summary and relations</text>
+      <text x="320" y="305" text-anchor="middle">contracts get registered once per project</text>
+    </g>
+    <text x="320" y="355" text-anchor="middle" font-size="13" fill="#888">files touched: raw/ · registry/ · projects/</text>
+  </g>
+  <g>
+    <rect x="600" y="150" width="400" height="230" rx="14" fill="#d3f9d8" stroke="#2f9e44" stroke-width="2.5"/>
+    <rect x="600" y="150" width="400" height="54" rx="14" fill="#2f9e44"/>
+    <text x="800" y="185" text-anchor="middle" font-size="20" font-weight="bold" fill="white">2 · Compile</text>
+    <g font-size="14" fill="#444">
+      <text x="800" y="245" text-anchor="middle">deterministic gate: validate then compile</text>
+      <text x="800" y="275" text-anchor="middle">effectiveness and views recomputed</text>
+      <text x="800" y="305" text-anchor="middle">doctor reports client + output health</text>
+    </g>
+    <text x="800" y="355" text-anchor="middle" font-size="13" fill="#888">commands: hongzhao compile · doctor</text>
+  </g>
+  <g>
+    <rect x="1080" y="150" width="400" height="230" rx="14" fill="#e7f5ff" stroke="#1c7ed6" stroke-width="2.5"/>
+    <rect x="1080" y="150" width="400" height="54" rx="14" fill="#1c7ed6"/>
+    <text x="1280" y="185" text-anchor="middle" font-size="20" font-weight="bold" fill="white">3 · Retrieve</text>
+    <g font-size="14" fill="#444">
+      <text x="1280" y="245" text-anchor="middle">next session starts at the bootstrap</text>
+      <text x="1280" y="275" text-anchor="middle">routes by index, lands on the project view</text>
+      <text x="1280" y="305" text-anchor="middle">opens raw/ only to verify a claim</text>
+    </g>
+    <text x="1280" y="355" text-anchor="middle" font-size="13" fill="#888">reads: compiled/ · render/ (never raw/ by default)</text>
+  </g>
+
+  <!-- cycle arrows -->
+  <defs><marker id="e" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 z" fill="#666"/></marker></defs>
+  <line x1="520" y1="265" x2="595" y2="265" stroke="#666" stroke-width="3" marker-end="url(#e)"/>
+  <line x1="1000" y1="265" x2="1075" y2="265" stroke="#666" stroke-width="3" marker-end="url(#e)"/>
+  <path d="M1280 380 C 1280 480, 320 480, 320 385" fill="none" stroke="#666" stroke-width="3" marker-end="url(#e)"/>
+  <text x="800" y="470" text-anchor="middle" font-size="14" fill="#555">every cycle: candidates stay gated, views stay rebuildable, facts stay yours</text>
+
+  <text x="800" y="525" text-anchor="middle" font-size="14" fill="#888">Plain files throughout: grep it, diff it, back it up with git.</text>
+</svg>

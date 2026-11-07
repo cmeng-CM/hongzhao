@@ -1,46 +1,46 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 540" font-family="Helvetica,Arial,sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 540" font-family="'PingFang SC','Noto Sans CJK SC','Hiragino Sans GB',Helvetica,Arial,sans-serif">
   <rect width="1600" height="540" fill="#fafafa"/>
-  <text x="800" y="50" text-anchor="middle" font-size="30" font-weight="bold" fill="#1a1a1a">Context from light to heavy, routed by task</text>
-  <text x="800" y="84" text-anchor="middle" font-size="17" fill="#555">Stop at the lightest layer that answers the question; raw/ is for evidence tracing only.</text>
+  <text x="800" y="50" text-anchor="middle" font-size="30" font-weight="bold" fill="#1a1a1a">上下文从轻到重，按任务路由</text>
+  <text x="800" y="84" text-anchor="middle" font-size="17" fill="#555">停在能回答问题的最轻一层；raw/ 只用于证据追溯。</text>
 
   <!-- four layers, light -> heavy, left -> right -->
   <g>
     <rect x="80" y="140" width="330" height="300" rx="12" fill="#e7f5ff" stroke="#1c7ed6" stroke-width="2"/>
     <rect x="80" y="140" width="330" height="52" rx="12" fill="#1c7ed6"/>
-    <text x="245" y="173" text-anchor="middle" font-size="19" font-weight="bold" fill="white">1 · Bootstrap</text>
-    <text x="245" y="240" text-anchor="middle" font-size="14" fill="#333">who you are, how you work,</text>
-    <text x="245" y="262" text-anchor="middle" font-size="14" fill="#333">routing rules</text>
-    <text x="245" y="330" text-anchor="middle" font-size="13" fill="#666">read: every session start</text>
-    <text x="245" y="352" text-anchor="middle" font-size="13" fill="#666">size: ~1 screen</text>
-    <text x="245" y="415" text-anchor="middle" font-size="13" font-weight="bold" fill="#1c7ed6">lightest</text>
+    <text x="245" y="173" text-anchor="middle" font-size="19" font-weight="bold" fill="white">1 · 启动摘要</text>
+    <text x="245" y="240" text-anchor="middle" font-size="14" fill="#333">你是谁、如何工作，</text>
+    <text x="245" y="262" text-anchor="middle" font-size="14" fill="#333">路由规则</text>
+    <text x="245" y="330" text-anchor="middle" font-size="13" fill="#666">读取：每次会话开始</text>
+    <text x="245" y="352" text-anchor="middle" font-size="13" fill="#666">体量：约一屏</text>
+    <text x="245" y="415" text-anchor="middle" font-size="13" font-weight="bold" fill="#1c7ed6">最轻</text>
   </g>
   <g>
     <rect x="470" y="140" width="330" height="300" rx="12" fill="#d3f9d8" stroke="#2f9e44" stroke-width="2"/>
     <rect x="470" y="140" width="330" height="52" rx="12" fill="#2f9e44"/>
-    <text x="635" y="173" text-anchor="middle" font-size="19" font-weight="bold" fill="white">2 · Index</text>
-    <text x="635" y="240" text-anchor="middle" font-size="14" fill="#333">which project owns this task,</text>
-    <text x="635" y="262" text-anchor="middle" font-size="14" fill="#333">where its view lives</text>
-    <text x="635" y="330" text-anchor="middle" font-size="13" fill="#666">read: task assignment</text>
-    <text x="635" y="352" text-anchor="middle" font-size="13" fill="#666">size: 1 page</text>
+    <text x="635" y="173" text-anchor="middle" font-size="19" font-weight="bold" fill="white">2 · 索引</text>
+    <text x="635" y="240" text-anchor="middle" font-size="14" fill="#333">这个任务归哪个项目，</text>
+    <text x="635" y="262" text-anchor="middle" font-size="14" fill="#333">它的视图在哪里</text>
+    <text x="635" y="330" text-anchor="middle" font-size="13" fill="#666">读取：接到任务时</text>
+    <text x="635" y="352" text-anchor="middle" font-size="13" fill="#666">体量：一页</text>
   </g>
   <g>
     <rect x="860" y="140" width="330" height="300" rx="12" fill="#fff4e6" stroke="#e8590c" stroke-width="2"/>
     <rect x="860" y="140" width="330" height="52" rx="12" fill="#e8590c"/>
-    <text x="1025" y="173" text-anchor="middle" font-size="19" font-weight="bold" fill="white">3 · Project view</text>
-    <text x="1025" y="240" text-anchor="middle" font-size="14" fill="#333">the effective claims of one</text>
-    <text x="1025" y="262" text-anchor="middle" font-size="14" fill="#333">project, with traces</text>
-    <text x="1025" y="330" text-anchor="middle" font-size="13" fill="#666">read: working on that project</text>
-    <text x="1025" y="352" text-anchor="middle" font-size="13" fill="#666">size: a few screens</text>
+    <text x="1025" y="173" text-anchor="middle" font-size="19" font-weight="bold" fill="white">3 · 项目视图</text>
+    <text x="1025" y="240" text-anchor="middle" font-size="14" fill="#333">单个项目的有效事实主张，</text>
+    <text x="1025" y="262" text-anchor="middle" font-size="14" fill="#333">附带追溯</text>
+    <text x="1025" y="330" text-anchor="middle" font-size="13" fill="#666">读取：处理该项目时</text>
+    <text x="1025" y="352" text-anchor="middle" font-size="13" fill="#666">体量：数屏</text>
   </g>
   <g>
     <rect x="1250" y="140" width="300" height="300" rx="12" fill="#fff0f6" stroke="#c2255c" stroke-width="2"/>
     <rect x="1250" y="140" width="300" height="52" rx="12" fill="#c2255c"/>
-    <text x="1400" y="173" text-anchor="middle" font-size="19" font-weight="bold" fill="white">4 · Raw evidence</text>
-    <text x="1400" y="240" text-anchor="middle" font-size="14" fill="#333">full notes, quotes, caveats,</text>
-    <text x="1400" y="262" text-anchor="middle" font-size="14" fill="#333">file bodies</text>
-    <text x="1400" y="330" text-anchor="middle" font-size="13" fill="#666">read: verification, disputes</text>
-    <text x="1400" y="352" text-anchor="middle" font-size="13" fill="#666">only</text>
-    <text x="1400" y="415" text-anchor="middle" font-size="13" font-weight="bold" fill="#c2255c">heaviest</text>
+    <text x="1400" y="173" text-anchor="middle" font-size="19" font-weight="bold" fill="white">4 · 原始证据</text>
+    <text x="1400" y="240" text-anchor="middle" font-size="14" fill="#333">完整笔记、引文、注意事项、</text>
+    <text x="1400" y="262" text-anchor="middle" font-size="14" fill="#333">文件正文</text>
+    <text x="1400" y="330" text-anchor="middle" font-size="13" fill="#666">读取：仅核查与争议时</text>
+    <text x="1400" y="352" text-anchor="middle" font-size="13" fill="#666">使用</text>
+    <text x="1400" y="415" text-anchor="middle" font-size="13" font-weight="bold" fill="#c2255c">最重</text>
   </g>
 
   <defs><marker id="c" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 z" fill="#666"/></marker></defs>
@@ -48,5 +48,5 @@
   <line x1="800" y1="290" x2="855" y2="290" stroke="#666" stroke-width="2.5" marker-end="url(#c)"/>
   <line x1="1190" y1="290" x2="1245" y2="290" stroke="#666" stroke-width="2.5" marker-end="url(#c)"/>
 
-  <text x="800" y="490" text-anchor="middle" font-size="15" fill="#555">Escalate one layer at a time; most tasks never need layer 4.</text>
+  <text x="800" y="490" text-anchor="middle" font-size="15" fill="#555">一次只升一层；大多数任务永远用不到第 4 层。</text>
 </svg>

@@ -1,44 +1,44 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 520" font-family="Helvetica,Arial,sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 520" font-family="'PingFang SC','Noto Sans CJK SC','Hiragino Sans GB',Helvetica,Arial,sans-serif">
   <rect width="1600" height="520" fill="#fafafa"/>
-  <text x="800" y="50" text-anchor="middle" font-size="30" font-weight="bold" fill="#1a1a1a">Separate facts first, route context second</text>
-  <text x="800" y="84" text-anchor="middle" font-size="17" fill="#555">Not everything goes into "memory" — each class of fact lives where it is most trustworthy.</text>
+  <text x="800" y="50" text-anchor="middle" font-size="30" font-weight="bold" fill="#1a1a1a">先分事实，再路由上下文</text>
+  <text x="800" y="84" text-anchor="middle" font-size="17" fill="#555">不是所有内容都进“记忆”——每类事实都放在最可信的位置。</text>
 
   <!-- left: actors -->
   <circle cx="130" cy="220" r="34" fill="#3b5bdb"/>
-  <text x="130" y="227" text-anchor="middle" font-size="18" fill="white">You</text>
+  <text x="130" y="227" text-anchor="middle" font-size="18" fill="white">用户</text>
   <circle cx="130" cy="390" r="34" fill="#2f9e44"/>
-  <text x="130" y="397" text-anchor="middle" font-size="17" fill="white">Agent</text>
+  <text x="130" y="397" text-anchor="middle" font-size="17" fill="white">智能体</text>
 
   <!-- four fact classes (no handoff card by design) -->
   <g>
     <rect x="330" y="120" width="560" height="110" rx="12" fill="#fff4e6" stroke="#e8590c" stroke-width="2"/>
-    <text x="610" y="155" text-anchor="middle" font-size="18" font-weight="bold" fill="#e8590c">Claims — raw/</text>
-    <text x="610" y="182" text-anchor="middle" font-size="14" fill="#444">dated facts you stand behind: one line, one file, explicit relations</text>
-    <text x="610" y="205" text-anchor="middle" font-size="13" fill="#777">source of truth for memory content</text>
+    <text x="610" y="155" text-anchor="middle" font-size="18" font-weight="bold" fill="#e8590c">事实主张——raw/</text>
+    <text x="610" y="182" text-anchor="middle" font-size="14" fill="#444">你背书的带日期事实：一行、一文件、显式关系</text>
+    <text x="610" y="205" text-anchor="middle" font-size="13" fill="#777">记忆内容的事实源</text>
   </g>
   <g>
     <rect x="330" y="250" width="560" height="110" rx="12" fill="#e7f5ff" stroke="#1c7ed6" stroke-width="2"/>
-    <text x="610" y="285" text-anchor="middle" font-size="18" font-weight="bold" fill="#1c7ed6">Project contracts — projects/&lt;key&gt;/</text>
-    <text x="610" y="312" text-anchor="middle" font-size="14" fill="#444">purpose, state, next action, entrypoints — one per project</text>
-    <text x="610" y="335" text-anchor="middle" font-size="13" fill="#777">ownership decided by the registry, never by guessing</text>
+    <text x="610" y="285" text-anchor="middle" font-size="18" font-weight="bold" fill="#1c7ed6">项目契约——projects/&lt;key&gt;/</text>
+    <text x="610" y="312" text-anchor="middle" font-size="14" fill="#444">用途、状态、下一步动作、入口——每个项目一份</text>
+    <text x="610" y="335" text-anchor="middle" font-size="13" fill="#777">归属由注册表决定，绝不靠猜测</text>
   </g>
   <g>
     <rect x="330" y="380" width="560" height="110" rx="12" fill="#f3f0ff" stroke="#6741d9" stroke-width="2"/>
-    <text x="610" y="415" text-anchor="middle" font-size="18" font-weight="bold" fill="#6741d9">Knowledge — knowledge registry</text>
-    <text x="610" y="442" text-anchor="middle" font-size="14" fill="#444">long-lived reference material, referenced from outside the root</text>
-    <text x="610" y="465" text-anchor="middle" font-size="13" fill="#777">pointed at, never copied</text>
+    <text x="610" y="415" text-anchor="middle" font-size="18" font-weight="bold" fill="#6741d9">知识——知识注册表</text>
+    <text x="610" y="442" text-anchor="middle" font-size="14" fill="#444">长期参考资料，从根目录之外引用</text>
+    <text x="610" y="465" text-anchor="middle" font-size="13" fill="#777">只指向，绝不复制</text>
   </g>
 
   <!-- right: derived views -->
   <rect x="1030" y="120" width="500" height="370" rx="12" fill="#ebfbee" stroke="#2f9e44" stroke-width="2"/>
-  <text x="1280" y="160" text-anchor="middle" font-size="18" font-weight="bold" fill="#2f9e44">Derived views — compiled/ render/</text>
+  <text x="1280" y="160" text-anchor="middle" font-size="18" font-weight="bold" fill="#2f9e44">派生视图——compiled/ render/</text>
   <g font-size="14" fill="#333">
-    <text x="1280" y="210" text-anchor="middle">routing index · project views · current-state</text>
-    <text x="1280" y="240" text-anchor="middle">corrections · knowledge map · bootstrap</text>
+    <text x="1280" y="210" text-anchor="middle">路由索引 · 项目视图 · current-state</text>
+    <text x="1280" y="240" text-anchor="middle">纠正 · 知识地图 · 启动摘要</text>
   </g>
-  <text x="1280" y="300" text-anchor="middle" font-size="14" fill="#555">rebuilt from the left column on every compile</text>
-  <text x="1280" y="326" text-anchor="middle" font-size="13" fill="#777">plain markdown · greppable · never hand-edited</text>
-  <text x="1280" y="440" text-anchor="middle" font-size="14" font-weight="bold" fill="#2f9e44">views are disposable; facts are not</text>
+  <text x="1280" y="300" text-anchor="middle" font-size="14" fill="#555">每次编译都从左列重建</text>
+  <text x="1280" y="326" text-anchor="middle" font-size="13" fill="#777">纯 markdown · 可 grep · 绝不手改</text>
+  <text x="1280" y="440" text-anchor="middle" font-size="14" font-weight="bold" fill="#2f9e44">视图可丢弃，事实不可丢弃</text>
 
   <defs><marker id="b" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 z" fill="#666"/></marker></defs>
   <line x1="167" y1="213" x2="325" y2="180" stroke="#666" stroke-width="2.5" marker-end="url(#b)"/>

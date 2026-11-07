@@ -18,8 +18,12 @@ flips it. See `README.md` and `docs/design.md` for the full picture.
 - **Rendered products are derived state.** `compiled/` and `render/` are fully
   rebuildable; never hand-edit them in a memory kit. Templates and their
   frontmatter key sets are frozen — English output, keys unchanged.
-- **The four shipped skills are Chinese by design** (CLI and docs are
-  English). Don't translate them.
+- **The four shipped skills are Chinese by design** (CLI output and rendered
+  products stay English). Don't translate them.
+- **Docs are Chinese-primary with an English mirror.** `README.md` and `docs/`
+  are Chinese (the default); `README.en.md` and `docs/en/` are the English
+  mirror, including `docs/en/assets/` diagrams. Content changes go to both
+  trees; the Chinese side is the source of truth on wording questions.
 - **Privacy gate before anything public:** `scripts/check_clean.py` scans
   against an external wordlist (never committed). Real paths, names, and
   emails must not enter the repo — configure local-only hooks via environment
@@ -43,7 +47,8 @@ python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"
 
 - Sign-off your commits (DCO): `git commit -s`.
 - Comments in this repo: Chinese for design-rationale comments, English for
-  user-visible strings (CLI output, docs, rendered products).
+  user-visible strings (CLI output, rendered products). Docs follow the
+  Chinese-primary bilingual convention above.
 - Minimal diffs; match existing style. Containment and registry invariants
   are contract-tested — if your change touches adjudication (J1–J6), the
   contract matrix must be extended, not relaxed.

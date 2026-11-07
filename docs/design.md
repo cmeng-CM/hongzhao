@@ -1,81 +1,86 @@
-# Design
+# 设计
 
-hongzhao is a memory ledger with a strict division of labor: **semantic judgment
-belongs to the agent; validation, compilation and rendering belong to
-deterministic scripts.** This page summarizes the architecture; the diagrams
-below tell the story.
+[English](en/design.md) | **简体中文**
 
-| Diagram | Story |
+hongzhao 是一台分工严格的记忆账本：**语义判断属于智能体；校验、编译与渲染属于确定性脚本。**本页先讲它解决什么问题、做了哪些取舍，再给出架构概要；下面的图表讲完整故事。
+
+| 图表 | 讲什么 |
 | --- | --- |
-| [00 — overview loop](assets/00-overview-loop.svg) | from "note it down" to the next session |
-| [01 — fact boundaries](assets/01-fact-boundaries.svg) | separate fact classes first, route context second |
-| [02 — context routing](assets/02-context-routing.svg) | context layers from light to heavy |
-| [03 — compile architecture](assets/03-compile-architecture.svg) | raw is the source of truth; compiled/render are rebuildable views |
-| [04 — claim lifecycle](assets/04-claim-lifecycle.svg) | facts over time: explicit relations, no silent overwrites |
-| [05 — work loop](assets/05-work-mode-loop.svg) | organize / retrieve / process as one loop |
-| [06 — claim relations](assets/06-claim-relations.svg) | five relations: the algebra of memory |
-| [07 — usage timeline](assets/07-usage-timeline.svg) | the daily cycle in four acts |
+| [00 — 全景循环](assets/00-overview-loop.svg) | 从"记一下"到下一次会话 |
+| [01 — 事实边界](assets/01-fact-boundaries.svg) | 先分清事实类别，再路由上下文 |
+| [02 — 上下文路由](assets/02-context-routing.svg) | 上下文从轻到重，按任务展开 |
+| [03 — 编译架构](assets/03-compile-architecture.svg) | raw 是事实源，compiled / render 是可重建视图 |
+| [04 — 事实主张生命周期](assets/04-claim-lifecycle.svg) | 事实随时间演进：显式关系，不静默覆盖 |
+| [05 — 工作循环](assets/05-work-mode-loop.svg) | 归置 / 取用 / 处理构成一个循环 |
+| [06 — 五种关系](assets/06-claim-relations.svg) | 五种关系：记忆的代数 |
+| [07 — 使用时间线](assets/07-usage-timeline.svg) | 日常使用的四幕一循环 |
 
-(04 and 06 are carried over from the author's original system diagrams.)
+（04 与 06 继承自作者原有系统的图表；下文的设计哲学与取舍表同样源自该系统的设计规范，经 hongzhao 产品化后延续。）
 
-## Root discovery
+## 它解决什么问题
 
-Every command resolves the memory root from four sources, in priority order:
-explicit `--root` → `$HONGZHAO_ROOT` → the working directory (walking up five
-levels for `config.yaml`) → a managed block found in a preset client
-instruction file (reverse lookup). Working-directory hits take precedence over
-the bridge lookup so that sandboxes, mirrors and demos never resolve to a
-production root. A candidate that fails validation is a hard error — no
-fallback. `hongzhao root --json` prints the resolved root and its source.
+hongzhao 不是全量对话记忆库，也不是项目文档、任务管理器或会话交接系统。它解决一个具体问题：**同一用户在多个 AI 编程智能体（Claude Code、Codex CLI、ZCode……）中开启新会话时，如何用足够小的上下文完成身份与方向校准，并在需要时可靠地找到项目事实和长期记忆。**
 
-## Data model
+它的核心能力不是"记住一切"，而是：**把正确的上下文在正确的时机、以正确的粒度路由给智能体。**缺少这套机制时，这个问题表现为四类反复出现的损耗：
 
-- **raw/** — claim records: dated, single-line-per-fact notes with frontmatter
-  (see [claim-schema.md](claim-schema.md)). The only source of truth for memory content.
-- **registry/** — `project-registry.yaml` (id → location) and
-  `knowledge-registry.yaml`. Write path: registry first, then contract (crash-safe).
-- **Project contracts** — `projects/<key>/project-view.md` (central) or
-  `<project>/project-view.md` (project root). One contract per project; the
-  registry decides who owns what.
-- **compiled/ + render/** — derived views, fully rebuildable, never hand-edited.
+- **每次开新会话都要重新自我介绍**——身份、偏好和当前方向被反复重述；说少了答非所问，说多了噪声和过期信息一起灌入。
+- **项目事实靠摘要猜**——架构、配置和任务散落在项目里，记忆摘要却被当成事实源；摘要一旦过期，智能体会自信地给出错误结论，且无法追责。
+- **写进记忆的内容无人负责**——不知道它从哪来、是否仍然成立、新事实与旧事实谁生效、如何删除；冲突被静默地"取最新"，错误持续传播。
+- **客户端规则互相打架**——每个智能体宿主有自己的规则文件与权限机制，直接改写会破坏用户既有配置，也让规则来源无法追溯。
 
-## Contract lifecycle (J1–J6)
+## 设计取舍一览
 
-Registration is a state machine over (registry × existing contracts):
+每一条哲学本质上都是一次取舍，汇总如下，便于逐条核对：
 
-| Step | Condition | Action |
+| 面对的问题 | 选择 | 放弃了什么 / 为什么 |
 | --- | --- | --- |
-| J1 | path has a contract | update flow |
-| J2 | registry entry exists, central present | update central |
-| J3 | registry entry exists, contract missing | rebuild, keep the id |
-| J4 | orphan central exists (no registry) | adopt or report |
-| J5 | key directory occupied by another project | `KEY_CONFLICT` |
-| J6 | nothing exists | create registry entry + central contract |
+| 记忆该装什么 | 把用户、当前会话、项目、会话交接四类事实分开，只对"值得跨会话保留的事实主张（claim）"做长期记忆 | 放弃"一个大而全的记忆库"。混合会导致启动膨胀、事实过期、规则冲突、无法追责 |
+| 谁是事实源 | raw 是唯一真源，compiled / render 是可重建视图 | 放弃把派生文件当输入；也放弃"增量 + 全量两套语义规则"，只保留全量重建 |
+| 权限模型要多细 | scope 只保留三种（global / project / non-project） | 不引入 `private`、visibility、隐私隔离——当前规模用不上 |
+| 人要不要审批每一条 | 用户明确要求长期保存时才写；低歧义、低风险的归类与归并按约定完成，scope、项目归属或长期含义有显著差异时才询问 | 放弃"每条 bullet 都人工审批"——那样没人会用 |
+| 事实怎么失效 | 显式关系：新增事实主张用 `supersedes`，或由 synthesis 明确覆盖旧主张 | 放弃 `expires` / `review_after` 自动过期。日期只说明"何时记录"，不能证明事实失效 |
+| 提炼会不会吞来源 | `derived_from` 只标证据，`covers` 才表示来源被完整承担；普通归并不改旧 raw | 放弃"归并即删除/隐藏旧记录"。synthesis 自身就是新的 raw，来源链完整保留 |
+| 两条事实冲突怎么办 | 宁可暴露，不静默择一：编译器只解释显式关系，未裁决的冲突局部排除、health 标记 degraded | 放弃"最新优先"的自动择一。"最新"不等于"正确" |
+| 怎么避免和客户端打架 | 统一协议 + 托管块：只更新 `hongzhao:start/end` 标记之间的内容 | 放弃改写客户端规则文件。各客户端既有规则、权限、项目级 `CLAUDE.md` / `AGENTS.md` 原样保留 |
+| 语义和机械怎么分 | Skill 负责语义（提取、归类、归并、冲突判断）；引擎负责确定性执行（校验、重建） | 放弃让脚本做语义去重或按时间猜事实——脚本不静默归并 |
+| 默认读多深 | 从轻到重按需展开：启动摘要（bootstrap）→ 项目契约 → 项目真实文件 → 有效视图 → raw | 放弃默认全量注入。默认停在足够完成任务的最轻一层 |
 
-Write order is always registry → contract, guarded by `flock` on
-`<root>/.hongzhao.lock` (bound to the root, not to the environment). Crash at
-any point leaves a state the next run can recover from (J3 reuse; atomic
-replace everywhere; no temp residue).
+一句话：**hongzhao 不替智能体记住所有事情，而是提供一条保守、可审计、按需展开的上下文路径。**衡量它是否成功，看这七条：新会话不必重复询问用户背景与方向；项目任务能从契约找到真实资料；默认上下文短小、详情按需披露；每条长期事实主张都能追溯到 raw；冲突、断链和错误可见、可定位、可复现；删除派生文件后可全量重建；用户能理解、纠正、下沉或明确删除记忆。
 
-## Validation and containment
+## 根目录发现
 
-`validate` checks schema exactness (unknown keys rejected), field constraints
-(≤ 300 chars, single line, no control characters — rejects, never truncates),
-and two containment rules: in-tree paths stay under the root; knowledge paths
-stay under `knowledge_root`. Containment applies to writes; reads are never
-blocked from following a valid path.
+每条命令按优先级从四个来源解析记忆根目录：显式 `--root` → `$HONGZHAO_ROOT` → 工作目录（向上最多五层找 `config.yaml`）→ 预置客户端指令文件中的托管块（反向查找）。工作目录命中优先于桥接查找，因此沙箱、镜像和演示环境绝不会解析到生产根目录。候选根目录校验失败即硬错误——不做静默回退。`hongzhao root --json` 打印解析结果及其来源。
 
-## Rendering
+## 数据模型
 
-Nine artifact families are rendered deterministically from the index:
-effective-memory views (global / non-project / per-project), the routing
-index, current-state, corrections, knowledge map, and the client bootstrap.
-Frontmatter key sets are frozen; link style is configurable (`link_style` /
-`link_prefix`). User-visible text is English; code comments are Chinese.
+- **raw/** —— 事实主张（claim）记录：带日期、一事一行的 frontmatter 笔记（见 [claim-schema.md](claim-schema.md)）。记忆内容的唯一事实源。
+- **registry/** —— `project-registry.yaml`（id → 位置）与 `knowledge-registry.yaml`。写序：先注册表、后契约（崩溃安全）。
+- **项目契约** —— `projects/<key>/project-view.md`（集中式）或 `<project>/project-view.md`（项目根）。一个项目一份契约；注册表决定归属。
+- **compiled/ + render/** —— 派生视图，可全量重建，永不手工编辑。
 
-## Security posture
+## 契约生命周期（J1–J6）
 
-See [SECURITY.md](../SECURITY.md) and
-[security-and-troubleshooting.md](security-and-troubleshooting.md): injected
-content is treated as data, never instructions; rendering escapes
-marker-breaking constructs; the package performs no network access.
+注册是 (注册表 × 现有契约) 上的一个状态机：
+
+| 步 | 条件 | 动作 |
+| --- | --- | --- |
+| J1 | 路径已有契约 | 走更新流程 |
+| J2 | 注册表条目存在，集中契约在 | 更新集中契约 |
+| J3 | 注册表条目存在，契约缺失 | 重建，保留 id |
+| J4 | 孤儿集中契约存在（无注册表条目） | 收编或报告 |
+| J5 | key 目录被其他项目占用 | `KEY_CONFLICT` |
+| J6 | 什么都不存在 | 创建注册表条目 + 集中契约 |
+
+写序恒为注册表 → 契约，由 `<root>/.hongzhao.lock` 上的 `flock` 保护（绑定根目录，不绑定环境）。任意一步崩溃都留下下一次运行可恢复的状态（J3 复用；全程原子替换；无临时残留）。
+
+## 校验与围栏
+
+`validate` 检查 schema 精确性（未知键直接拒绝）、字段约束（≤ 300 字符、单行、无控制字符——直接拒绝，绝不截断），以及两条围栏规则：树内路径必须留在根目录之内；知识路径必须留在 `knowledge_root` 之内。围栏只作用于写入；读取永远不会被阻止跟随一个合法路径。
+
+## 渲染
+
+九类产物由索引确定性渲染：有效视图（global / non-project / 每项目）、路由索引、current-state、corrections、知识地图，以及客户端启动摘要。frontmatter 键集冻结；链接样式可配置（`link_style` / `link_prefix`）。渲染产物用户可见文案为英文，代码注释为中文。
+
+## 安全姿态
+
+见 [SECURITY.md](../SECURITY.md) 与 [security-and-troubleshooting.md](security-and-troubleshooting.md)：被注入的内容一律按数据处理，绝不当作指令；渲染层转义可能打断标记的构造；包内没有任何联网代码。

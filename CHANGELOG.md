@@ -6,6 +6,16 @@ from `0.1.0`).
 
 ## [Unreleased]
 
+### Changed
+
+- Documentation is now Chinese-primary with an English mirror: `README.md` is
+  the Chinese entry (language switch at the top), `README.en.md` is English,
+  `docs/` holds the Chinese docs and diagrams, `docs/en/` the English ones.
+  `README.zh-CN.md` was merged into `README.md` and removed.
+- `docs/design.md` gains a design-philosophy section (problem statement, tradeoff
+  table, success criteria) carried over from the author's original system
+  design spec.
+
 ## [0.1.0] — 2026-11-06
 
 First stable release. File-based, human-gated memory ledger for AI coding

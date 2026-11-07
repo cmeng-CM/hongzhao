@@ -1,53 +1,53 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 560" font-family="Helvetica,Arial,sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 560" font-family="'PingFang SC','Noto Sans CJK SC','Hiragino Sans GB',Helvetica,Arial,sans-serif">
   <rect width="1600" height="560" fill="#fafafa"/>
-  <text x="800" y="52" text-anchor="middle" font-size="30" font-weight="bold" fill="#1a1a1a">The whole loop: from "note it down" to the next session</text>
-  <text x="800" y="86" text-anchor="middle" font-size="17" fill="#555">Two gates keep candidates out of context. Blue = write gate, green = compile gate.</text>
+  <text x="800" y="52" text-anchor="middle" font-size="30" font-weight="bold" fill="#1a1a1a">完整闭环：从“记一下”到下一次会话</text>
+  <text x="800" y="86" text-anchor="middle" font-size="17" fill="#555">两道门把候选挡在上下文之外。蓝色 = 写入门，绿色 = 编译门。</text>
 
   <!-- person -->
   <circle cx="130" cy="250" r="34" fill="#3b5bdb"/>
-  <text x="130" y="258" text-anchor="middle" font-size="20" fill="white">You</text>
-  <text x="130" y="310" text-anchor="middle" font-size="14" fill="#555">reviews facts</text>
+  <text x="130" y="258" text-anchor="middle" font-size="20" fill="white">用户</text>
+  <text x="130" y="310" text-anchor="middle" font-size="14" fill="#555">审阅事实</text>
 
   <!-- agent -->
   <circle cx="130" cy="430" r="34" fill="#2f9e44"/>
-  <text x="130" y="437" text-anchor="middle" font-size="18" fill="white">Agent</text>
-  <text x="130" y="490" text-anchor="middle" font-size="14" fill="#555">drafts candidates</text>
+  <text x="130" y="437" text-anchor="middle" font-size="18" fill="white">智能体</text>
+  <text x="130" y="490" text-anchor="middle" font-size="14" fill="#555">起草候选</text>
 
   <!-- write gate -->
   <rect x="300" y="360" width="150" height="140" rx="12" fill="#dbe4ff" stroke="#3b5bdb" stroke-width="3"/>
-  <text x="375" y="420" text-anchor="middle" font-size="18" font-weight="bold" fill="#3b5bdb">Write gate</text>
-  <text x="375" y="448" text-anchor="middle" font-size="13" fill="#444">schema check</text>
-  <text x="375" y="468" text-anchor="middle" font-size="13" fill="#444">rejection, no truncation</text>
+  <text x="375" y="420" text-anchor="middle" font-size="18" font-weight="bold" fill="#3b5bdb">写入门</text>
+  <text x="375" y="448" text-anchor="middle" font-size="13" fill="#444">schema 校验</text>
+  <text x="375" y="468" text-anchor="middle" font-size="13" fill="#444">拒绝，绝不截断</text>
 
   <!-- raw ledger -->
   <rect x="540" y="360" width="220" height="140" rx="12" fill="#fff" stroke="#999" stroke-width="2"/>
-  <text x="650" y="398" text-anchor="middle" font-size="18" font-weight="bold" fill="#1a1a1a">raw/ ledger</text>
-  <text x="650" y="426" text-anchor="middle" font-size="13" fill="#555">dated claims, one fact each</text>
-  <text x="650" y="446" text-anchor="middle" font-size="13" fill="#555">explicit relations only</text>
-  <text x="650" y="470" text-anchor="middle" font-size="12" fill="#2f9e44">candidates — never injected</text>
+  <text x="650" y="398" text-anchor="middle" font-size="18" font-weight="bold" fill="#1a1a1a">raw/ 台账</text>
+  <text x="650" y="426" text-anchor="middle" font-size="13" fill="#555">带日期的事实主张，每条一个事实</text>
+  <text x="650" y="446" text-anchor="middle" font-size="13" fill="#555">只用显式关系</text>
+  <text x="650" y="470" text-anchor="middle" font-size="12" fill="#2f9e44">候选——绝不注入</text>
 
   <!-- compile gate -->
   <rect x="850" y="360" width="150" height="140" rx="12" fill="#d3f9d8" stroke="#2f9e44" stroke-width="3"/>
-  <text x="925" y="420" text-anchor="middle" font-size="18" font-weight="bold" fill="#2f9e44">Compile gate</text>
-  <text x="925" y="448" text-anchor="middle" font-size="13" fill="#444">deterministic</text>
-  <text x="925" y="468" text-anchor="middle" font-size="13" fill="#444">validate + render</text>
+  <text x="925" y="420" text-anchor="middle" font-size="18" font-weight="bold" fill="#2f9e44">编译门</text>
+  <text x="925" y="448" text-anchor="middle" font-size="13" fill="#444">确定性</text>
+  <text x="925" y="468" text-anchor="middle" font-size="13" fill="#444">校验 + 渲染</text>
 
   <!-- effective views -->
   <rect x="1090" y="130" width="380" height="370" rx="12" fill="#fff" stroke="#2f9e44" stroke-width="2"/>
-  <text x="1280" y="170" text-anchor="middle" font-size="18" font-weight="bold" fill="#1a1a1a">Effective views (compiled/)</text>
+  <text x="1280" y="170" text-anchor="middle" font-size="18" font-weight="bold" fill="#1a1a1a">有效视图（compiled/）</text>
   <g font-size="14" fill="#333">
-    <rect x="1120" y="195" width="320" height="36" rx="8" fill="#ebfbee"/><text x="1280" y="219" text-anchor="middle">bootstrap.md — session entry</text>
-    <rect x="1120" y="243" width="320" height="36" rx="8" fill="#ebfbee"/><text x="1280" y="267" text-anchor="middle">effective-memory/index.md — routing</text>
-    <rect x="1120" y="291" width="320" height="36" rx="8" fill="#ebfbee"/><text x="1280" y="315" text-anchor="middle">global / non-project / project views</text>
-    <rect x="1120" y="339" width="320" height="36" rx="8" fill="#ebfbee"/><text x="1280" y="363" text-anchor="middle">current-state.md — one screen</text>
-    <rect x="1120" y="387" width="320" height="36" rx="8" fill="#ebfbee"/><text x="1280" y="411" text-anchor="middle">corrections.md / knowledge map</text>
+    <rect x="1120" y="195" width="320" height="36" rx="8" fill="#ebfbee"/><text x="1280" y="219" text-anchor="middle">bootstrap.md——会话入口</text>
+    <rect x="1120" y="243" width="320" height="36" rx="8" fill="#ebfbee"/><text x="1280" y="267" text-anchor="middle">effective-memory/index.md——路由</text>
+    <rect x="1120" y="291" width="320" height="36" rx="8" fill="#ebfbee"/><text x="1280" y="315" text-anchor="middle">global / non-project / project 视图</text>
+    <rect x="1120" y="339" width="320" height="36" rx="8" fill="#ebfbee"/><text x="1280" y="363" text-anchor="middle">current-state.md——一屏速览</text>
+    <rect x="1120" y="387" width="320" height="36" rx="8" fill="#ebfbee"/><text x="1280" y="411" text-anchor="middle">corrections.md / 知识地图</text>
   </g>
 
   <!-- next session -->
   <rect x="540" y="130" width="380" height="120" rx="12" fill="#e7f5ff" stroke="#1c7ed6" stroke-width="2"/>
-  <text x="730" y="172" text-anchor="middle" font-size="18" font-weight="bold" fill="#1c7ed6">Next session</text>
-  <text x="730" y="200" text-anchor="middle" font-size="13" fill="#444">agent reads bootstrap, routes by task,</text>
-  <text x="730" y="220" text-anchor="middle" font-size="13" fill="#444">touches raw/ only to trace evidence</text>
+  <text x="730" y="172" text-anchor="middle" font-size="18" font-weight="bold" fill="#1c7ed6">下一次会话</text>
+  <text x="730" y="200" text-anchor="middle" font-size="13" fill="#444">智能体读取启动摘要，按任务路由，</text>
+  <text x="730" y="220" text-anchor="middle" font-size="13" fill="#444">仅在追溯证据时才碰 raw/</text>
 
   <!-- arrows -->
   <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 z" fill="#666"/></marker></defs>

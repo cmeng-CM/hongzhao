@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 560" font-family="Helvetica,Arial,sans-serif">
+  <rect width="1600" height="560" fill="#fafafa"/>
+  <text x="800" y="50" text-anchor="middle" font-size="30" font-weight="bold" fill="#1a1a1a">raw is the source of truth; compiled and render are rebuildable views</text>
+  <text x="800" y="84" text-anchor="middle" font-size="17" fill="#555">Semantic judgment belongs to the agent; validation and rendering belong to deterministic scripts.</text>
+
+  <!-- lane labels -->
+  <text x="230" y="150" text-anchor="middle" font-size="17" font-weight="bold" fill="#555">Input sources</text>
+  <text x="800" y="150" text-anchor="middle" font-size="17" font-weight="bold" fill="#555">Deterministic engine</text>
+  <text x="1380" y="150" text-anchor="middle" font-size="17" font-weight="bold" fill="#555">Rebuildable outputs</text>
+
+  <!-- inputs -->
+  <g font-size="14">
+    <rect x="80" y="180" width="300" height="66" rx="10" fill="#fff4e6" stroke="#e8590c" stroke-width="2"/>
+    <text x="230" y="208" text-anchor="middle" font-weight="bold" fill="#e8590c">raw/ claims</text>
+    <text x="230" y="230" text-anchor="middle" fill="#555">dated facts + relations</text>
+    <rect x="80" y="262" width="300" height="66" rx="10" fill="#e7f5ff" stroke="#1c7ed6" stroke-width="2"/>
+    <text x="230" y="290" text-anchor="middle" font-weight="bold" fill="#1c7ed6">project registry + contracts</text>
+    <text x="230" y="312" text-anchor="middle" fill="#555">ownership, keys, paths</text>
+    <rect x="80" y="344" width="300" height="66" rx="10" fill="#f3f0ff" stroke="#6741d9" stroke-width="2"/>
+    <text x="230" y="372" text-anchor="middle" font-weight="bold" fill="#6741d9">knowledge registry</text>
+    <text x="230" y="394" text-anchor="middle" fill="#555">external reference paths</text>
+    <rect x="80" y="426" width="300" height="66" rx="10" fill="#fff" stroke="#999" stroke-width="2"/>
+    <text x="230" y="454" text-anchor="middle" font-weight="bold" fill="#444">config.yaml</text>
+    <text x="230" y="476" text-anchor="middle" fill="#555">paths, clients, containment</text>
+  </g>
+
+  <!-- engine -->
+  <rect x="560" y="180" width="480" height="312" rx="14" fill="#f8f9fa" stroke="#495057" stroke-width="2.5"/>
+  <text x="800" y="218" text-anchor="middle" font-size="18" font-weight="bold" fill="#1a1a1a">hongzhao validate + compile</text>
+  <g font-size="14" fill="#333">
+    <rect x="600" y="240" width="400" height="38" rx="8" fill="#fff"/><text x="800" y="265" text-anchor="middle">schema exactness · field limits · containment</text>
+    <rect x="600" y="288" width="400" height="38" rx="8" fill="#fff"/><text x="800" y="313" text-anchor="middle">relation algebra: supersedes / covers / derives / conflicts</text>
+    <rect x="600" y="336" width="400" height="38" rx="8" fill="#fff"/><text x="800" y="361" text-anchor="middle">effectiveness recomputed for every record</text>
+    <rect x="600" y="384" width="400" height="38" rx="8" fill="#fff"/><text x="800" y="409" text-anchor="middle">frozen frontmatter keys · escaped rendering</text>
+  </g>
+  <text x="800" y="465" text-anchor="middle" font-size="13" fill="#777">no clock, no network, no preferences — same input, same output</text>
+
+  <!-- outputs -->
+  <g font-size="14">
+    <rect x="1200" y="180" width="360" height="66" rx="10" fill="#ebfbee" stroke="#2f9e44" stroke-width="2"/>
+    <text x="1380" y="208" text-anchor="middle" font-weight="bold" fill="#2f9e44">compiled/ — effective views</text>
+    <text x="1380" y="230" text-anchor="middle" fill="#555">index · project views · current-state</text>
+    <rect x="1200" y="262" width="360" height="66" rx="10" fill="#ebfbee" stroke="#2f9e44" stroke-width="2"/>
+    <text x="1380" y="290" text-anchor="middle" font-weight="bold" fill="#2f9e44">render/ — client artifacts</text>
+    <text x="1380" y="312" text-anchor="middle" fill="#555">bootstrap block for managed clients</text>
+    <rect x="1200" y="344" width="360" height="66" rx="10" fill="#fff" stroke="#999" stroke-width="2"/>
+    <text x="1380" y="372" text-anchor="middle" font-weight="bold" fill="#444">memory-index.yaml</text>
+    <text x="1380" y="394" text-anchor="middle" fill="#555">health + per-record compile state</text>
+  </g>
+  <text x="1380" y="470" text-anchor="middle" font-size="13" fill="#c2255c">delete any output → compile restores it</text>
+
+  <defs><marker id="d" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 z" fill="#666"/></marker></defs>
+  <line x1="380" y1="336" x2="555" y2="336" stroke="#666" stroke-width="3" marker-end="url(#d)"/>
+  <line x1="1040" y1="336" x2="1195" y2="336" stroke="#666" stroke-width="3" marker-end="url(#d)"/>
+</svg>
