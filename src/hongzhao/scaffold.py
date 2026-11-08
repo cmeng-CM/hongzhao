@@ -140,6 +140,8 @@ def build_config(enabled: dict[str, bool]) -> dict[str, Any]:
         },
         "skills": list(SKILL_NAMES),
         "clients": clients,
+        # 编译后自动提交：缺省开启；独立仓库守卫在 gitauto，显式 false 可关
+        "git": {"auto_commit": True},
     }
 
 

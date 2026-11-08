@@ -97,6 +97,7 @@ rejected):
 | `clients` | per-client settings (see below) | all disabled (`init --client` enables detected ones) |
 | `output` | optional rendering options (`link_style`, `link_prefix`) | markdown links |
 | `knowledge_root` | base directory for knowledge paths, relative to the root | `.` |
+| `git` | auto-commit after compile (`auto_commit`); requires the kit itself to be a standalone git repo, nested repos are always refused, git failures degrade to a warning and never block compile | enabled (standalone repo) |
 
 Per-client settings — exactly four keys (`enabled`, `bridge_path`, `skills_root`,
 `mode`); unknown or missing keys are rejected with `CONFIG_INVALID`.

@@ -149,7 +149,9 @@ user's gate: candidates never leak into context unreviewed.
 After install, also suggest (one line each, do not run them unasked):
 
 - **Version the kit**: `git init <PATH>` and commit after each weekly compile —
-  memory is plain files; git is the backup.
+  memory is plain files; git is the backup. Once the kit is a standalone
+  repo, every compile auto-commits (`git.auto_commit` defaults to on; set it
+  to `false` in `config.yaml` to opt out).
 - **Browse in Obsidian**: the kit is plain Markdown; Obsidian → "Open folder as
   vault" works on it directly (keep it a second vault rather than nesting it
   into an existing one).

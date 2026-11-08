@@ -6,7 +6,22 @@ from `0.1.0`).
 
 ## [Unreleased]
 
+### Added
+
+- `git.auto_commit` config section: after a successful `compile`, hongzhao
+  commits the whole kit automatically (on by default whenever the kit is a
+  standalone git repo; opt out with `auto_commit: false`). Guards: the kit must
+  be a standalone git repo (kits nested inside another repo are always
+  refused); any git failure degrades to a warning and never blocks compile;
+  commit messages are stable and greppable
+  (`hongzhao compile v<ver> <ts> health=... effective=... pending=...`).
+
 ### Changed
+
+- Compiles with unchanged content now reuse the previous `generated_at`, so
+  no-op compiles are byte-identical (truly byte-reproducible); no-op compiles
+  create no empty auto-commits. `last-compile-diff.md` still transitions once
+  from the "first compile" narrative to steady state.
 
 - Documentation is now Chinese-primary with an English mirror: `README.md` is
   the Chinese entry (language switch at the top), `README.en.md` is English,

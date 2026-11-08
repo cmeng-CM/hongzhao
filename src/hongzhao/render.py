@@ -17,6 +17,7 @@ from typing import Any, Iterable
 
 from hongzhao import __version__
 from hongzhao.core import *
+from hongzhao.gitauto import maybe_auto_commit
 from hongzhao.index import *
 from hongzhao.index import _ids  # 下划线名不被 star 导出，显式引入
 from hongzhao.fields import escape_render_text  # ：渲染转义（不截断）
@@ -445,6 +446,13 @@ def write_outputs(root: Path, config: dict[str, Any], index: dict[str, Any], rec
     project_keys = project_keys_by_id(contracts)
     # 基线必须在写出（覆写 memory-index）之前读取
     baseline_index, baseline_note = load_baseline_index(root, config)
+    # 确定性收口：与基线除 generated_at 外 deep-equal 时复用基线时间戳，
+    # 无操作编译字节幂等（byte-reproducible）；时间戳只冻结、绝不掩盖内容差异
+    if baseline_index is not None:
+        current = {k: v for k, v in index.items() if k != "generated_at"}
+        previous = {k: v for k, v in baseline_index.items() if k != "generated_at"}
+        if current == previous:
+            index["generated_at"] = baseline_index.get("generated_at")
     outputs: dict[str, str] = {
         config["paths"]["memory_index"]: yaml.safe_dump(index, allow_unicode=True, sort_keys=False),
         COMPILE_DIFF_PATH: render_compile_diff(baseline_index, index, baseline_note),
@@ -491,5 +499,7 @@ def compile_all(root: Path) -> tuple[int, list[Issue]]:
     issues.extend(knowledge_issues)
     index["health"] = health_for(issues, index.get("counts", {}))
     write_outputs(root, config, index, records, contracts, knowledge, issues)
+    # 编译成功后按需自动提交（git.auto_commit，缺省关闭；任何 git 失败降级为 warning 不阻断）
+    maybe_auto_commit(root, config, index)
     print("note: inline clients need `hongzhao bridge-install all` to refresh; run `hongzhao doctor` to check.")
     return (1 if index["health"] == "degraded" else 0), issues

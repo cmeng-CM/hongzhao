@@ -117,7 +117,7 @@ hongzhao --root <PATH> doctor                    # 预期："doctor: ok"
 
 安装之后，还可以建议（每条一行，未获请求不要擅自运行）：
 
-- **给记忆库做版本管理**：`git init <PATH>`，并在每次每周编译后提交——记忆就是纯文件；git 就是备份。
+- **给记忆库做版本管理**：`git init <PATH>`，并在每次每周编译后提交——记忆就是纯文件；git 就是备份。记忆库是独立 git 仓库时，每次编译后会自动提交（`git.auto_commit` 缺省开启，可在 `config.yaml` 里设为 `false` 关闭）。
 - **用 Obsidian 浏览**：记忆库是纯 Markdown；Obsidian → "Open folder as vault"（打开文件夹为仓库）可直接打开它（让它保持第二个仓库的身份，不要嵌进已有仓库）。
 - **日后升级**：`pipx upgrade hongzhao`，然后 `hongzhao --root <PATH> upgrade`——见 [UPGRADE.md](UPGRADE.md)。
 

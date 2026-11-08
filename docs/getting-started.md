@@ -87,6 +87,7 @@ hongzhao --root ~/my-memory doctor
 | `clients` | 各客户端的设置（见下文） | 全部禁用（`init --client` 会启用检测到的客户端） |
 | `output` | 可选的渲染选项（`link_style`、`link_prefix`） | markdown 链接 |
 | `knowledge_root` | 知识路径的基础目录，相对于 root | `.` |
+| `git` | 编译后自动提交（`auto_commit`）；要求记忆库自身是独立 git 仓库，嵌套仓库一律拒绝，git 失败只降级为 warning、绝不阻断编译 | 开启（独立仓库时） |
 
 每个客户端的设置——恰好四个键（`enabled`、`bridge_path`、`skills_root`、`mode`）；未知或缺失的键会被拒绝并报 `CONFIG_INVALID`。
 

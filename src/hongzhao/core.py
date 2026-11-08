@@ -143,7 +143,7 @@ def write_atomic(path: Path, content: str) -> None:
 
 REQUIRED_TOP = {"schema_version", "paths", "skills", "clients"}
 # ：已知可选键；未知键拒绝且错误信息列出违规键名
-OPTIONAL_TOP = {"output", "knowledge_root"}
+OPTIONAL_TOP = {"output", "knowledge_root", "git"}
 
 
 def load_config(root: Path) -> dict[str, Any]:
@@ -186,6 +186,16 @@ def load_config(root: Path) -> dict[str, Any]:
     knowledge_root_value = data.get("knowledge_root")
     if knowledge_root_value is not None and (not isinstance(knowledge_root_value, str) or not knowledge_root_value.strip()):
         raise ValueError(f"{path}: knowledge_root must be a non-empty relative path (default .)")
+    git_conf = data.get("git")
+    if git_conf is not None:
+        # 编译后自动提交段：唯一键 auto_commit，必须显式布尔（缺省=关闭）
+        if not isinstance(git_conf, dict):
+            raise ValueError(f"{path}: git must be a mapping")
+        unknown_git = set(git_conf) - {"auto_commit"}
+        if unknown_git:
+            raise ValueError(f"{path}: git unknown fields: {', '.join(sorted(unknown_git))}")
+        if git_conf.get("auto_commit") is not None and not isinstance(git_conf.get("auto_commit"), bool):
+            raise ValueError(f"{path}: git.auto_commit must be a boolean")
     skills = data.get("skills")
     if not isinstance(skills, list) or not skills or not all(isinstance(value, str) and value.strip() for value in skills):
         raise ValueError(f"{path}: skills must be a non-empty list of strings")
