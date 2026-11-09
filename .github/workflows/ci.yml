@@ -9,12 +9,14 @@ jobs:
   ci:
     # W4（Windows 支持）：三 OS 矩阵——Windows 必含 3.9（junction 识别低版本路径）与最新；mac 保底一档
     strategy:
+      fail-fast: false  # 单档失败不连坐，保留全量信号
       matrix:
         include:
-          - { os: ubuntu-latest, python-version: "3.9" }
+          # 3.9（2025-10 EOL）无 26.04/新镜像构建：钉在有构建的镜像上（W4 下限=3.9 与最新都覆盖）
+          - { os: ubuntu-24.04, python-version: "3.9" }
           - { os: ubuntu-latest, python-version: "3.12" }
           - { os: ubuntu-latest, python-version: "3.13" }
-          - { os: windows-latest, python-version: "3.9" }
+          - { os: windows-2022, python-version: "3.9" }
           - { os: windows-latest, python-version: "3.12" }
           - { os: windows-latest, python-version: "3.13" }
           - { os: macos-latest, python-version: "3.13" }
