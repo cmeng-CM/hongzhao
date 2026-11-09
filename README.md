@@ -2,6 +2,9 @@
 
 <div align="center">
 
+<p><img src="docs/assets/hero-hongzhao.gif" alt="hongzhao 主视觉：雪原之上，飞鹤踏雪留痕，振翅而去" width="360"></p>
+<sub>名字出处「雪泥鸿爪」——飞鸿踏过雪泥，留下爪印，然后飞走。</sub>
+
 # hongzhao
 
 **给 AI 编程智能体的纯文本记忆账本 —— 由人把关，确定性编译，零锁定。**

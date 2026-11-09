@@ -2,6 +2,9 @@
 
 <div align="center">
 
+<p><img src="docs/assets/hero-hongzhao.gif" alt="hongzhao hero: a crane lifts off a snowy field, leaving prints behind" width="360"></p>
+<sub>Named after 雪泥鸿爪 — the goose lands on snow, leaves its prints, and flies on.</sub>
+
 # hongzhao
 
 **A file-based, human-gated memory ledger for AI coding agents — deterministic, zero lock-in.**
