@@ -140,9 +140,18 @@ def test_bridge_ambiguous(tmp_path, monkeypatch):
 
 def _sandbox_env(tmp_path):
     # 子进程必须隔离 HOME：真实 ~/.claude/CLAUDE.md 等含托管块，会把测试引向生产库
+    import os as _os
+
     home = tmp_path / "fake-home"
     home.mkdir(exist_ok=True)
-    return {"PATH": __import__("os").environ["PATH"], "HOME": str(home)}
+    env = {"PATH": _os.environ["PATH"], "HOME": str(home)}
+    # Windows：精简 env 缺 SYSTEMROOT 时，Python 3.9 子进程初始化随机源直接 Fatal
+    # （_Py_HashRandomization_Init，老 CryptoAPI 需经系统目录解析；3.12+ 换实现不受影响）
+    for var in ("SYSTEMROOT", "SYSTEMDRIVE"):
+        value = _os.environ.get(var)
+        if value:
+            env[var] = value
+    return env
 
 
 def test_root_json_contract(tmp_path, monkeypatch):
