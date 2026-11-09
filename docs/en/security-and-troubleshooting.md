@@ -40,6 +40,8 @@
 | `BRIDGE_STALE` / `SKILL_MISSING` / `SKILLS_CONFIG` | warning | `bridge-install` / `skills-install` |
 | `OUTPUT_MISSING` | degraded | compiled artifact absent — run `compile` |
 | `CONTRACT_ORPHAN` | degraded | central contract without registry entry — unregister or re-register |
+| `AUTO_COMMIT_SKIP` | warning | auto-commit skipped — git missing on PATH, kit not a git repo, or nested inside another repo; see the note line |
+| `AUTO_COMMIT_FAILED` | warning | git add / git commit failed — see the message line; compile and its exit code are unaffected |
 
 ## Troubleshooting walkthroughs
 

@@ -73,6 +73,8 @@ hongzhao --root ~/my-memory compile      # 重建派生视图
 hongzhao --root ~/my-memory doctor       # 客户端 / 托管块 / 产物健康检查
 ```
 
+记忆库本身是独立 git 仓库时，每次 `compile` 之后会自动提交整个 kit（`git.auto_commit` 缺省开启，可设为 `false` 关闭）——记忆是纯文件，git 就是备份。
+
 ## 智能体安装块
 
 把下面这段贴进智能体客户端的指令文件（或者让 `bridge-install` 替你管理这个托管块——见 [docs/clients.md](docs/clients.md)）：

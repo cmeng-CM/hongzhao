@@ -80,6 +80,7 @@ hongzhao 不是全量对话记忆库，也不是项目文档、任务管理器�
 ## 渲染
 
 九类产物由索引确定性渲染：有效视图（global / non-project / 每项目）、路由索引、current-state、corrections、知识地图，以及客户端启动摘要。frontmatter 键集冻结；链接样式可配置（`link_style` / `link_prefix`）。渲染产物用户可见文案为英文，代码注释为中文。
+内容无变化的编译会复用上一次的 `generated_at`，产物字节完全一致（byte-reproducible）；`git.auto_commit` 依赖这一性质避免空提交。
 
 ## 安全姿态
 

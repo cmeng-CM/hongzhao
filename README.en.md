@@ -79,6 +79,10 @@ hongzhao --root ~/my-memory compile      # rebuild derived views
 hongzhao --root ~/my-memory doctor       # client / blocks / output health
 ```
 
+If the kit is a standalone git repo, every `compile` auto-commits it
+(`git.auto_commit` defaults to on; set it to `false` to opt out) — memory is
+plain files, git is the backup.
+
 ## Agent installation block
 
 Paste this into your agent client's instruction file (or let `bridge-install`

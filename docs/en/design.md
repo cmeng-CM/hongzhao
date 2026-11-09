@@ -130,6 +130,9 @@ effective-memory views (global / non-project / per-project), the routing
 index, current-state, corrections, knowledge map, and the client bootstrap.
 Frontmatter key sets are frozen; link style is configurable (`link_style` /
 `link_prefix`). User-visible text is English; code comments are Chinese.
+Compiles with unchanged content reuse the previous `generated_at`, so no-op
+compiles are byte-identical (byte-reproducible) — `git.auto_commit` relies on
+this to avoid empty commits.
 
 ## Security posture
 

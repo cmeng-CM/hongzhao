@@ -50,6 +50,9 @@ disabled by default and never enabled by shipped configuration.
 hongzhao stores everything under the memory root you choose (default
 `~/hongzhao`). No telemetry, no network calls, no external services.
 
+The optional auto-commit (`git.auto_commit`) shells out to your local git
+only — it never pushes and never contacts any remote.
+
 ## Supported versions
 
 Pre-release. Support starts with `v0.1.x`.

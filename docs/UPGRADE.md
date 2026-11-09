@@ -18,6 +18,8 @@
 
 版本偏差（version skew）的可见性：只要记忆库落后于已安装的包，`doctor` 就会警告 `SKILL_STALE`（记忆库 skills 由旧引擎同步）和 `BOOTSTRAP_STALE`（启动摘要由旧引擎渲染）。运行升级序列后，两者都会消除。
 
+开启 `git.auto_commit` 的记忆库（独立 git 仓库时缺省开启）：升级序列第 3 步 `compile` 会自动产生一条固定格式的 kit 提交（`hongzhao compile v<版本> …`）；任何 git 失败都只降级为 warning，不会阻断升级。
+
 ## 让 AI 智能体替你升级（一句话）
 
 告诉你的编程智能体：

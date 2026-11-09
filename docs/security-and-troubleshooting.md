@@ -29,6 +29,8 @@
 | `BRIDGE_STALE` / `SKILL_MISSING` / `SKILLS_CONFIG` | warning | `bridge-install` / `skills-install` |
 | `OUTPUT_MISSING` | degraded | 编译产物缺失——运行 `compile` |
 | `CONTRACT_ORPHAN` | degraded | 中央 contract 缺少 registry 条目——注销或重新注册 |
+| `AUTO_COMMIT_SKIP` | warning | 自动提交被跳过——git 不在 PATH、记忆库不是 git 仓库，或嵌套在外层仓库里；见提示行说明 |
+| `AUTO_COMMIT_FAILED` | warning | `git add` / `git commit` 失败——见提示行首行；编译与退出码不受影响 |
 
 ## 排查实录
 

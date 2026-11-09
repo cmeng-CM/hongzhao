@@ -25,6 +25,11 @@ older engine) and `BOOTSTRAP_STALE` (bootstrap rendered by an older engine)
 whenever the kit lags behind the installed package. Both clear when you run
 the upgrade sequence.
 
+With `git.auto_commit` enabled (the default for standalone git repos), step 3
+of the sequence (`compile`) auto-commits the kit with the stable message
+format (`hongzhao compile v<version> ...`); any git failure degrades to a
+warning and never blocks the upgrade.
+
 ## Upgrade with your AI agent (one line)
 
 Tell your coding agent:
