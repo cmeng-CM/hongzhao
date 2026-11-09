@@ -6,6 +6,8 @@ from `0.1.0`).
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-11-09
+
 ### Added
 
 - Native Windows 10+ support (design `.delivery/2026-11-09-Windows-支持/`, two
