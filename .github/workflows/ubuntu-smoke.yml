@@ -1,0 +1,67 @@
+# Ubuntu 真实用户旅程冒烟（手动触发）：从 wheel 安装到卸载演练，复刻 README 承诺路径。
+# 与 ci.yml 的区别：ci 装的是可编辑包跑测试套件；本流在干净 venv 中装构建工件，
+# 逐步执行用户文档里的命令，作为发布前的人工验证档（Windows 批 2026-11-09 引入）。
+name: ubuntu-smoke
+
+on:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Build sdist and wheel
+        run: |
+          python -m pip install --upgrade build
+          python -m build
+      - name: Install from wheel into a clean venv
+        run: |
+          python -m venv /tmp/uservenv
+          /tmp/uservenv/bin/pip install dist/*.whl
+          /tmp/uservenv/bin/hongzhao --version
+      - name: Green demo (README 60-second quickstart)
+        run: |
+          HZ=/tmp/uservenv/bin/hongzhao
+          $HZ init ~/my-memory --example
+          $HZ --root ~/my-memory compile
+          $HZ --root ~/my-memory validate
+          $HZ --root ~/my-memory doctor
+          test -f ~/my-memory/render/bootstrap.md
+          test -f ~/my-memory/.gitattributes
+      - name: Determinism (compile twice, byte-identical)
+        run: |
+          HZ=/tmp/uservenv/bin/hongzhao
+          sha1=$(sha256sum ~/my-memory/compiled/memory-index.yaml)
+          $HZ --root ~/my-memory compile >/dev/null
+          sha2=$(sha256sum ~/my-memory/compiled/memory-index.yaml)
+          [ "$sha1" = "$sha2" ] && echo "byte-stable: ok"
+      - name: Auto-commit (standalone git repo)
+        run: |
+          HZ=/tmp/uservenv/bin/hongzhao
+          git -C ~/my-memory init -q
+          git -C ~/my-memory config user.email t@example.com
+          git -C ~/my-memory config user.name t
+          $HZ --root ~/my-memory compile | tee /tmp/out.txt
+          grep -q "auto-commit:" /tmp/out.txt
+          test "$(git -C ~/my-memory rev-list --count --all)" -ge 1
+      - name: Project register + knowledge register (core loop)
+        run: |
+          HZ=/tmp/uservenv/bin/hongzhao
+          mkdir -p ~/code/my-app
+          $HZ --root ~/my-memory project-register ~/code/my-app \
+            --purpose "smoke" --current-state "active" --next-action "keep going"
+          echo "# notes" > ~/my-memory/knowledge.md
+          $HZ --root ~/my-memory knowledge-register knowledge.md \
+            --title "Smoke note" --topic smoke --summary "smoke summary"
+          $HZ --root ~/my-memory compile
+          $HZ --root ~/my-memory doctor
+      - name: Uninstall dry-run leaves everything intact
+        run: |
+          HZ=/tmp/uservenv/bin/hongzhao
+          $HZ --root ~/my-memory uninstall | tee /tmp/uninstall.txt
+          grep -q "dry-run" /tmp/uninstall.txt
+          test -f ~/my-memory/config.yaml
