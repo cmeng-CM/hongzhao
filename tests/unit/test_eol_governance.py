@@ -52,7 +52,8 @@ def _make_kit(base: Path, auto_commit: bool, with_client: bool = False) -> Path:
     (base / "registry").mkdir(exist_ok=True)
     (base / "registry" / "project-registry.yaml").write_text("schema_version: 2\nprojects: []\n", encoding="utf-8")
     (base / "registry" / "knowledge-registry.yaml").write_text("schema_version: 2\nknowledge: []\n", encoding="utf-8")
-    (base / ".gitattributes").write_text(GITATTRIBUTES, encoding="utf-8", newline="")  # init 形态：下界随 kit 落盘
+    with open(base / ".gitattributes", "w", encoding="utf-8", newline="") as _fh:  # 3.9 兼容（newline kwarg 为 3.10+）
+        _fh.write(GITATTRIBUTES)  # init 形态：下界随 kit 落盘
     return base
 
 
