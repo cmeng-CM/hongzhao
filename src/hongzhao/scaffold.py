@@ -83,6 +83,8 @@ compiled/** text eol=lf
 render/** text eol=lf
 registry/** text eol=lf
 *.md text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
 .hongzhao-manifest.json text eol=lf
 """
 
