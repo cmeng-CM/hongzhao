@@ -366,14 +366,21 @@ def cmd_register(root: Path, target: str, args: dict[str, Any], dry_run: bool = 
         provided = {k: args[k] for k in ("name", "purpose", "current_state", "next_action") if args.get(k)}
         check_field_values(provided)
 
-        # 锁外只读预判：确定是否需要三必填（J3/J6）；K 算不出且会用到 → FIELD_INVALID
-        pre, _facts = judge(root, param, args.get("key"))
-        needs_fields = pre.name in {"J3", "J6"}
+        # 锁外只读预判：唯一职责=确定是否需要三必填（J3/J6）。预判读到撕裂状态
+        # （注册表与中央契约非同一时刻——并发注册时可见「有契约无条目」的瞬时孤儿态）
+        # 或瞬时冲突时，以锁内判定为权威：吸收异常、按需要三必填保守处理；
+        # 真实冲突仍由锁内 judge 抛出（合同矩阵单进程行为不变）。
+        try:
+            pre, _facts = judge(root, param, args.get("key"))
+            needs_fields = pre.name in {"J3", "J6"}
+        except ContractError:
+            pre = None
+            needs_fields = True
 
         # 锁内：重新判定并执行）
         with registry_lock(root):
             decision, facts = judge(root, param, args.get("key"))
-            if decision.name != pre.name and decision.name in {"J3", "J6"} and not needs_fields:
+            if pre is not None and decision.name != pre.name and decision.name in {"J3", "J6"} and not needs_fields:
                 print("[STATE_CHANGED] registry state changed while waiting; rerun with the required fields")
                 return 1
             if decision.name in {"J3", "J6"}:
