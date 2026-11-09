@@ -15,6 +15,7 @@ from hongzhao import scaffold
 
 def test_default_path_notice_and_creation(tmp_path, monkeypatch, capsys):
     monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))  # Windows expanduser 走 USERPROFILE
     code = scaffold.cmd_init(None, None, False, False)
     assert code == 0
     out = capsys.readouterr().out

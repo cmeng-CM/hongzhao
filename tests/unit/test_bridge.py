@@ -175,7 +175,7 @@ def test_uninstall_dry_run_then_yes(tmp_path):
     skilllink.create(link, kit / "skills" / "memory-write")  # 测试侧建链走原语（F-09）
     # dry-run：零改动
     assert bridge.cmd_uninstall(kit, yes=False) == 0
-    assert NEW_S in bf.read_text(encoding="utf-8") and link.is_symlink()
+    assert NEW_S in bf.read_text(encoding="utf-8") and skilllink.is_link(link)  # junction 非 symlink，走原语断言
     # --yes：删两代块与 root/skills 内软链；非软链不动；记忆根保留
     plain_dir = skills_root / "not-a-link"
     plain_dir.mkdir()

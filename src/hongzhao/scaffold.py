@@ -146,11 +146,17 @@ def build_config(enabled: dict[str, bool]) -> dict[str, Any]:
     }
 
 
+def _write_text_lf(path: Path, content: str) -> None:
+    """固定 LF 写出（Path.write_text 的 newline 参数为 3.10+，3.9 走 open）。"""
+    with open(path, "w", encoding="utf-8", newline="") as handle:
+        handle.write(content)
+
+
 def _write_if_missing(path: Path, content: str) -> bool:
     if path.exists():
         return False
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8", newline="")  # W2：模板固定 LF
+    _write_text_lf(path, content)  # W2：模板固定 LF（3.9 兼容）
     return True
 
 
@@ -178,7 +184,8 @@ def seed_example(root: Path) -> None:
     """绿场景种子：一对用 resolved_by 闭合的冲突演示（compile 后 health ok）。"""
     raw = root / "raw"
     raw.mkdir(parents=True, exist_ok=True)
-    (raw / "example-profile.md").write_text(
+    _write_text_lf(
+        raw / "example-profile.md",
         "---\n"
         "schema_version: 2\n"
         "id: mem-11111111-1111-4111-8111-111111111111\n"
@@ -192,9 +199,9 @@ def seed_example(root: Path) -> None:
         "summary: Example profile claim for the green demo kit.\n"
         "compile_status: done\n"
         "---\n\nExample body.\n",
-        encoding="utf-8", newline=""
     )
-    (raw / "example-superseded.md").write_text(
+    _write_text_lf(
+        raw / "example-superseded.md",
         "---\n"
         "schema_version: 2\n"
         "id: mem-22222222-2222-4222-8222-222222222222\n"
@@ -209,9 +216,9 @@ def seed_example(root: Path) -> None:
         "compile_status: done\n"
         "supersedes: []\n"
         "---\n\nOld body.\n",
-        encoding="utf-8", newline=""
     )
-    (raw / "example-correction.md").write_text(
+    _write_text_lf(
+        raw / "example-correction.md",
         "---\n"
         "schema_version: 2\n"
         "id: mem-33333333-3333-4333-8333-333333333333\n"
@@ -227,7 +234,6 @@ def seed_example(root: Path) -> None:
         "supersedes:\n"
         "  - mem-22222222-2222-4222-8222-222222222222\n"
         "---\n\nCorrected body.\n",
-        encoding="utf-8", newline=""
     )
 
 
@@ -294,8 +300,9 @@ def cmd_init(path: str | None, clients: list[str] | None, example: bool, force: 
             key, digest = _manifest_entry(target, path)
             entries[key] = digest
     entries["_synced_with"] = __version__  # 升级偏斜检测（doctor SKILL_STALE）
-    (target / ".hongzhao-manifest.json").write_text(
-        yaml.safe_dump(entries, allow_unicode=True, sort_keys=True), encoding="utf-8", newline=""
+    _write_text_lf(
+        target / ".hongzhao-manifest.json",
+        yaml.safe_dump(entries, allow_unicode=True, sort_keys=True),
     )
 
     for line in warnings:

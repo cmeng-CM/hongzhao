@@ -13,6 +13,9 @@ import os
 import stat as stat_module
 from pathlib import Path
 
+# IO_REPARSE_TAG_MOUNT_POINT 常量为 Python 3.10+ 才进入 stat 模块；3.9 用 Windows SDK 字面值
+IO_REPARSE_TAG_MOUNT_POINT = getattr(stat_module, "IO_REPARSE_TAG_MOUNT_POINT", 0xA0000003)
+
 
 class SkillLinkError(OSError):
     """链接操作失败（目标非链接、文件系统不支持等，消息可直接展示给用户）。"""
@@ -29,7 +32,7 @@ def _is_junction(path: Path) -> bool:
         st = os.stat(path, follow_symlinks=False)
     except OSError:
         return False
-    return getattr(st, "st_reparse_tag", 0) == stat_module.IO_REPARSE_TAG_MOUNT_POINT
+    return getattr(st, "st_reparse_tag", 0) == IO_REPARSE_TAG_MOUNT_POINT
 
 
 def is_link(path: Path) -> bool:

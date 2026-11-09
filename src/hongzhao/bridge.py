@@ -189,7 +189,7 @@ def cmd_migrate_bridge(root: Path) -> int:
                 text = _remove_generation(text, LEGACY_START, LEGACY_END)
                 pattern = re.compile(re.escape(MANAGED_START) + r".*?" + re.escape(MANAGED_END), re.S)
                 if pattern.search(text):
-                    text = pattern.sub(block, text)
+                    text = pattern.sub(lambda _m: block, text)  # lambda=字面替换：Windows 路径含 \U 时 re.sub 模板会炸
                 else:
                     text = (text.rstrip() + "\n\n" if text.strip() else "") + block + "\n"
                 _write_preserving_eol(path, text)
@@ -201,7 +201,8 @@ def cmd_migrate_bridge(root: Path) -> int:
             else:  # 只有新块：重新生成（刷新）
                 block = bridge_block(root, name, settings | {"bootstrap": config["paths"]["bootstrap"]})
                 pattern = re.compile(re.escape(MANAGED_START) + r".*?" + re.escape(MANAGED_END), re.S)
-                _write_preserving_eol(path, pattern.sub(block, text))
+                # lambda=字面替换：block 含 Windows 绝对路径（如 \Users）时，re.sub 模板串会把 \U 当转义
+                _write_preserving_eol(path, pattern.sub(lambda _m: block, text))
                 print(f"migrate-bridge: {name} new block refreshed")
         else:
             # disabled：旧块仍清理；既有新块保留不刷新

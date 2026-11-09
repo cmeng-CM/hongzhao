@@ -42,9 +42,21 @@ def _make_kit(base: Path) -> Path:
     return base
 
 
-def test_registry_busy_when_lock_held(tmp_path):
-    from tests.contracts.conftest import build_cmd, run_cli
+def _run_cli(args, root, timeout):
+    """真实 CLI 入口（优先已装可执行文件；与 conftest 同口径但本地内联，避免跨包 import）。"""
+    import shutil as _shutil
 
+    args = [str(a) for a in args]
+    exe = _shutil.which("hongzhao")
+    env = os.environ.copy()
+    env["HONGZHAO_ROOT"] = str(root.resolve())
+    cmd = ([exe] if exe else [sys.executable, "-c",
+            "import sys; from hongzhao.cli import main; raise SystemExit(main(sys.argv[1:]))"]) + args
+    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout,
+                          cwd=str(root.resolve()), env=env)
+
+
+def test_registry_busy_when_lock_held(tmp_path):
     kit = _make_kit(tmp_path / "kit")
     proj = tmp_path / "proj"
     proj.mkdir()
@@ -56,7 +68,7 @@ def test_registry_busy_when_lock_held(tmp_path):
     try:
         assert holder.stdout.readline().strip() == "held"  # 辅助已独立持锁
         started = time.monotonic()
-        result = run_cli(
+        result = _run_cli(
             ["project-register", str(proj), "--key", "busyq", "--purpose", "p",
              "--current-state", "s", "--next-action", "n"],
             kit,
@@ -70,7 +82,7 @@ def test_registry_busy_when_lock_held(tmp_path):
     finally:
         holder.kill()
         holder.wait(timeout=10)
-    result = run_cli(
+    result = _run_cli(
         ["project-register", str(proj), "--key", "busyq", "--purpose", "p",
          "--current-state", "s", "--next-action", "n"],
         kit,
