@@ -6,7 +6,7 @@
 
 ## 安装
 
-需要 macOS / Linux 和 Python 3.9+（CI 在 3.12/3.13 上测试通过）；v0.1 不支持 Windows 原生——`init` 会快速失败。
+需要 macOS / Linux / Windows 10+ 和 Python 3.9+（CI 在 3.12/3.13 上测试通过）。Windows 技能挂载用目录联接（junction），无需开发者模式；网络盘/OneDrive 同步目录除外（junction 不受支持）。
 
 ```bash
 pip install hongzhao          # 或者：uv tool install hongzhao / pipx install hongzhao

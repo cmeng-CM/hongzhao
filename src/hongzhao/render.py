@@ -25,7 +25,15 @@ from hongzhao.fields import escape_render_text  # ：渲染转义（不截断）
 
 def markdown_link(target: Path, product_dir: Path, label: str) -> str:
     """统一 markdown 链接生成（唯一入口）：相对产物目录解析 + <> 包裹 + percent-encoding。"""
-    relative = os.path.relpath(Path(target).resolve(), Path(product_dir).resolve())
+    try:
+        relative = os.path.relpath(Path(target).resolve(), Path(product_dir).resolve())
+    except ValueError as exc:
+        # Windows 跨盘（如 knowledge_root 指向另一磁盘）relpath 不可达：明确报错而非裸崩（D-W12）
+        raise ValueError(
+            f"cross-drive path is not supported: {target} is not on the same drive as {product_dir} "
+            "(knowledge_root must live on the same drive as the memory root)"
+        ) from exc
+    relative = relative.replace(os.sep, "/")  # W2：渲染链接统一 POSIX 分隔符（Windows 归一，POSIX no-op）
     quoted = urllib.parse.quote(relative, safe="/")
     return f"[{label}](<{quoted}>)"
 

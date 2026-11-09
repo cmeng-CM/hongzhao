@@ -74,16 +74,17 @@ GITIGNORE = """# hongzhao 运行期锁（绑定记忆根、持久存在；勿删
 .DS_Store
 """
 
-
-def guard_windows() -> None:
-    """：Windows 原生不支持软链（需开发者模式），init 即失败退出，不留半安装态。"""
-    if sys.platform == "win32":
-        print(
-            "error: native Windows is not supported in v0.1 (symlinks require developer mode); "
-            "use WSL or wait for a future release.",
-            file=sys.stderr,
-        )
-        raise SystemExit(2)
+# 行尾治理下界（design W4/F-08 硬约束）：检出形态必须与包内字节一致，
+# 否则 skills-install 的字节比较会误判 SKILL_MODIFIED 并卡住 upgrade
+GITATTRIBUTES = """* text=auto
+skills/** text eol=lf
+templates/** text eol=lf
+compiled/** text eol=lf
+render/** text eol=lf
+registry/** text eol=lf
+*.md text eol=lf
+.hongzhao-manifest.json text eol=lf
+"""
 
 
 def detect_preset(spec: dict[str, Any]) -> bool:
@@ -149,7 +150,7 @@ def _write_if_missing(path: Path, content: str) -> bool:
     if path.exists():
         return False
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
+    path.write_text(content, encoding="utf-8", newline="")  # W2：模板固定 LF
     return True
 
 
@@ -191,7 +192,7 @@ def seed_example(root: Path) -> None:
         "summary: Example profile claim for the green demo kit.\n"
         "compile_status: done\n"
         "---\n\nExample body.\n",
-        encoding="utf-8",
+        encoding="utf-8", newline=""
     )
     (raw / "example-superseded.md").write_text(
         "---\n"
@@ -208,7 +209,7 @@ def seed_example(root: Path) -> None:
         "compile_status: done\n"
         "supersedes: []\n"
         "---\n\nOld body.\n",
-        encoding="utf-8",
+        encoding="utf-8", newline=""
     )
     (raw / "example-correction.md").write_text(
         "---\n"
@@ -226,12 +227,11 @@ def seed_example(root: Path) -> None:
         "supersedes:\n"
         "  - mem-22222222-2222-4222-8222-222222222222\n"
         "---\n\nCorrected body.\n",
-        encoding="utf-8",
+        encoding="utf-8", newline=""
     )
 
 
 def cmd_init(path: str | None, clients: list[str] | None, example: bool, force: bool) -> int:
-    guard_windows()
     target = Path(path).expanduser() if path else Path(DEFAULT_ROOT).expanduser()
     if not path:
         # 未指定路径必须明示默认位置
@@ -270,6 +270,7 @@ def cmd_init(path: str | None, clients: list[str] | None, example: bool, force: 
     _write_if_missing(target / "registry" / "project-registry.yaml", "schema_version: 2\nprojects: []\n")
     _write_if_missing(target / "registry" / "knowledge-registry.yaml", "schema_version: 2\nknowledge: []\n")
     _write_if_missing(target / ".gitignore", GITIGNORE)
+    _write_if_missing(target / ".gitattributes", GITATTRIBUTES)
 
     # 包内 skills/templates 拷贝（package data，importlib.resources）
     from importlib import resources
@@ -294,7 +295,7 @@ def cmd_init(path: str | None, clients: list[str] | None, example: bool, force: 
             entries[key] = digest
     entries["_synced_with"] = __version__  # 升级偏斜检测（doctor SKILL_STALE）
     (target / ".hongzhao-manifest.json").write_text(
-        yaml.safe_dump(entries, allow_unicode=True, sort_keys=True), encoding="utf-8"
+        yaml.safe_dump(entries, allow_unicode=True, sort_keys=True), encoding="utf-8", newline=""
     )
 
     for line in warnings:

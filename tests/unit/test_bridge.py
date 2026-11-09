@@ -11,7 +11,7 @@ import shutil
 import pytest
 import yaml
 
-from hongzhao import bridge
+from hongzhao import bridge, skilllink
 from hongzhao.core import load_config
 from hongzhao.render import compile_all
 
@@ -99,7 +99,7 @@ def test_foreign_symlink_skipped_then_forced(tmp_path):
     foreign_target.mkdir(parents=True)
     (foreign_target / "SKILL.md").write_text("foreign\n", encoding="utf-8")
     link = skills_root / "memory-write"
-    link.symlink_to(foreign_target, target_is_directory=True)
+    skilllink.create(link, foreign_target)  # 测试侧建链走原语（F-09，跨平台）
     assert bridge.cmd_skills_install(kit, "cc") == 1  # SKILL_CONFLICT 跳过
     assert link.resolve() == foreign_target.resolve()  # 未删除未改指
     assert bridge.cmd_skills_install(kit, "cc", force=True) == 0  # --force 覆盖
@@ -172,7 +172,7 @@ def test_uninstall_dry_run_then_yes(tmp_path):
     config = load_config(kit)
     skills_root = Path(str(config["clients"]["cc"]["skills_root"]))
     link = skills_root / "memory-write"
-    link.symlink_to(kit / "skills" / "memory-write", target_is_directory=True)
+    skilllink.create(link, kit / "skills" / "memory-write")  # 测试侧建链走原语（F-09）
     # dry-run：零改动
     assert bridge.cmd_uninstall(kit, yes=False) == 0
     assert NEW_S in bf.read_text(encoding="utf-8") and link.is_symlink()

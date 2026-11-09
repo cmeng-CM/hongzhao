@@ -2,7 +2,7 @@
 
 [English](en/clients.md) | **简体中文**
 
-**客户端**（client）是带有指令文件（instruction file）的智能体宿主，例如 Claude Code 的 `CLAUDE.md`、Codex CLI 的 `AGENTS.md`、ZCode 的 `AGENTS.md` 等。hongzhao 可以向该文件注入一个托管的**启动摘要块**（bootstrap block），并把打包技能以软链接（symlink）方式接入客户端的技能目录（skills directory）。
+**客户端**（client）是带有指令文件（instruction file）的智能体宿主，例如 Claude Code 的 `CLAUDE.md`、Codex CLI 的 `AGENTS.md`、ZCode 的 `AGENTS.md` 等。hongzhao 可以向该文件注入一个托管的**启动摘要块**（bootstrap block），并把打包技能以目录链接方式接入客户端的技能目录（skills directory）——macOS/Linux 为符号链接（symlink），Windows 10+ 为目录联接（junction），均无需特权。
 
 ## 预置客户端（v0.1）
 
@@ -26,15 +26,15 @@
 
 - `bridge-install` 插入或刷新该块；标记之外的内容绝不改动。它**不会**触碰旧一代（legacy）的 `agent-memory` 块——迁移旧一代块是 `migrate-bridge` 的职责（可为全部客户端一次性运行；在那之前两代块可能并存）。
 - `uninstall`（默认 dry-run）移除该块。标记之外的一切内容逐字节原样保留。
-- `doctor` 校验每个已启用的客户端：块内容与当前启动摘要一致，且技能软链接均解析到 `<root>/skills` 之内。
+- `doctor` 校验每个已启用的客户端：块内容与当前启动摘要一致，且技能链接（symlink/junction）均解析到 `<root>/skills` 之内。
 
 ## 技能
 
-`skills-install all`（按客户端：`skills-install claude_code`）把打包的技能/模板复制到 `<root>/skills/`，并建立软链接 `<client.skills_root>/<skill>` → `<root>/skills/<skill>`——唯一事实源（single source of truth），升级一次，所有客户端同步更新。保护机制：
+`skills-install all`（按客户端：`skills-install claude_code`）把打包的技能/模板复制到 `<root>/skills/`，并建立链接 `<client.skills_root>/<skill>` → `<root>/skills/<skill>`（POSIX symlink / Windows junction）——唯一事实源（single source of truth），升级一次，所有客户端同步更新。保护机制：
 
-- 指向别处的软链接会报 `SKILL_CONFLICT`（可用 `--force` 覆盖），
-- 外来（非软链接）目录绝不改动，
-- `uninstall` 只移除解析后位于 `<root>/skills` 之内的软链接。
+- 指向别处的链接会报 `SKILL_CONFLICT`（可用 `--force` 覆盖），
+- 外来（非链接）目录绝不改动，
+- `uninstall` 只移除解析后位于 `<root>/skills` 之内的链接（绝不删真实目录）。
 
 清单（manifest，`.hongzhao-manifest.json`）固定内容哈希（content hash），使升级成为显式操作：`skills-install --manifest-only` 只记录当前哈希、不改动任何文件（切换流程会用到）。
 
@@ -55,9 +55,9 @@ degraded OUTPUT_MISSING - /path/to/compiled/knowledge-map.md derived output miss
 
 每一行 degraded/warning 都会指明受影响的客户端和文件；修复命令即该行消息中所示的那条（如有给出）。完整的问题代码表见[安全与故障排除](security-and-troubleshooting.md)。
 
-## 共享技能目录（一套软链接，多个客户端）
+## 共享技能目录（一套链接，多个客户端）
 
-`skills_root` 按客户端独立设置。在多个智能体读取同一个共享技能目录（例如 `~/.agents/skills`）的机器上，把每个非 Claude 客户端的 `skills_root` 都指向该共享目录——这样一次 `skills-install` 建立的一套软链接即可覆盖它们全部，同一个技能也绝不会安装两次：
+`skills_root` 按客户端独立设置。在多个智能体读取同一个共享技能目录（例如 `~/.agents/skills`）的机器上，把每个非 Claude 客户端的 `skills_root` 都指向该共享目录——这样一次 `skills-install` 建立的一套链接即可覆盖它们全部，同一个技能也绝不会安装两次：
 
 ```yaml
 clients:

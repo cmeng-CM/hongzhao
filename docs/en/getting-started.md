@@ -6,8 +6,9 @@ From zero to a working memory kit in five minutes.
 
 ## Install
 
-Requires Python 3.9+ (CI-tested on 3.12/3.13) on macOS / Linux (Windows native
-is unsupported in v0.1 — `init` fails fast).
+Requires Python 3.9+ (CI-tested on 3.12/3.13) on macOS / Linux / Windows 10+.
+On Windows, skills link via NTFS junctions (no developer mode needed);
+except network/synced drives such as OneDrive (junctions unsupported there).
 
 ```bash
 pip install hongzhao          # or: uv tool install hongzhao / pipx install hongzhao

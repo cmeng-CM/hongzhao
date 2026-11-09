@@ -47,7 +47,7 @@ is three commands.
 | | Status |
 | --- | --- |
 | macOS / Linux | Supported (Python 3.9+; CI-tested on 3.12/3.13) |
-| Windows native | Not supported — `init` fails fast (symlink-based skill linking; revisit in v0.2) |
+| Windows 10+ native | Supported (Python 3.9–3.13; skills link via NTFS junctions, no developer mode needed; except network/synced drives such as OneDrive (junctions unsupported there)) |
 | Python | 3.9+ (CI-tested on 3.12/3.13; single runtime dependency: PyYAML) |
 | Preset clients | Claude Code, Codex CLI, ZCode (more via custom config in v0.1) |
 | Install | `pip` / `uv` / `pipx` |
@@ -115,7 +115,7 @@ and the diagrams in [docs/en/design.md](docs/en/design.md).
 
 - No MCP server, no vector search, no RAG, no auto-extraction, no web UI.
 - No team sharing / multi-machine sync (single-writer by design).
-- No Windows native support in v0.1.
+- Kits on network/synced drives (e.g. OneDrive) are unsupported — junctions cannot be created there.
 - No background daemons — every command is explicit, every write is atomic.
 
 ## Why-not

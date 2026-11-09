@@ -1,0 +1,7 @@
+# W4：防贡献者 Windows 提交混入 CRLF（与 kit 模板同口径）
+* text=auto
+*.py text eol=lf
+*.md text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.toml text eol=lf

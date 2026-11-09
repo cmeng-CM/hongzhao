@@ -15,7 +15,6 @@ from hongzhao import scaffold
 
 def test_default_path_notice_and_creation(tmp_path, monkeypatch, capsys):
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setattr(scaffold, "guard_windows", lambda: None)
     code = scaffold.cmd_init(None, None, False, False)
     assert code == 0
     out = capsys.readouterr().out
@@ -44,7 +43,6 @@ def test_nonempty_refused_and_force_only_fills_missing(tmp_path, monkeypatch):
     kit = tmp_path / "kit"
     kit.mkdir()
     (kit / "unrelated.txt").write_text("x", encoding="utf-8")
-    monkeypatch.setattr(scaffold, "guard_windows", lambda: None)
     assert scaffold.cmd_init(str(kit), None, False, False) == 2  # 非空拒绝
     # --force 也拒绝「非空且无 config」的目录（不是 hongzhao 根）
     assert scaffold.cmd_init(str(kit), None, False, True) == 2
@@ -62,7 +60,6 @@ def test_nonempty_refused_and_force_only_fills_missing(tmp_path, monkeypatch):
 
 def test_client_flag_gated_by_detection(tmp_path, monkeypatch, capsys):
     kit = tmp_path / "kit"
-    monkeypatch.setattr(scaffold, "guard_windows", lambda: None)
     # zcode 检测为已装、claude_code 未装；另给一个非预置名
     monkeypatch.setattr(
         scaffold, "client_detected",
@@ -102,7 +99,6 @@ def test_custom_detection_by_bridge_parent(tmp_path):
 
 def test_example_seed_compiles_green(tmp_path, monkeypatch):
     kit = tmp_path / "kit"
-    monkeypatch.setattr(scaffold, "guard_windows", lambda: None)
     assert scaffold.cmd_init(str(kit), None, True, False) == 0
     code, issues = compile_all(kit)
     assert code == 0, [i.format() for i in issues]
@@ -111,15 +107,12 @@ def test_example_seed_compiles_green(tmp_path, monkeypatch):
     assert "Correction demo" in corrections
 
 
-def test_windows_fail_fast(monkeypatch, tmp_path, capsys):
+def test_windows_platform_inits_normally(monkeypatch, tmp_path):
+    # D-W7（取代 D-31）：win32 不再 fail-fast，init 正常落盘
     import sys as _sys
 
     monkeypatch.setattr(_sys, "platform", "win32")
-    try:
-        scaffold.cmd_init(str(tmp_path / "kit"), None, False, False)
-        raised = False
-    except SystemExit as exc:
-        raised = exc.code == 2
-    assert raised
-    assert "not supported" in capsys.readouterr().err
-    assert not (tmp_path / "kit").exists()  # 不留半安装态
+    kit = tmp_path / "kit"
+    assert scaffold.cmd_init(str(kit), None, False, False) == 0
+    assert (kit / "config.yaml").is_file()
+    assert (kit / ".gitattributes").is_file()  # W4：行尾治理下界随 init 落盘

@@ -14,6 +14,8 @@
   grepped in one line is a note, not a claim.
 - **Containment.** In-tree writes stay under the root; knowledge paths stay
   under `knowledge_root`; symlinks are refused as roots and inside skill sources.
+Skill links are NTFS junctions on Windows: creating one on a network/synced
+drive (e.g. OneDrive) fails with a clear error — such locations are out of scope.
 - **Atomic writes, crash-safe ordering.** Registry before contract; every file
   written via temp + replace; `<root>/.hongzhao.lock` (flock) serializes
   registration across processes.

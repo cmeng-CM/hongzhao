@@ -11,6 +11,7 @@
 """
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -46,7 +47,14 @@ def maybe_auto_commit(root: Path, config: dict[str, Any], index: dict[str, Any])
     # 外层工作区改动，属于越界写入，宁可不做
     probe = _git(root, "rev-parse", "--show-toplevel", check=False)
     toplevel = probe.stdout.strip() if probe.returncode == 0 else ""
-    if toplevel != str(root.resolve()):
+    # F-03：git 输出正斜杠 vs Path.resolve() 反斜杠（Windows）——双侧归一后比较
+    same = False
+    if toplevel:
+        try:
+            same = os.path.samefile(toplevel, root)
+        except OSError:
+            same = os.path.normcase(os.path.realpath(toplevel)) == os.path.normcase(str(root.resolve()))
+    if not same:
         print(
             "warning AUTO_COMMIT_SKIP - memory root is nested inside another git repo "
             f"(toplevel: {toplevel or 'unknown'}); keep the kit as a standalone repo to auto-commit"

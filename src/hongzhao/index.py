@@ -13,7 +13,7 @@ def _ids(value: Any) -> list[str]:
 def _record_entry(record: RawRecord, root: Path) -> dict[str, Any]:
     metadata = record.metadata
     return {
-        "path": str(record.path.relative_to(root)),
+        "path": record.path.relative_to(root).as_posix(),  # W2/D-W8：跨平台同字节（Windows 归一 /，POSIX no-op）
         "kind": metadata.get("kind"),
         "scope": metadata.get("scope"),
         "project_id": metadata.get("project_id"),

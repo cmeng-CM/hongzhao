@@ -42,7 +42,7 @@ Read https://github.com/cmeng-CM/hongzhao/blob/main/docs/INSTALL.md and install 
 | | 状态 |
 | --- | --- |
 | macOS / Linux | 支持（Python 3.9+；CI 实测 3.12/3.13） |
-| Windows 原生 | 不支持——`init` 快速失败（技能挂载依赖软链；v0.2 再议） |
+| Windows 10+ 原生 | 支持（Python 3.9–3.13；技能挂载用目录联接 junction，无需开发者模式；网络盘/OneDrive 同步目录除外（junction 不受支持）） |
 | Python | 3.9+（CI 实测 3.12/3.13；唯一运行时依赖 PyYAML） |
 | 预置客户端 | Claude Code、Codex CLI、ZCode（v0.1 可经自定义配置接入更多） |
 | 安装 | `pip` / `uv` / `pipx` |
@@ -104,7 +104,7 @@ registry/ + 项目契约          ──compile──▶  render/（启动摘要
 
 - 不做 MCP 服务、向量检索、RAG、自动抽取、Web 界面。
 - 不做多人共享 / 多机同步——单写者是有意设计。
-- v0.1 不支持 Windows 原生。
+- 网络盘 / OneDrive 同步目录内的记忆库不受支持（junction 无法在 reparse point 之上创建）。
 - 无后台常驻——每条命令都显式，每次写入都原子。
 
 ## 为什么不用那些方案

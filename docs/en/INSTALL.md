@@ -19,8 +19,9 @@ will run the protocol below and report a pass/fail table.
 
 ## Manual install
 
-Requires macOS or Linux and Python 3.9+ (CI-tested on 3.12/3.13). Windows
-native is unsupported in v0.1 — `init` fails fast rather than pretending.
+Requires macOS, Linux, or Windows 10+, and Python 3.9+ (CI-tested on 3.12/3.13).
+On Windows, skills link via NTFS junctions — no admin or developer mode needed;
+except network/synced drives such as OneDrive (junctions unsupported there).
 
 ```bash
 pip install hongzhao          # or: uv tool install hongzhao / pipx install hongzhao
@@ -68,7 +69,7 @@ memory ledger for agents). Execute this protocol exactly. **Ground rules:**
 
 ```bash
 # 0. Prerequisites (report results before continuing)
-python3 --version            # need >= 3.9; Windows native → stop (unsupported in v0.1)
+python3 --version            # need >= 3.9; Windows 10+ supported (network/synced drives excepted)
 
 # 1. Install (pick the first channel that works; report which one you used)
 pipx install hongzhao        # fallback: python3 -m pip install --user hongzhao

@@ -10,11 +10,9 @@ C=参数路径契约。写入不变式 – 在判定前统一校验，失败零�
 from __future__ import annotations
 
 import datetime as dt
-import fcntl
 import os
 import re
 import sys
-import time
 import uuid
 from contextlib import contextmanager
 from pathlib import Path
@@ -23,6 +21,7 @@ from typing import Any
 import yaml
 
 from hongzhao.core import load_config, load_registry, resolve_knowledge_root, write_atomic
+from hongzhao.locking import exclusive_lock
 from hongzhao import fields as _fields
 
 PROJECT_VIEW = "project-view.md"
@@ -63,28 +62,9 @@ def _crash(point: str) -> None:
 
 @contextmanager
 def registry_lock(root: Path, timeout: float = 10.0):
-    lock_path = root / ".hongzhao.lock"
-    try:
-        fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
-    except OSError as exc:
-        print(f"[LOCK_UNWRITABLE] cannot create {lock_path}: {exc}", file=sys.stderr)
-        raise SystemExit(2)
-    deadline = time.monotonic() + timeout
-    while True:
-        try:
-            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            break
-        except BlockingIOError:
-            if time.monotonic() >= deadline:
-                os.close(fd)
-                print("[REGISTRY_BUSY] another hongzhao process holds the registry lock", file=sys.stderr)
-                raise SystemExit(1)
-            time.sleep(0.05)
-    try:
+    # W1：锁实现移交 locking.exclusive_lock（平台分支 + 完整失败语义），本包装保持调用点签名不变
+    with exclusive_lock(root / ".hongzhao.lock", timeout):
         yield
-    finally:
-        fcntl.flock(fd, fcntl.LOCK_UN)
-        os.close(fd)  # 锁文件持久存在（避免 unlink 竞态），由 .gitignore 忽略
 
 
 # ---------------------------------------------------------------------------

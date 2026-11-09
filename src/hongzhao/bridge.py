@@ -20,6 +20,7 @@ from typing import Any
 from hongzhao import __version__
 from hongzhao.core import load_config, load_contracts, load_registry, write_atomic
 from hongzhao.scaffold import PRESET_CLIENTS, detect_custom, detect_preset
+from hongzhao import skilllink
 
 MANAGED_START = "<!-- hongzhao:start -->"
 MANAGED_END = "<!-- hongzhao:end -->"
@@ -41,6 +42,22 @@ CONTRACT_HINTS = {
     "CONTRACT_KEY_DUPLICATE": "fix: hongzhao project-unregister <key>, then hongzhao project-register <project-root>",
     "CONTRACT_KEY_MISMATCH": "fix: rename the directory to match project_key, or re-register with a new key",
 }
+
+
+def _dominant_newline(raw: bytes) -> str:
+    """主导行尾：CRLF 计数多于纯 LF 计数则 CRLF，否则 LF。"""
+    crlf = raw.count(b"\r\n")
+    lf = raw.count(b"\n") - crlf
+    return "\r\n" if crlf > lf else "\n"
+
+
+def _write_preserving_eol(path: Path, content: str) -> None:
+    """D-W10：用户客户端指令文件按原主导行尾写回（探测于写入前的磁盘原文件），不强制 LF。"""
+    try:
+        newline = _dominant_newline(path.read_bytes())
+    except OSError:
+        newline = "\n"
+    write_atomic(path, content, newline=newline)
 
 
 def _client_path(settings: dict[str, Any], key: str) -> Path:
@@ -86,7 +103,7 @@ def install_bridge(path: Path, block: str) -> None:
         content = existing[: matches[0].start()] + block + existing[matches[0].end():]
     else:
         content = (existing.rstrip() + "\n\n" if existing.strip() else "") + block + "\n"
-    write_atomic(path, content)
+    _write_preserving_eol(path, content)
 
 
 def install_bridge_checked(root: Path, client: str, settings: dict[str, Any], *, explicit: bool) -> tuple[bool, int]:
@@ -175,22 +192,22 @@ def cmd_migrate_bridge(root: Path) -> int:
                     text = pattern.sub(block, text)
                 else:
                     text = (text.rstrip() + "\n\n" if text.strip() else "") + block + "\n"
-                write_atomic(path, text)
+                _write_preserving_eol(path, text)
                 print(f"migrate-bridge: {name} legacy block replaced")
             elif old_count and new_count:
                 text = _remove_generation(text, LEGACY_START, LEGACY_END)
-                write_atomic(path, text)
+                _write_preserving_eol(path, text)
                 print(f"migrate-bridge: {name} legacy block removed, new block kept")
             else:  # 只有新块：重新生成（刷新）
                 block = bridge_block(root, name, settings | {"bootstrap": config["paths"]["bootstrap"]})
                 pattern = re.compile(re.escape(MANAGED_START) + r".*?" + re.escape(MANAGED_END), re.S)
-                write_atomic(path, pattern.sub(block, text))
+                _write_preserving_eol(path, pattern.sub(block, text))
                 print(f"migrate-bridge: {name} new block refreshed")
         else:
             # disabled：旧块仍清理；既有新块保留不刷新
             if old_count:
                 text = _remove_generation(text, LEGACY_START, LEGACY_END)
-                write_atomic(path, text)
+                _write_preserving_eol(path, text)
                 print(f"migrate-bridge: {name} (disabled) legacy block removed")
             if new_count:
                 print(f"migrate-bridge: {name} (disabled) new block kept untouched")
@@ -278,24 +295,26 @@ def _link_skills(root: Path, config: dict[str, Any], client: str, force: bool) -
     skills_root = _client_path(settings, "skills_root")
     skills_root.mkdir(parents=True, exist_ok=True)
     code = 0
+    skills_dir = (root / "skills").resolve()
     for skill in config.get("skills", []):
         source = (root / "skills" / skill).resolve()
         target = skills_root / skill
-        if target.exists() and not target.is_symlink():
-            if not force:
-                print(f"warning [SKILL_CONFLICT] {target}: exists and is not a symlink; skipped")
-                code = 1
-                continue
-        if target.is_symlink():
-            resolved = target.resolve()
-            inside = str(resolved).startswith(str((root / "skills").resolve()) + os.sep)
+        if skilllink.is_link(target):
+            # 围栏判定属 bridge 职责（design W3）；--force 授权下可删围栏外/断链链接（既有语义）
+            inside = str(skilllink.link_target(target)).startswith(str(skills_dir) + os.sep)
             if not inside and not force:
                 print(f"warning [SKILL_CONFLICT] {target}: foreign symlink; skipped")
                 code = 1
                 continue
-            target.unlink()
-        if not target.exists():
-            target.symlink_to(source, target_is_directory=True)  # 建链失败按自然异常退出（ 关闭）
+            skilllink.replace_existing(target, source)  # remove + create（含断链重建）
+        elif os.path.lexists(target):
+            # 真实目录/文件：非 force 报冲突跳过；force 也不删真实目录、不建链（现状语义保持）
+            if not force:
+                print(f"warning [SKILL_CONFLICT] {target}: exists and is not a symlink; skipped")
+                code = 1
+                continue
+        else:
+            skilllink.create(target, source)  # 建链失败按自然异常退出（PD-05 关闭）
         print(f"skills-install: {client}/{skill}")
     return code
 
@@ -349,8 +368,8 @@ def _iter_symlinks_in_root_skills(root: Path) -> list[Path]:
             continue
         for skill in config.get("skills", []):
             link = skills_root / skill
-            if link.is_symlink():
-                resolved = link.resolve()
+            if skilllink.is_link(link):
+                resolved = skilllink.link_target(link)
                 if str(resolved).startswith(str((root / "skills").resolve()) + os.sep):
                     result.append(link)
     return result
@@ -380,10 +399,10 @@ def cmd_uninstall(root: Path, yes: bool) -> int:
         text = path.read_text(encoding="utf-8")
         text = _remove_generation(text, MANAGED_START, MANAGED_END)
         text = _remove_generation(text, LEGACY_START, LEGACY_END)
-        write_atomic(path, text.rstrip() + "\n")
+        _write_preserving_eol(path, text.rstrip() + "\n")
         print(f"uninstall: block removed from {path}")
     for link in links:
-        link.unlink()
+        skilllink.remove(link)
         print(f"uninstall: symlink removed {link}")
     return 0
 
@@ -473,9 +492,9 @@ def cmd_doctor(root: Path) -> int:
         for skill in config.get("skills", []):
             link = _client_path(settings, "skills_root") / skill
             expected = (root / "skills" / skill).resolve()
-            if not link.is_symlink():
+            if not skilllink.is_link(link):
                 add("warning", "SKILL_MISSING", client, str(link), f"skill symlink missing: {skill}")
-            elif link.resolve() != expected:
+            elif skilllink.link_target(link) != expected:
                 add("warning", "SKILL_TARGET", client, str(link), f"skill symlink target wrong: {skill}")
 
     for relative in (

@@ -16,7 +16,7 @@ Read https://github.com/cmeng-CM/hongzhao/blob/main/docs/INSTALL.md and install 
 
 ## 手动安装
 
-要求 macOS 或 Linux，以及 Python 3.9+（CI 在 3.12/3.13 上测试）。v0.1 不支持原生 Windows——`init` 会快速失败，而不是假装成功。
+要求 macOS、Linux 或 Windows 10+，以及 Python 3.9+（CI 在 3.12/3.13 上测试）。Windows 技能挂载使用目录联接（junction），无需管理员或开发者模式；网络盘/OneDrive 同步目录除外（junction 不受支持）。
 
 ```bash
 pip install hongzhao          # 或者：uv tool install hongzhao / pipx install hongzhao
@@ -43,7 +43,7 @@ hongzhao --root ~/hongzhao doctor               # 预期：doctor: ok，退出�
 
 ```bash
 # 0. 前置条件（继续之前先报告结果）
-python3 --version            # 需要 >= 3.9；原生 Windows → 停止（v0.1 不支持）
+python3 --version            # 需要 >= 3.9；Windows 10+ 支持（网络盘/OneDrive 目录除外）
 
 # 1. 安装（选用第一个可用渠道；报告你用了哪个）
 pipx install hongzhao        # 备选：python3 -m pip install --user hongzhao

@@ -11,6 +11,7 @@ import os
 import re
 import sys
 import tempfile
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
@@ -127,15 +128,32 @@ def dump_frontmatter(metadata: dict[str, Any], body: str) -> str:
     return f"---\n{front}\n---{body}"
 
 
-def write_atomic(path: Path, content: str) -> None:
+def _replace_with_retry(tmp_name: str, path: Path, attempts: int = 5, delay: float = 0.2) -> None:
+    """Windows：目标被杀软/索引器瞬时占用时有界重试；POSIX 保持立即失败（D-W11）。"""
+    if os.name != "nt":
+        os.replace(tmp_name, path)
+        return
+    for attempt in range(attempts):
+        try:
+            os.replace(tmp_name, path)
+            return
+        except PermissionError:
+            if attempt == attempts - 1:
+                raise
+            time.sleep(delay)
+
+
+def write_atomic(path: Path, content: str, newline: str = "") -> None:
+    # W2：默认 newline="" 固定 LF（POSIX no-op，Windows 根治 CRLF）；
+    # 用户文件路径可传 newline（bridge._write_preserving_eol，D-W10）
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
     try:
-        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+        with os.fdopen(fd, "w", encoding="utf-8", newline=newline) as handle:
             handle.write(content)
             handle.flush()
             os.fsync(handle.fileno())
-        os.replace(tmp_name, path)
+        _replace_with_retry(tmp_name, path)
     finally:
         if os.path.exists(tmp_name):
             os.unlink(tmp_name)

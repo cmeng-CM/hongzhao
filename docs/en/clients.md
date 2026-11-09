@@ -4,8 +4,9 @@
 
 A **client** is an agent host with an instruction file (Claude Code's
 `CLAUDE.md`, Codex CLI's `AGENTS.md`, ZCode's `AGENTS.md`, ...). hongzhao can
-inject a managed **bootstrap block** into that file and symlink packaged skills
-into the client's skills directory.
+inject a managed **bootstrap block** into that file and link packaged skills
+into the client's skills directory (symlinks on macOS/Linux, junctions on
+Windows 10+ — neither needs elevated privileges).
 
 ## Preset clients (v0.1)
 
@@ -37,18 +38,18 @@ The block is delimited by `hongzhao:start` / `hongzhao:end` markers:
 - `uninstall` (dry-run by default) removes the block. Everything outside the
   markers survives byte-identical.
 - `doctor` verifies each enabled client: block content equals the current
-  bootstrap, and skills symlinks resolve into `<root>/skills`.
+  bootstrap, and skill links (symlink/junction) resolve into `<root>/skills`.
 
 ## Skills
 
 `skills-install all` (per-client: `skills-install claude_code`) copies packaged
-skills/templates into `<root>/skills/` and symlinks
+skills/templates into `<root>/skills/` and links
 `<client.skills_root>/<skill>` → `<root>/skills/<skill>` — one source of truth,
 upgrade once, every client updates. Protections:
 
-- a symlink pointing elsewhere is `SKILL_CONFLICT` (override with `--force`),
-- foreign (non-symlink) directories are never touched,
-- `uninstall` removes only symlinks resolving inside `<root>/skills`.
+- a link pointing elsewhere is `SKILL_CONFLICT` (override with `--force`),
+- foreign (non-link) directories are never touched,
+- `uninstall` removes only links resolving inside `<root>/skills` (real directories are never deleted).
 
 A manifest (`.hongzhao-manifest.json`) pins content hashes so upgrades are
 explicit: `skills-install --manifest-only` records current hashes without
@@ -76,11 +77,11 @@ Each degraded/warning line names the affected client and file; the fixing comman
 [security-and-troubleshooting.md](security-and-troubleshooting.md) for the full
 issue-code table.
 
-## Shared skills directory (one symlink set, many clients)
+## Shared skills directory (one link set, many clients)
 
 `skills_root` is per client. On machines where several agents read one shared
 skills directory (e.g. `~/.agents/skills`), point every non-Claude client's
-`skills_root` at that shared dir — one `skills-install` symlink set then covers
+`skills_root` at that shared dir — one `skills-install` link set then covers
 all of them, and the same skill is never installed twice:
 
 ```yaml

@@ -34,8 +34,26 @@ jobs:
           path: dist/
           if-no-files-found: error
 
+  smoke-windows:
+    # W4：Windows 冒烟档（E1 摘要）——tag 树在 Windows 上可安装、可初始化、可编译
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install from checkout
+        run: pip install .
+      - name: Green demo smoke
+        run: |
+          hongzhao --version
+          hongzhao init $env:RUNNER_TEMP\demo --example
+          hongzhao --root $env:RUNNER_TEMP\demo compile
+          hongzhao --root $env:RUNNER_TEMP\demo validate
+          hongzhao --root $env:RUNNER_TEMP\demo doctor
+
   publish:
-    needs: build
+    needs: [build, smoke-windows]
     runs-on: ubuntu-latest
     environment: release
     permissions:

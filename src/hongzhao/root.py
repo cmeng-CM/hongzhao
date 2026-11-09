@@ -27,6 +27,8 @@ PRESET_BRIDGE_PATHS = (
     "~/.zcode/AGENTS.md",
 )
 MANAGED_MARKERS = ("<!-- hongzhao:start -->", "<!-- agent-memory:start -->")
+# W5：对应结束标记（与 bridge.py MANAGED_END/LEGACY_END 对齐）——反查仅在托管块区间内匹配
+MANAGED_END_MARKERS = ("<!-- hongzhao:end -->", "<!-- agent-memory:end -->")
 CWD_MAX_LEVELS = 5
 
 
@@ -92,17 +94,39 @@ def _from_cwd(start: Path) -> tuple[Path, str] | None:
     return None
 
 
+def _managed_block_interval(text: str) -> str | None:
+    """首个完整托管块区间（起始标记到对应结束标记；W5）。无完整块返回 None。"""
+    for start_marker, end_marker in zip(MANAGED_MARKERS, MANAGED_END_MARKERS):
+        start = text.find(start_marker)
+        if start == -1:
+            continue
+        end = text.find(end_marker, start)
+        if end == -1:
+            continue
+        return text[start : end + len(end_marker)]
+    return None
+
+
 def _managed_root_from_bridge_file(path: Path) -> Path | None:
-    """托管块反查：import 模式校验 paths.bootstrap 一致；inline 模式取快照 memory_root。"""
+    """托管块反查：import 模式校验 paths.bootstrap 一致；inline 模式取快照 memory_root。
+
+    W5（D-W9）：import 模式的 @ 路径只在托管块区间内匹配，且允许含空格（去首尾空白）；
+    块外用户自有 @ 行不再参与（有意收紧，依据=托管块语义）。
+    """
     try:
         text = path.read_text(encoding="utf-8")
     except OSError:
         return None
     if not any(marker in text for marker in MANAGED_MARKERS):
         return None
-    imported = re.search(r"^@(\S+)$", text, re.M)
+    block = _managed_block_interval(text)
+    imported = None
+    if block:
+        match = re.search(r"^@(.+)$", block, re.M)
+        if match:
+            imported = match.group(1).strip()  # 路径允许含空格（W5/D-W9）
     if imported:
-        bootstrap = Path(os.path.expanduser(imported.group(1)))
+        bootstrap = Path(os.path.expanduser(imported))
         for candidate in bootstrap.parents:
             config_path = candidate / "config.yaml"
             if config_path.is_file():

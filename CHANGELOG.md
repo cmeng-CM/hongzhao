@@ -6,6 +6,31 @@ from `0.1.0`).
 
 ## [Unreleased]
 
+### Added
+
+- Native Windows 10+ support (design `.delivery/2026-11-09-Windows-支持/`, two
+  independent design reviews). Cross-platform lock (`msvcrt` on Windows),
+  skill links via NTFS junctions (no admin/developer mode; network/synced
+  drives such as OneDrive remain out of scope), green demo verified on
+  windows CI (3.9–3.13), release smoke gains a Windows lane.
+
+### Changed
+
+- All engine and scaffold writes are LF-locked (`newline=""`): no-op on
+  POSIX, ends CRLF output on Windows; compiled products are now byte-identical
+  across platforms except environment fields (`memory_root`, `generated_at`).
+- `write_atomic` gains a `newline` parameter; client instruction files keep
+  their dominant line ending instead of being silently rewritten to LF
+  (install / migrate-bridge / uninstall paths).
+- `memory-index.yaml` record paths are always POSIX-style (`/` separators).
+- Bridge reverse lookup (root discovery source 4) matches `@` paths only
+  inside the managed block and now supports paths containing spaces.
+- `os.replace` retries on transient `PermissionError` on Windows only;
+  auto-commit compares the git toplevel with the root via `samefile`
+  (works with mixed separators/case on Windows).
+- Kits created by `init` now ship a `.gitattributes` with an `eol=lf` floor
+  so Windows checkouts never trip the byte-compare in `skills-install`.
+
 ## [0.2.0] — 2026-11-09
 
 ### Added

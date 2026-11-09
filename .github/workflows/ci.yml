@@ -7,10 +7,18 @@ on:
 
 jobs:
   ci:
-    runs-on: ubuntu-latest
+    # W4（Windows 支持）：三 OS 矩阵——Windows 必含 3.9（junction 识别低版本路径）与最新；mac 保底一档
     strategy:
       matrix:
-        python-version: ["3.12", "3.13"]
+        include:
+          - { os: ubuntu-latest, python-version: "3.9" }
+          - { os: ubuntu-latest, python-version: "3.12" }
+          - { os: ubuntu-latest, python-version: "3.13" }
+          - { os: windows-latest, python-version: "3.9" }
+          - { os: windows-latest, python-version: "3.12" }
+          - { os: windows-latest, python-version: "3.13" }
+          - { os: macos-latest, python-version: "3.13" }
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
