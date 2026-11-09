@@ -6,6 +6,8 @@ from `0.1.0`).
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-11-09
+
 ### Added
 
 - `git.auto_commit` config section: after a successful `compile`, hongzhao
