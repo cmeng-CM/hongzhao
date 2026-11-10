@@ -8,13 +8,18 @@ inject a managed **bootstrap block** into that file and link packaged skills
 into the client's skills directory (symlinks on macOS/Linux, junctions on
 Windows 10+ — neither needs elevated privileges).
 
-## Preset clients (v0.1)
+## Preset clients
 
 | Client | Instruction file | Detected at |
 | --- | --- | --- |
 | `claude_code` | `~/.claude/CLAUDE.md` | `~/.claude` |
 | `codex` | `~/.codex/AGENTS.md` | `~/.codex` |
 | `zcode` | `~/.zcode/AGENTS.md` | `~/.zcode` |
+| `pi` | `~/.pi/agent/AGENTS.md` | `~/.pi` |
+| `dsh` (DeepSeek Harness) | `~/.dsh/AGENTS.md` | `~/.dsh` |
+| `opencode` | `~/.config/opencode/AGENTS.md` | `~/.config/opencode` |
+
+Skills roots: `claude_code`/`codex`/`zcode` use their own directories; **pi natively reads `~/.agents/skills`** (the cross-agent shared dir); dsh follows the shared dir; opencode uses its native `~/.config/opencode/skills`.
 
 `hongzhao init --client claude_code --client codex` (repeat the flag per client) detects which of the named clients
 exist and enables exactly those (init never auto-installs; it only

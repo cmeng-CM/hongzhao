@@ -48,6 +48,35 @@ PRESET_CLIENTS: dict[str, dict[str, Any]] = {
         "skills_root": "~/.zcode/skills",
         "mode": "inline",
     },
+    "pi": {
+        # pi（earendil-works/pi-coding-agent）：全局指令 ~/.pi/agent/AGENTS.md；
+        # 技能原生读 ~/.agents/skills（pi 自身 CHANGELOG 明载），与共享位约定天然一致
+        "executable": "pi",
+        "config_dir": "~/.pi",
+        "version_cmd": ["pi", "--version"],
+        "bridge_path": "~/.pi/agent/AGENTS.md",
+        "skills_root": "~/.agents/skills",
+        "mode": "inline",
+    },
+    "dsh": {
+        # dsh（DeepSeek Harness）：指令文件与配置目录都在 ~/.dsh
+        "executable": "dsh",
+        "config_dir": "~/.dsh",
+        "version_cmd": ["dsh", "--version"],
+        "bridge_path": "~/.dsh/AGENTS.md",
+        "skills_root": "~/.agents/skills",
+        "mode": "inline",
+    },
+    "opencode": {
+        # opencode（sst/opencode）：全局指令 ~/.config/opencode/AGENTS.md；
+        # 技能原生目录 ~/.config/opencode/skills（非共享位，与 pi/dsh 不同）
+        "executable": "opencode",
+        "config_dir": "~/.config/opencode",
+        "version_cmd": ["opencode", "--version"],
+        "bridge_path": "~/.config/opencode/AGENTS.md",
+        "skills_root": "~/.config/opencode/skills",
+        "mode": "inline",
+    },
 }
 SKILL_NAMES = ["memory-write", "memory-compile", "memory-project-context", "work-closeout"]
 
@@ -120,7 +149,7 @@ def client_detected(name: str, settings: dict[str, Any]) -> bool:
 
 
 def build_config(enabled: dict[str, bool]) -> dict[str, Any]:
-    # init 只创建预置客户端条目（v0.1 三个）；自定义客户端由用户随后编辑 config 添加（ 检测在 ）
+    # init 只创建预置客户端条目（六个）；自定义客户端由用户随后编辑 config 添加（ 检测在 ）
     clients: dict[str, dict[str, Any]] = {}
     for name, preset in PRESET_CLIENTS.items():
         clients[name] = {

@@ -4,13 +4,18 @@
 
 **客户端**（client）是带有指令文件（instruction file）的智能体宿主，例如 Claude Code 的 `CLAUDE.md`、Codex CLI 的 `AGENTS.md`、ZCode 的 `AGENTS.md` 等。hongzhao 可以向该文件注入一个托管的**启动摘要块**（bootstrap block），并把打包技能以目录链接方式接入客户端的技能目录（skills directory）——macOS/Linux 为符号链接（symlink），Windows 10+ 为目录联接（junction），均无需特权。
 
-## 预置客户端（v0.1）
+## 预置客户端
 
 | 客户端 | 指令文件 | 检测位置 |
 | --- | --- | --- |
 | `claude_code` | `~/.claude/CLAUDE.md` | `~/.claude` |
 | `codex` | `~/.codex/AGENTS.md` | `~/.codex` |
 | `zcode` | `~/.zcode/AGENTS.md` | `~/.zcode` |
+| `pi` | `~/.pi/agent/AGENTS.md` | `~/.pi` |
+| `dsh` | `~/.dsh/AGENTS.md` | `~/.dsh` |
+| `opencode` | `~/.config/opencode/AGENTS.md` | `~/.config/opencode` |
+
+技能目录约定：`claude_code`/`codex`/`zcode` 用各自专属目录；**pi 原生读取 `~/.agents/skills`**（跨客户端共享位）；dsh 沿用共享位；opencode 用原生目录 `~/.config/opencode/skills`。
 
 `hongzhao init --client claude_code --client codex`（每个客户端重复一次该参数）会检测列出的客户端中哪些实际存在，并只启用存在的那些（init 绝不自动安装；它只负责配置）。自定义客户端（custom client）只是普通的配置条目——你在 `config.yaml` 中自行设置 `bridge_path` 和 `skills_root`。
 

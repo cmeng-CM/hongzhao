@@ -34,9 +34,9 @@ def test_default_path_notice_and_creation(tmp_path, monkeypatch, capsys):
             continue
         content = (kit / relative).read_bytes()
         assert hashlib.sha256(content).hexdigest() == digest
-    # config：3 预置全 enabled:false（不带 --client 不启用）
+    # config：6 预置全 enabled:false（不带 --client 不启用）
     config = load_config(kit)
-    assert set(config["clients"]) == {"claude_code", "codex", "zcode"}
+    assert set(config["clients"]) == {"claude_code", "codex", "dsh", "opencode", "pi", "zcode"}
     assert all(not c["enabled"] for c in config["clients"].values())
 
 
@@ -66,15 +66,17 @@ def test_client_flag_gated_by_detection(tmp_path, monkeypatch, capsys):
         scaffold, "client_detected",
         lambda name, settings: name == "zcode",
     )
-    code = scaffold.cmd_init(str(kit), ["zcode", "claude_code", "dsh"], False, False)
+    code = scaffold.cmd_init(str(kit), ["zcode", "claude_code", "dsh", "cursor"], False, False)
     assert code == 0
     config = load_config(kit)
     assert config["clients"]["zcode"]["enabled"] is True
     assert config["clients"]["claude_code"]["enabled"] is False
+    assert config["clients"]["dsh"]["enabled"] is False  # 预置但未检测 → 条目在、enabled=false（六预设全量入 config）
     out = capsys.readouterr().out
     assert "not detected" in out
     assert "not a preset client" in out  # 非预置名给指引，不写入
-    assert "dsh" not in config["clients"]
+    assert "cursor" not in config["clients"]
+    assert sorted(config["clients"]) == ["claude_code", "codex", "dsh", "opencode", "pi", "zcode"]
 
 
 def test_preset_detection_two_of_three(tmp_path, monkeypatch):
@@ -117,3 +119,20 @@ def test_windows_platform_inits_normally(monkeypatch, tmp_path):
     assert scaffold.cmd_init(str(kit), None, False, False) == 0
     assert (kit / "config.yaml").is_file()
     assert (kit / ".gitattributes").is_file()  # W4：行尾治理下界随 init 落盘
+
+
+def test_new_presets_shape_and_detection_inputs():
+    # pi/dsh/opencode 预设：五键齐备、bridge/skills 路径与各自约定一致（见 scaffold 注释）
+    expected = {
+        "pi": ("~/.pi/agent/AGENTS.md", "~/.agents/skills"),
+        "dsh": ("~/.dsh/AGENTS.md", "~/.agents/skills"),
+        "opencode": ("~/.config/opencode/AGENTS.md", "~/.config/opencode/skills"),
+    }
+    for name, (bridge, skills) in expected.items():
+        spec = scaffold.PRESET_CLIENTS[name]
+        assert set(spec) == {"executable", "config_dir", "version_cmd", "bridge_path", "skills_root", "mode"}
+        assert spec["bridge_path"] == bridge
+        assert spec["skills_root"] == skills
+        assert spec["mode"] == "inline"
+        assert spec["executable"] == name and spec["config_dir"].startswith("~")
+        assert isinstance(spec["version_cmd"], list) and name in spec["version_cmd"]

@@ -6,13 +6,13 @@
 
 ## 让 AI 智能体替你装（一句话）
 
-把这句话发给你的编程智能体（Claude Code、Codex CLI、ZCode……）：
+把这句话发给你的编程智能体（Claude Code、Codex CLI、ZCode、pi、dsh、OpenCode……）：
 
 ```text
 Read https://github.com/cmeng-CM/hongzhao/blob/main/docs/INSTALL.md and install hongzhao for me. My client is claude_code.
 ```
 
-把 `claude_code` 换成你的客户端（`codex`、`zcode`，可多个）。智能体会执行下面的协议，并报告一张通过/失败表。
+把 `claude_code` 换成你的客户端（`codex`、`zcode`、`pi`、`dsh`、`opencode`，可多个）。智能体会执行下面的协议，并报告一张通过/失败表。
 
 ## 手动安装
 
@@ -56,6 +56,9 @@ hongzhao --version
 command -v claude || true; [ -d ~/.claude ] && echo "claude_code signals"
 command -v codex  || true; [ -d ~/.codex ]  && echo "codex signals"
 command -v zcode  || true; [ -d ~/.zcode ]  && echo "zcode signals"
+command -v pi     || true; [ -d ~/.pi ]     && echo "pi signals"
+command -v dsh    || true; [ -d ~/.dsh ]    && echo "dsh signals"
+command -v opencode || true; [ -d ~/.config/opencode ] && echo "opencode signals"
 
 # 3. 必需——询问用户（用原生对话框；没有对话框工具就用普通聊天提问；
 #    等待回答，绝不替用户作答）：

@@ -32,7 +32,7 @@ context until you (or a rule you wrote) say so.
 
 ## Install with your AI agent (one line)
 
-Tell your coding agent (Claude Code, Codex CLI, ZCode, ...):
+Tell your coding agent (Claude Code, Codex CLI, ZCode, pi, dsh, OpenCode, ...):
 
 ```text
 Read https://github.com/cmeng-CM/hongzhao/blob/main/docs/en/INSTALL.md and install hongzhao for me. My client is claude_code.
@@ -49,7 +49,7 @@ is three commands.
 | macOS / Linux | Supported (Python 3.9+; CI-tested on 3.12/3.13) |
 | Windows 10+ native | Supported (Python 3.9–3.13; skills link via NTFS junctions, no developer mode needed; except network/synced drives such as OneDrive (junctions unsupported there)) |
 | Python | 3.9+ (CI-tested on 3.12/3.13; single runtime dependency: PyYAML) |
-| Preset clients | Claude Code, Codex CLI, ZCode (more via custom config in v0.1) |
+| Preset clients | Claude Code, Codex CLI, ZCode, pi, dsh (DeepSeek Harness), OpenCode (more via custom config) |
 | Install | `pip` / `uv` / `pipx` |
 
 ## With / without

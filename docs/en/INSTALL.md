@@ -8,13 +8,13 @@ when a user asks you to install hongzhao.
 
 ## Install with your AI agent (one line)
 
-Tell your coding agent (Claude Code, Codex CLI, ZCode, ...):
+Tell your coding agent (Claude Code, Codex CLI, ZCode, pi, dsh, OpenCode, ...):
 
 ```text
 Read https://github.com/cmeng-CM/hongzhao/blob/main/docs/en/INSTALL.md and install hongzhao for me. My client is claude_code.
 ```
 
-Replace `claude_code` with your client (`codex`, `zcode`, or several). The agent
+Replace `claude_code` with your client (`codex`, `zcode`, `pi`, `dsh`, `opencode`, or several). The agent
 will run the protocol below and report a pass/fail table.
 
 ## Manual install
@@ -82,6 +82,9 @@ hongzhao --version
 command -v claude || true; [ -d ~/.claude ] && echo "claude_code signals"
 command -v codex  || true; [ -d ~/.codex ]  && echo "codex signals"
 command -v zcode  || true; [ -d ~/.zcode ]  && echo "zcode signals"
+command -v pi     || true; [ -d ~/.pi ]     && echo "pi signals"
+command -v dsh    || true; [ -d ~/.dsh ]    && echo "dsh signals"
+command -v opencode || true; [ -d ~/.config/opencode ] && echo "opencode signals"
 
 # 3. REQUIRED — ask the user (native dialog; plain chat question if no dialog
 #    tool; wait for the answer, never answer for them):

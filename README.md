@@ -29,7 +29,7 @@
 
 ## 让智能体替你装（一句话）
 
-把这句话发给你的编程智能体（Claude Code、Codex CLI、ZCode……）：
+把这句话发给你的编程智能体（Claude Code、Codex CLI、ZCode、pi、dsh、OpenCode……）：
 
 ```text
 Read https://github.com/cmeng-CM/hongzhao/blob/main/docs/INSTALL.md and install hongzhao for me. My client is claude_code.
@@ -44,7 +44,7 @@ Read https://github.com/cmeng-CM/hongzhao/blob/main/docs/INSTALL.md and install 
 | macOS / Linux | 支持（Python 3.9+；CI 实测 3.12/3.13） |
 | Windows 10+ 原生 | 支持（Python 3.9–3.13；技能挂载用目录联接 junction，无需开发者模式；网络盘/OneDrive 同步目录除外（junction 不受支持）） |
 | Python | 3.9+（CI 实测 3.12/3.13；唯一运行时依赖 PyYAML） |
-| 预置客户端 | Claude Code、Codex CLI、ZCode（v0.1 可经自定义配置接入更多） |
+| 预置客户端 | Claude Code、Codex CLI、ZCode、pi、dsh（DeepSeek Harness）、OpenCode（自定义配置仍可接更多） |
 | 安装 | `pip` / `uv` / `pipx` |
 
 ## 有 / 没有 hongzhao

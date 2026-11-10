@@ -6,6 +6,16 @@ from `0.1.0`).
 
 ## [Unreleased]
 
+### Added
+
+- Three more preset clients: `pi` (bridge at `~/.pi/agent/AGENTS.md`, skills
+  via the shared `~/.agents/skills` it natively reads), `dsh` / DeepSeek
+  Harness (`~/.dsh/AGENTS.md`), and `opencode`
+  (`~/.config/opencode/AGENTS.md`, native skills dir
+  `~/.config/opencode/skills`). `init --client` recognizes all six presets;
+  the agent install protocol lists them. Existing kits add them by editing
+  config (or via a fresh init).
+
 ## [0.3.0] — 2026-11-09
 
 ### Added
