@@ -7,7 +7,7 @@
 - 分工不可越界：引擎（`hongzhao collect`）管解析、增量计算、格式校验、落盘与条件删源（纯确定性）；本 skill 只承担语义层——判重、判重要、定 scope/project/topic/summary、写两个证据字段。
 - 重要性终审=人：CHECKPOINT 未获确认不得进入 apply；空洞或牵强的证据字段（why 写不出具体价值）应主动建议 discard（设计 D-C06）。
 - 只经引擎写 raw；不编译（采集后提醒用户另行 memory-compile）、不改 compiled、不动已 done 的 raw、不删 unparsable 文件、不改 ZCode 客户端本体。
-- `project_id` 只能引用 hongzhao 注册表现存项目；池目录与项目的映射按池名语境判断（如 `agw`→对应公司项目、`gourd`→壶中天），判不准时在 CHECKPOINT 呈报由人定。
+- `project_id` 只能引用 hongzhao 注册表现存项目；池目录与项目的映射按池名语境判断（池名常对应工作目录名，可对照注册表与项目契约），判不准时在 CHECKPOINT 呈报由人定。
 
 ## 命令与根目录
 
@@ -15,7 +15,7 @@
 - 按决策落盘：`hongzhao collect --apply <decision-file>`（写 raw → 记账 → hash 条件删源 → auto-commit）
 - 落盘预演：`hongzhao collect --apply <file> --dry-run`（全量校验、打印计划、零写入）
 - 记忆根判定与诊断：`hongzhao root`；账本位于 `<root>/collect/<client>/ledger.yaml`。
-- manifest 与 decision file 是临时产物：放 `~/workspace/temp/<yyyyMMdd>/`，不入记忆根。
+- manifest 与 decision file 是临时产物：放会话临时目录（不入记忆根、不入被采集的客户端目录），会话结束可清理。
 
 ## 四步协议
 
