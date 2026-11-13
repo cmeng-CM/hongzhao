@@ -105,7 +105,8 @@ def make_source(tmp_path: Path) -> Path:
         {"fact-a.md": FACT_A, "fact-b.md": FACT_B},
         memory_md="- [事实A](fact-a.md) — 钩子A\n- [悬空](gone.md) — 不存在的文件\n",
     )
-    (source / "empty-pool-0000000000000fff").mkdir()
+    (source / "empty-pool-0000000000000fff" / "memory").mkdir(parents=True)  # 空壳池（带 memory/ 无文件）
+    (source / "not-a-pool-just-a-dir").mkdir()  # v5：无 memory/ 的目录不是池
     return source
 
 
@@ -503,6 +504,36 @@ def test_cli_collect_stdout_yaml_and_out(tmp_path, capsys):
                      "--out", str(out_file)]) == 0
     capsys.readouterr()
     assert yaml.safe_load(out_file.read_text(encoding="utf-8"))["summary"]["pending"] == 2
+
+
+def test_client_binding_and_pool_discovery(tmp_path, capsys):
+    """v5/D-C27：双客户端源表、未知客户端列出受支持项、无 memory/ 的目录不算池。"""
+    from hongzhao.collect import CLIENT_SOURCE_DEFAULTS
+    assert set(CLIENT_SOURCE_DEFAULTS) == {"zcode", "claude_code"}
+    assert CLIENT_SOURCE_DEFAULTS["claude_code"] == "~/.claude/projects"
+
+    root, source = make_kit(tmp_path), make_source(tmp_path)
+    # 无 memory/ 的普通目录被忽略（不算池、不进空池清单）
+    scan = scan_source(source)
+    assert "not-a-pool-just-a-dir" not in scan["pool_files"]
+    assert scan["empty_pools"] == ["empty-pool-0000000000000fff"]
+
+    assert cli.main(["--root", str(root), "collect", "--client", "codex",
+                     "--source-dir", str(source)]) == 2
+    err = capsys.readouterr().err
+    assert "COLLECT_CLIENT_UNKNOWN" in err and "claude_code" in err and "zcode" in err
+
+    # claude_code 源用同构 fixture（池目录为路径 slug 形态）可正常采集
+    cc_source = tmp_path / "cc-projects"
+    cc_source.mkdir()
+    make_pool(cc_source, "-Users-cm-workspace-demo-app",
+              {"fact-a.md": FACT_A}, memory_md="# Memory Index\n- [T](fact-a.md) — H\n")
+    assert cli.main(["--root", str(root), "collect", "--client", "claude_code",
+                     "--source-dir", str(cc_source)]) == 0
+    manifest = yaml.safe_load(capsys.readouterr().out)
+    assert manifest["summary"] == {"pools": 1, "files": 1, "pending": 1, "residue": 0,
+                                   "unparsable": 0, "empty_pools": 0}
+    assert manifest["pending"][0]["key"] == "-Users-cm-workspace-demo-app/memory/fact-a.md"
 
 
 def test_cli_error_surface(tmp_path, capsys):

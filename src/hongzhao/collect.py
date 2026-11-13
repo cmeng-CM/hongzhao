@@ -35,8 +35,12 @@ from hongzhao.core import (
 from hongzhao.gitauto import auto_commit_with_message
 from hongzhao.locking import exclusive_lock
 
-# v1 客户端源（D-C03/D-C15）：默认路径随客户端预设内建；--source-dir 可指任意同构目录
-CLIENT_SOURCE_DEFAULTS = {"zcode": "~/.zcode/cli/memories/projects"}
+# 客户端源表（v5/D-C27：采集与调用方绑定，先支持 zcode + claude_code；文件格式实测逐字段同构，
+# 差异仅池根与池目录命名——CC 为项目路径 slug）；--source-dir 可覆盖该客户端默认源
+CLIENT_SOURCE_DEFAULTS = {
+    "zcode": "~/.zcode/cli/memories/projects",
+    "claude_code": "~/.claude/projects",
+}
 LEDGER_SCHEMA = 1
 TOPIC_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 INDEX_LINE = re.compile(r"^- \[(?P<title>.*)\]\((?P<file>[^\)]+)\) — (?P<hook>.*)$")
@@ -125,9 +129,7 @@ def scan_source(source_dir: Path) -> dict[str, Any]:
         pool = pool_dir.name
         memory = pool_dir / "memory"
         if not memory.is_dir():
-            empty_pools.append(pool)
-            pool_files[pool] = []
-            index_map[pool] = {}
+            # v5/D-C27：不含 memory/ 的一级目录不是记忆池（CC projects/ 下的普通项目目录），整目录忽略
             continue
         fact_paths = sorted(
             p for p in memory.glob("*.md")
@@ -276,7 +278,9 @@ def collect_ledger_issues(root: Path) -> list[tuple[str, str, str]]:
 
 def resolve_source_dir(client: str, source_dir: str | None) -> Path:
     if client not in CLIENT_SOURCE_DEFAULTS:
-        raise CollectError("COLLECT_CLIENT_UNKNOWN", f"client '{client}' is not supported (v1: zcode)")
+        supported = ", ".join(sorted(CLIENT_SOURCE_DEFAULTS))
+        raise CollectError("COLLECT_CLIENT_UNKNOWN",
+                           f"client '{client}' is not supported (supported: {supported})")
     base = source_dir or CLIENT_SOURCE_DEFAULTS[client]
     resolved = Path(os.path.expanduser(base)).resolve()
     if not resolved.is_dir():

@@ -1775,7 +1775,10 @@ def test_D_C25_pool_filter_manifest_and_summary(tmp_path):
     make_pool(source, POOL_B, {"fact-b.md": FACT_B}, memory_md="- [Fact B](fact-b.md) — hook b\n")
     make_pool(source, POOL_G, {"broken.md": "plain body without frontmatter\n"},
               memory_md="- [Broken](broken.md) — hook g\n")
-    (source / POOL_P).mkdir()  # 空池：无 memory/ 子目录
+    # v5/D-C27（合同维护，随已批准设计变更）：空池=带 memory/ 但无事实文件（与真实两端一致——
+    # ZCode 空壳带 memory/；CC projects/ 下无 memory/ 的普通目录不是池）
+    (source / POOL_P / "memory").mkdir(parents=True)
+    (source / "not-a-memory-project").mkdir()  # 无 memory/ 的普通目录：必须被忽略
 
     def filtered(pools, tag):
         out_file = tmp_path / f"manifest-{tag}-{uuid.uuid4().hex[:6]}.yaml"
@@ -1793,6 +1796,11 @@ def test_D_C25_pool_filter_manifest_and_summary(tmp_path):
         f"D-C25 premise: unfiltered manifest sees all pools; got {full['summary']}"
     )
     assert full["summary"]["unparsable"] == 1 and full["summary"]["empty_pools"] == 1
+    # v5/D-C27：无 memory/ 的普通目录不进任何清单
+    assert "not-a-memory-project" not in full["empty_pools"] and all(
+        k.split("/", 1)[0] != "not-a-memory-project" for k in pending_map(full)), (
+        "D-C27: a directory without memory/ must be ignored entirely"
+    )
 
     # 单池：仅 POOL_A 条目与该池悬空行；其他池的 pending/unparsable/空池全部排除
     only_a = filtered([POOL_A], tag="d25a")

@@ -18,9 +18,10 @@
 - 记忆根判定与诊断：`hongzhao root`；账本位于 `<root>/collect/<client>/ledger.yaml`。
 - manifest 与 decision file 是临时产物：放会话临时目录（不入记忆根、不入被采集的客户端目录），会话结束可清理。
 
-## 四步协议（会话协议 v2）
+## 四步协议（会话协议 v3）
 
-1. **跑增量**：`hongzhao collect --out <临时路径>`（分批可加 `--pool <池名>`，可重复）；向用户报告摘要（池数/条目/待处理/残留/解析失败/空池）。首次采集≈全量待处理属正常（账本冷启动）。**空池首次呈报后静默**（不批复述）。
+0. **自识客户端（第一步，必做）**：确定你正运行在哪个客户端（ZCode / Claude Code / 其他），采集**本客户端自己**的记忆池——`--client zcode` 或 `--client claude_code`，绝不在 A 客户端里采 B 客户端。当前受支持源：`zcode`（`~/.zcode/cli/memories/projects`）与 `claude_code`（`~/.claude/projects`，池目录为项目路径 slug、文件格式与 ZCode 同构）；运行在 Codex/Pi 等暂不支持的客户端时，明确呈报「当前客户端暂不支持采集」并停止，不采别家的池。
+1. **跑增量**：`hongzhao collect --client <本客户端> --out <临时路径>`（分批可加 `--pool <池名>`，可重复）；向用户报告摘要（池数/条目/待处理/残留/解析失败/空池）。首次采集≈全量待处理属正常（账本冷启动）。**空池首次呈报后静默**（不批复述）。
 2. **语义提取**（模型，第一道自审）：读 `compiled/memory-index.yaml` 与相关有效视图建立全局视野；manifest 的 `mentioned_in` 字段是引擎给的判重线索（哪些 raw 正文点名了本条目），**必看但须核实原文**，不代决策。逐候选判定：
    - **收编**（absorb）：长期事实/偏好/决策/经验才收；正文改写为档案语气（去会话性、保事实与来源）；定 scope 与 project_id（对照注册表）、topic（kebab-case）、summary（单行 ≤300）、kind（默认映射 `user→profile`、`feedback→preference`、`project/reference→memory`，人可改）、activation（默认 on-demand，bootstrap 慎用——进每会话注入）。
    - **弃用**（discard）：一次性过程记录、已过时结论、与既有记忆无增量的内容；给一句话理由。
