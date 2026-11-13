@@ -8,6 +8,21 @@ from `0.1.0`).
 
 ### Added
 
+- Client memory collection (design `.delivery/2026-11-13-客户端记忆采集/`,
+  one independent design review): `hongzhao collect` (read-only pending
+  manifest) and `hongzhao collect --apply <decision-file>` (write raw →
+  ledger → hash-guarded source delete → auto-commit), plus the
+  `memory-collect` skill (model extraction with two mandatory evidence
+  fields, human CHECKPOINT). A three-state ledger
+  `collect/<client>/ledger.yaml` records decided entries only: discards
+  never resurface, changed content re-enters review. Source deletion is
+  content-hash guarded with surgical `MEMORY.md` line edits (original
+  bytes/EOL preserved). v1 source: ZCode auto-memory pools; the engine
+  stays fully deterministic (no semantic dedup — that is the skill's model
+  stage, the human CHECKPOINT is final).
+- `skills-install` now warns `SKILL_UNLISTED` when a packaged skill is
+  missing from the kit's config `skills:` list (no automatic config
+  edits); `doctor` reports corrupt collect ledgers as warnings.
 - Three more preset clients: `pi` (bridge at `~/.pi/agent/AGENTS.md`, skills
   via the shared `~/.agents/skills` it natively reads), `dsh` / DeepSeek
   Harness (`~/.dsh/AGENTS.md`), and `opencode`

@@ -47,6 +47,12 @@ hongzhao --root ~/hongzhao upgrade
 # expect: upgrade [1/5] ... upgrade: ok (engine <version>)
 ```
 
+Starting with 0.4.0, `skills-install` prints an `SKILL_UNLISTED` warning
+when the package ships a skill your kit's `config.yaml` `skills:` list
+doesn't mention yet (e.g. the new `memory-collect`): add a line with the
+same name under `skills:` and re-run `hongzhao upgrade` to link it. The
+engine never edits your config for you.
+
 `hongzhao upgrade` runs exactly: `validate → skills-install all → compile →
 bridge-install all → doctor`, stopping at the first non-zero step. If you
 prefer, run those five commands yourself in that order — the command adds
@@ -57,6 +63,7 @@ nothing else.
 | Symptom | Fix |
 | --- | --- |
 | stopped at step 2 with `SKILL_MODIFIED ... kept yours; candidate written to ...new` | You customized a kit skill. Diff `SKILL.md` vs `SKILL.md.new`, merge manually, delete the `.new`, re-run `hongzhao upgrade` |
+| `warning [SKILL_UNLISTED] memory-collect ...` in the output | A newly packaged skill isn't listed in your kit config: add it under `skills:` in `config.yaml` (e.g. `- memory-collect`), then re-run `hongzhao upgrade` |
 | stopped at step 1 (`validate`) | The kit has a source-data problem that predates the upgrade; fix per the validate message first |
 | `doctor` warns `SKILL_STALE` / `BOOTSTRAP_STALE` right after `pip install -U` | Expected: the kit lags the new engine. Run `hongzhao upgrade` |
 | git diff shows large changes in `compiled/` but `last-compile-diff.md` counts are 0 | Expected: engine releases may reword skeleton text; your records' effectiveness is unchanged |

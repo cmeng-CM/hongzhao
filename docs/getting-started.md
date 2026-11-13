@@ -63,6 +63,20 @@ hongzhao --root ~/my-memory knowledge-register docs/rust-async.md \
 
 `path` 相对于知识根目录（知识根目录默认为记忆根目录本身；在 config 中设置 `knowledge_root`，可把参考材料保持在账本之外）。`--topic` 可以重复。目标文件必须已经存在。
 
+## 采集客户端记忆（可选）
+
+客户端（首版支持 ZCode）自带的 auto-memory 越攒越多？`collect` 把其中值得长期保留的事实增量收编进账本，删掉客户端侧的重复份：
+
+```bash
+hongzhao --root ~/my-memory collect --out manifest.yaml   # 只读：待处理增量清单
+# 由 memory-collect 技能驱动：模型判重/判重要 + 你确认（CHECKPOINT）后生成决策文件
+hongzhao --root ~/my-memory collect --apply decision.yaml  # 写 raw + 记账 + 条件删源
+```
+
+- 三态账本 `<root>/collect/<client>/ledger.yaml` 只记已决条目：弃用的不再冒回、内容变化自动回流重审、重复 collect 零重复候选。
+- 删源按内容 hash 条件删除（改过的内容会被拦下重审），MEMORY.md 只做行级改写并保留原行尾；raw 先落盘并随 `git.auto_commit` 入库保底。
+- 引擎零语义判断：值得留吗、与哪条重复，由 `memory-collect` 技能中的模型判断，重要性终审留给你。
+
 ## 客户端（可选）
 
 启用某个客户端，即可在它的指令文件中获得一个托管的启动摘要块（bootstrap block），并让打包技能以软链接方式接入：

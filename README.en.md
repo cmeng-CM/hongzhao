@@ -60,6 +60,7 @@ is three commands.
 | What the agent "knows" | Whatever is pasted into the prompt | Compiled effective views, routed by task |
 | Conflicting facts | Last message wins | Explicit relations (supersedes / conflicts) resolved at compile time |
 | Onboarding a new agent session | Re-explain everything | One bootstrap block injected into the client file |
+| Client-side auto-memory | Each client hoards its own copy, never trimmed | `collect` absorbs facts into the ledger and deletes the source (human gate + hash-guarded delete) |
 | Leaving the tool | — | Delete the managed block; your files remain plain markdown |
 
 ## 60-second quickstart

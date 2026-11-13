@@ -57,6 +57,28 @@ hongzhao --root ~/my-memory project-check ~/code/my-app
 `projects/<key>/project-view.md` (J1–J6 lifecycle; see
 [design.md](design.md)). `project-unregister` is dry-run by default.
 
+## Collecting client memories (optional)
+
+Client-side auto-memory (ZCode in v1) piling up? `collect` incrementally
+absorbs the facts worth keeping into the ledger and removes the duplicates
+on the client side:
+
+```bash
+hongzhao --root ~/my-memory collect --out manifest.yaml   # read-only pending manifest
+# driven by the memory-collect skill: model extraction + your CHECKPOINT
+hongzhao --root ~/my-memory collect --apply decision.yaml  # raw + ledger + conditional delete
+```
+
+- The three-state ledger `<root>/collect/<client>/ledger.yaml` records
+  decided entries only: discards never resurface, changed content re-enters
+  review, repeated collects produce zero duplicate candidates.
+- Source deletion is content-hash guarded (modified files bounce back to
+  review); `MEMORY.md` gets surgical line-level edits with original EOL
+  preserved; raws land first and are auto-committed via `git.auto_commit`.
+- The engine stays deterministic: "worth keeping?" and "duplicate of what?"
+  are the skill's model-stage calls, with the human CHECKPOINT as the final
+  gate.
+
 ## Registering knowledge
 
 Long-lived reference material (docs, specs, postmortems) lives in your

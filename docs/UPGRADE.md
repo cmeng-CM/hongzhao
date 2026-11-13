@@ -39,11 +39,14 @@ hongzhao --root ~/hongzhao upgrade
 
 `hongzhao upgrade` 严格按此执行：`validate → skills-install all → compile → bridge-install all → doctor`，在第一个非零退出的步骤停止。如果你愿意，也可以自己按该顺序运行这五条命令——这条命令除此之外不做任何其他事。
 
+从 0.4.0 起，`skills-install` 会在「包里新增了技能、而记忆库 `config.yaml` 的 `skills:` 列表还没列它」时打 `SKILL_UNLISTED` 警告（例如 0.4.0 新增的 `memory-collect`）：在 `config.yaml` 的 `skills:` 下补一行同名条目，再跑一次 `hongzhao upgrade` 即完成接线。引擎不会代你改 config。
+
 ### 故障排查
 
 | 症状 | 处理 |
 | --- | --- |
 | 在第 2 步停止，报 `SKILL_MODIFIED ... kept yours; candidate written to ...new` | 你定制过记忆库的某个 skill。对比 `SKILL.md` 与 `SKILL.md.new`，手工合并，删除 `.new`，重新运行 `hongzhao upgrade` |
+| 输出现 `warning [SKILL_UNLISTED] memory-collect ...` | 新打包技能尚未列入记忆库 config：在 `config.yaml` 的 `skills:` 列表补一行（如 `- memory-collect`），重跑 `hongzhao upgrade` |
 | 在第 1 步（`validate`）停止 | 记忆库存在早于本次升级的源数据问题；先按 validate 输出的信息修复 |
 | `pip install -U` 之后 `doctor` 立即警告 `SKILL_STALE` / `BOOTSTRAP_STALE` | 符合预期：记忆库落后于新引擎。运行 `hongzhao upgrade` |
 | git diff 显示 `compiled/` 出现大量变化，但 `last-compile-diff.md` 的计数为 0 | 符合预期：引擎发布可能改写骨架文案；你的记录的有效性不受影响 |
