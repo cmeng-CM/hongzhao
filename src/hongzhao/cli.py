@@ -173,6 +173,14 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Windows 重定向管道默认 locale 编码（cp1252）编不了 CJK；collect 清单首次把用户内容
+    # （标题/正文）打到 stdout，CI windows 腿即崩（charmap codec）。CLI 统一强制 UTF-8。
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            try:
+                stream.reconfigure(encoding="utf-8", errors="replace")
+            except (OSError, ValueError):
+                pass
     args = build_parser().parse_args(argv)
     if not args.command:
         build_parser().print_help()

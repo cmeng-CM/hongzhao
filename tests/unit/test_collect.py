@@ -5,6 +5,7 @@ E-C9（冷启动与账本损坏）/E-C10（CLI 面）及 W5、S3、脚注、账�
 """
 from __future__ import annotations
 
+import os
 import sys
 import uuid
 from pathlib import Path
@@ -534,6 +535,26 @@ def test_client_binding_and_pool_discovery(tmp_path, capsys):
     assert manifest["summary"] == {"pools": 1, "files": 1, "pending": 1, "residue": 0,
                                    "unparsable": 0, "empty_pools": 0}
     assert manifest["pending"][0]["key"] == "-Users-cm-workspace-demo-app/memory/fact-a.md"
+
+
+def test_stdout_utf8_under_locale_pipe(tmp_path):
+    """回归（CI windows 腿实故障）：重定向管道 locale 编码（cp1252）下打印中文清单不得崩。"""
+    import subprocess
+    import sys as _sys
+
+    root = make_kit(tmp_path)
+    source = tmp_path / "projects"
+    source.mkdir()
+    make_pool(source, "demo-pool-5555555555555eee", {"f.md": FACT_A},
+              memory_md="- [中文标题](f.md) — 中文钩子\n")
+    env = {**os.environ, "PYTHONIOENCODING": "cp1252"}
+    res = subprocess.run(
+        [_sys.executable, "-m", "hongzhao", "--root", str(root),
+         "collect", "--source-dir", str(source)],
+        capture_output=True, text=True, encoding="utf-8", env=env, timeout=60,
+    )
+    assert res.returncode == 0, f"must not crash under a locale-encoded pipe: {res.stderr[-300:]}"
+    assert "中文标题" in res.stdout
 
 
 def test_cli_error_surface(tmp_path, capsys):
