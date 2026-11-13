@@ -134,6 +134,10 @@ def run_cli(args, root, cwd=None, env_extra=None, timeout=120):
         env=env,
         capture_output=True,
         text=True,
+        # CI windows 维护注记：CLI 已强制 UTF-8 输出（136bb93），父进程必须显式按 UTF-8 解码
+        # ——text=True 缺省走 locale（cp1252）严格解码中文清单必炸 UnicodeDecodeError
+        encoding="utf-8",
+        errors="replace",
         timeout=timeout,
     )
 
@@ -1198,7 +1202,8 @@ def test_E_C14_absorbed_raw_enters_compile(tmp_path):
 
 
 def _git(root: Path, *args):
-    return subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True, timeout=60)
+    return subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True,
+                          encoding="utf-8", errors="replace", timeout=60)
 
 
 def test_D_C18_apply_auto_commits_kit(tmp_path):
