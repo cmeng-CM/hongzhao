@@ -378,6 +378,47 @@ def test_prune_empty_pool(tmp_path, capsys):
     assert (source / "pool-a1b2c3d4e5f60718").exists()
 
 
+def test_keep_source_mode(tmp_path, capsys):
+    """v3/D-C22：delete_source=false 收编不删源、不动 MEMORY.md、账本记 kept、kept 不进 residue。"""
+    root, source = make_kit(tmp_path), make_source(tmp_path)
+    manifest = manifest_of(root, source)
+    entries = {e["key"]: e for e in manifest["pending"]}
+    memory_md_before = (source / "pool-a1b2c3d4e5f60718/memory/MEMORY.md").read_bytes()
+    decision = decision_file(tmp_path, {
+        "schema_version": 1, "delete_source": False, "decisions": [
+            absorb_decision(entries["pool-a1b2c3d4e5f60718/memory/fact-a.md"]),
+            {"key": "pool-a1b2c3d4e5f60718/memory/fact-b.md",
+             "hash": entries["pool-a1b2c3d4e5f60718/memory/fact-b.md"]["hash"],
+             "action": "discard", "reason": "过程记录"}]})
+    assert cmd_apply(root, str(decision), client="zcode", source_dir=str(source)) == 0
+    out = capsys.readouterr().out
+    assert "absorbed (source kept)" in out and "deleted source" not in out
+    # 客户端原始记录全部保留（absorb 保留 + discard 本就不删），MEMORY.md 字节不动
+    assert (source / "pool-a1b2c3d4e5f60718/memory/fact-a.md").exists()
+    assert (source / "pool-a1b2c3d4e5f60718/memory/fact-b.md").exists()
+    assert (source / "pool-a1b2c3d4e5f60718/memory/MEMORY.md").read_bytes() == memory_md_before
+    # 账本记 source=kept
+    ledger = yaml.safe_load((root / "collect/zcode/ledger.yaml").read_text(encoding="utf-8"))
+    assert ledger["entries"]["pool-a1b2c3d4e5f60718/memory/fact-a.md"]["source"] == "kept"
+    # kept 同 hash 在场不冒回也不进 residue（正常终态）
+    m = manifest_of(root, source)
+    assert m["summary"]["pending"] == 0 and m["summary"]["residue"] == 0
+    # 内容变化仍回流重审（S10 不受 keep 影响）
+    write_file(source / "pool-a1b2c3d4e5f60718/memory/fact-a.md", FACT_A + "\n改动。\n")
+    assert manifest_of(root, source)["summary"]["pending"] == 1
+
+
+def test_ledger_source_enum_validation(tmp_path):
+    root, source = make_kit(tmp_path), make_source(tmp_path)
+    (root / "collect/zcode").mkdir(parents=True)
+    (root / "collect/zcode/ledger.yaml").write_text(
+        "schema_version: 1\nentries:\n  k: {hash: 'sha256:x', state: absorbed, raw: r.md, decided_at: '2026-11-13', source: vanished}\n",
+        encoding="utf-8")
+    with pytest.raises(CollectError) as excinfo:
+        cmd_collect(root, client="zcode", source_dir=str(source))
+    assert excinfo.value.code == "COLLECT_LEDGER_INVALID"
+
+
 def test_empty_decision_is_ok(tmp_path, capsys):
     root, source = make_kit(tmp_path), make_source(tmp_path)
     decision = decision_file(tmp_path, {"schema_version": 1, "decisions": []})

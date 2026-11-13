@@ -6,6 +6,7 @@
 - 永不自动触发：无定时、无会话隐式调用；删源有破坏性，采集必须显式发起（设计 D-C08）。
 - 分工不可越界：引擎（`hongzhao collect`）管解析、增量计算、格式校验、落盘与条件删源（纯确定性）；本 skill 只承担语义层——判重、判重要、定 scope/project/topic/summary、写两个证据字段。
 - 重要性终审=人：CHECKPOINT 未获确认不得进入 apply；空洞或牵强的证据字段（why 写不出具体价值）应主动建议 discard（设计 D-C06）。
+- **删源是可选项而非默认承诺**（设计 D-C22）：decision 顶层 `delete_source` 控制——`true`=收编后删客户端源与索引行（破坏性，CHECKPOINT 须显式确认）；`false`=保留客户端原始记录（只写 raw+记账，不动客户端任何文件）。按用户既定策略选择；用户未确立策略时在 CHECKPOINT 一并问明。保留源策略下 cleanup 与 prune_empty_pools 不主动提议。
 - 只经引擎写 raw；不编译（采集后提醒用户另行 memory-compile）、不改 compiled、不动已 done 的 raw、不删 unparsable 文件、不改 ZCode 客户端本体。
 - `project_id` 只能引用 hongzhao 注册表现存项目；池目录与项目的映射按池名语境判断（池名常对应工作目录名，可对照注册表与项目契约），判不准时在 CHECKPOINT 呈报由人定。
 
@@ -53,9 +54,10 @@ decisions:
     hash: …
     action: discard
     reason: 一句话
-cleanup:                                # residue 补删（可空）
+cleanup:                                # residue 补删（可空；保留源策略下不主动提议）
   - {key: …, hash: sha256:…}
-prune_empty_pools: []                   # 空池修剪（用户点头才列）
+prune_empty_pools: []                   # 空池修剪（用户点头才列；保留源策略下不主动提议）
+delete_source: true                     # false=收编不删源（保留客户端原始记录）；按用户策略定，缺省 true
 ```
 
 ## 引擎报告处置

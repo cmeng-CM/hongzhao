@@ -217,6 +217,9 @@ def _ledger_issues(path: Path, data: Any) -> list[str]:
             issues.append(f"entry {key}: absorbed requires raw")
         if state == "discarded" and not isinstance(record.get("reason"), str):
             issues.append(f"entry {key}: discarded requires reason")
+        source = record.get("source")
+        if source is not None and source not in {"deleted", "kept"}:
+            issues.append(f"entry {key}: source must be deleted or kept")
     return issues
 
 
@@ -290,9 +293,10 @@ def build_manifest(root: Path, client: str, source_dir: Path) -> dict[str, Any]:
         entry = dict(scan["entries"][key])
         record = ledger.get(key)
         if record is not None and record.get("hash") == entry["hash"]:
-            if record.get("state") == "absorbed":
+            if record.get("state") == "absorbed" and record.get("source") != "kept":
+                # v3/D-C22：kept 条目同 hash 在场=正常终态，不算 residue
                 residue.append({"key": key, "hash": entry["hash"], "raw": record.get("raw", "")})
-            # discarded 同 hash：不冒回（S11）
+            # discarded 同 hash：不冒回（S11）；kept 同 hash：保留源终态
             continue
         pending.append(entry)
     pools = sorted(scan["pool_files"])
@@ -489,6 +493,8 @@ def _load_decision(path_text: str) -> tuple[dict[str, Any], Path]:
         value = data.get(field)
         if value is not None and not isinstance(value, list):
             raise CollectError("APPLY_DECISION_INVALID", f"{path}: {field} must be a list")
+    if data.get("delete_source") is not None and not isinstance(data.get("delete_source"), bool):
+        raise CollectError("APPLY_DECISION_INVALID", f"{path}: delete_source must be a boolean")
     return data, path
 
 
@@ -530,7 +536,8 @@ def _apply_plan(root: Path, decision_file: str, client: str, source_dir: str | N
                 print(f"[APPLY_RAW_INVALID] {key}: {exc}")
                 code = 1
                 continue
-            print(f"would absorb {key} -> {raw_dir}/<today>_{decision.get('topic')}_<uuid8>.md")
+            keep_note = "" if data.get("delete_source", True) else " (keep source)"
+            print(f"would absorb{keep_note} {key} -> {raw_dir}/<today>_{decision.get('topic')}_<uuid8>.md")
         elif action == "discard":
             if not isinstance(decision.get("reason"), str) or not decision["reason"].strip():
                 print(f"[APPLY_DECISION_INVALID] {key}: discard requires reason")
@@ -630,10 +637,12 @@ def _apply_locked(root: Path, decision_file: str, client: str, source_dir: str |
         body = decision["body"].rstrip("\n") + "\n\n" + _footnote(key, digest, decision["evidence"]) + "\n"
         write_atomic(raw_dir / filename, dump_frontmatter(metadata, body))
         ledger[key] = {"hash": decision["hash"], "state": "absorbed",
-                       "raw": f"{config['paths']['raw']}/{filename}", "decided_at": today}
+                       "raw": f"{config['paths']['raw']}/{filename}", "decided_at": today,
+                       "source": "kept" if not data.get("delete_source", True) else "deleted"}
         absorbed_keys.append(key)
         absorbed_n += 1
-        print(f"absorbed: {key} -> {config['paths']['raw']}/{filename}")
+        keep_note = "" if data.get("delete_source", True) else " (source kept)"
+        print(f"absorbed{keep_note}: {key} -> {config['paths']['raw']}/{filename}")
     if _fault_active("after-raws"):
         _crash("after-raws")
 
@@ -642,9 +651,12 @@ def _apply_locked(root: Path, decision_file: str, client: str, source_dir: str |
     if _fault_active("after-ledger"):
         _crash("after-ledger")
 
-    # 步骤 5：条件删源（重读文件 hash 必须等于决策依据 hash；MEMORY.md 删全部精确匹配行）
+    # 步骤 5：条件删源（重读文件 hash 必须等于决策依据 hash；MEMORY.md 删全部精确匹配行）。
+    # v3/D-C22：delete_source=false 时本次 absorbed 不删源（cleanup 仍按显式清单执行）。
     deleted: dict[str, set[str]] = {}
-    to_delete: list[tuple[str, str]] = [(key, ledger[key]["hash"]) for key in absorbed_keys]
+    to_delete: list[tuple[str, str]] = []
+    if data.get("delete_source", True):
+        to_delete.extend((key, ledger[key]["hash"]) for key in absorbed_keys)
     for item in data.get("cleanup") or []:
         if not isinstance(item, dict) or not isinstance(item.get("key"), str):
             _entry_fail(report, str(item), "APPLY_DECISION_INVALID", "cleanup entries must be {key, hash}")

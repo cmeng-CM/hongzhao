@@ -8,7 +8,9 @@ hongzhao v0.4 客户端记忆采集（collect）合同矩阵（design
 - 4.3 组合约束 W1–W3 崩溃窗口 + after-deletes 点（E-C5，双条件故障注入
   HONGZHAO_TEST=1 + HONGZHAO_FAULT=<point>，子进程硬崩溃）；
 - 8 章验收项 E-C6（删源条件语义）、E-C7（端到端）、E-C8（MEMORY.md 行尾纪律）、
-  E-C12/E-C14（compile 对拍）、D-C18（apply auto-commit）。
+  E-C12/E-C14（compile 对拍）、D-C18（apply auto-commit）；
+- v3/D-C22 保留源模式（decision `delete_source: false`：absorb 不删源、不动
+  MEMORY.md、账本记 `source: kept`、kept 同 hash 在场豁免 residue；缺省 true=v2 行为）。
 
 纪律（design 第 7 章「合同测试作者 ≠ 实现者」）：
 - 全部走真实文件系统 + 子进程 CLI（sys.executable -m hongzhao，包公开入口），
@@ -1226,3 +1228,237 @@ def test_D_C18_apply_auto_commits_kit(tmp_path):
     assert status.returncode == 0 and status.stdout.strip() == "", (
         f"D-C18: working tree must be clean after auto-commit; got: {status.stdout!r}"
     )
+
+
+# ---------------------------------------------------------------------------
+# v3/D-C22：保留源模式（design v3 变更记录 + 3.3 决策表 D-C22 + 4.3 v3 注记 + 5.3/6.1）
+# ---------------------------------------------------------------------------
+
+
+def write_ledger(root: Path, entries: dict) -> None:
+    """fixture 层手写整份账本（构造旧账本/非法账本形态）。"""
+    payload = {"schema_version": 1, "client": "zcode", "updated_at": "2026-11-13",
+               "entries": entries}
+    write_file(ledger_path(root), yaml.safe_dump(payload, allow_unicode=True, sort_keys=False))
+
+
+def test_D_C22_keep_mode_end_to_end(tmp_path):
+    """D-C22 端到端：delete_source=false → absorb 只写 raw+记账（source=kept），源与 MEMORY.md 字节不动，collect 全清。"""
+    root, source = make_kit(tmp_path), make_source(tmp_path)
+    memory_before = (source / POOL_A / "memory" / "MEMORY.md").read_bytes()
+    fact_a_path = source / POOL_A / "memory" / "fact-a.md"
+    fact_a_before = fact_a_path.read_bytes()
+    manifest = collect_manifest(tmp_path, root, source, tag="d22a")
+    pend = pending_map(manifest)
+    key_a, key_b = key_of(POOL_A, "fact-a.md"), key_of(POOL_A, "fact-b.md")
+    decision = write_decision(tmp_path, {
+        "schema_version": 1, "client": "zcode", "delete_source": False,
+        "decisions": [
+            absorb_decision(key_a, pend[key_a]["hash"]),
+            discard_decision(key_b, pend[key_b]["hash"]),
+        ],
+    })
+    res = apply_run(root, source, decision)
+    assert res.returncode == 0, f"D-C22: keep-mode apply must exit 0; output: {out_of(res)}"
+    assert "deleted source" not in res.stdout, f"D-C22: no delete may happen in keep mode; got: {res.stdout}"
+
+    # 客户端原始记录全部保留（absorb 保留 + discard 本就不删），MEMORY.md 一个字节不动
+    assert fact_a_path.read_bytes() == fact_a_before, "D-C22: kept fact file must stay byte-identical"
+    assert (source / POOL_A / "memory" / "fact-b.md").exists(), "D-C22: discard keeps the source (S3)"
+    assert (source / POOL_A / "memory" / "MEMORY.md").read_bytes() == memory_before, (
+        "D-C22: MEMORY.md must not be touched at all in keep mode"
+    )
+
+    # raw 落盘 + 账本记 source=kept
+    assert len(raw_files(root)) == 1, "D-C22: keep mode still writes the raw"
+    entries = ledger_entries(root)
+    assert entries[key_a]["state"] == "absorbed" and entries[key_a]["source"] == "kept", (
+        f"D-C22: absorbed entry must record source=kept; got {entries.get(key_a)}"
+    )
+    assert (Path(root) / entries[key_a]["raw"]).is_file(), "D-C22: ledger raw must point at a real file"
+
+    # collect 全清：kept 同 hash 在场 = 正常终态（不 pending、不 residue）；discarded 同 hash 不冒回
+    after = collect_manifest(tmp_path, root, source, tag="d22b")
+    assert after["summary"]["pending"] == 0 and after["summary"]["residue"] == 0, (
+        f"D-C22: kept terminal + discarded suppressed must leave a fully clean manifest; got {after['summary']}"
+    )
+    assert key_a not in pending_map(after) and key_a not in residue_map(after), (
+        "D-C22: kept entry must appear in no list (normal terminal state)"
+    )
+
+
+def test_D_C22_kept_then_edit_reflows(tmp_path):
+    """D-C22+S10：kept 条目内容变化仍以新 hash 回流 pending；再次 keep 吸收覆盖账本记录。"""
+    root, source = make_kit(tmp_path), make_source(tmp_path)
+    manifest = collect_manifest(tmp_path, root, source, tag="d22c")
+    key_a = key_of(POOL_A, "fact-a.md")
+    old_hash = pending_map(manifest)[key_a]["hash"]
+    keep = write_decision(tmp_path, {"schema_version": 1, "client": "zcode", "delete_source": False,
+                                     "decisions": [absorb_decision(key_a, old_hash)]})
+    assert apply_run(root, source, keep).returncode == 0
+
+    # 内容变化 → 新 hash 回流重审（S10 不因 keep 模式豁免）
+    write_file(source / POOL_A / "memory" / "fact-a.md", FACT_A2)
+    reflow = collect_manifest(tmp_path, root, source, tag="d22d")
+    pend = pending_map(reflow)
+    assert key_a in pend and pend[key_a]["hash"] != old_hash, (
+        "D-C22: edited kept entry must reflow to pending at the new hash"
+    )
+    assert reflow["summary"]["residue"] == 0, "D-C22: changed content is pending, not residue"
+
+    # 再次 keep 吸收新 hash：覆盖旧记录（6.1 同 key 多次决策），仍保留源、终态全清
+    second = write_decision(tmp_path, {"schema_version": 1, "client": "zcode", "delete_source": False,
+                                       "decisions": [absorb_decision(key_a, pend[key_a]["hash"],
+                                                                     topic="contract-topic-2")]})
+    res = apply_run(root, source, second)
+    assert res.returncode == 0, f"D-C22: re-absorb must exit 0; output: {out_of(res)}"
+    entries = ledger_entries(root)
+    assert entries[key_a]["hash"] == pend[key_a]["hash"] and entries[key_a]["source"] == "kept", (
+        "D-C22: re-decision must overwrite the ledger record at the new hash, still kept"
+    )
+    fact_a = source / POOL_A / "memory" / "fact-a.md"
+    assert fact_a.exists() and fact_a.read_text(encoding="utf-8") == FACT_A2, (
+        "D-C22: re-absorb in keep mode must keep the edited source byte-identical"
+    )
+    final = collect_manifest(tmp_path, root, source, tag="d22e")
+    assert key_a not in pending_map(final) and key_a not in residue_map(final), (
+        "D-C22: kept re-absorb must converge the entry out of every list"
+    )
+    assert final["summary"]["pending"] == 1, (
+        f"D-C22: only the never-decided fact-b stays pending (S5); got {final['summary']}"
+    )
+
+
+def test_D_C22_default_true_writes_source_deleted(tmp_path):
+    """D-C22 缺省回归：delete_source 缺省/显式 true 均为 v2 行为（删源 + 账本 source=deleted）；旧账本缺 source 视为 deleted。"""
+    root, source = make_kit(tmp_path), make_source(tmp_path)
+    manifest = collect_manifest(tmp_path, root, source, tag="d22f")
+    pend = pending_map(manifest)
+    key_a, key_b = key_of(POOL_A, "fact-a.md"), key_of(POOL_A, "fact-b.md")
+
+    # 面 1：决策不带 delete_source 键（缺省 true）→ 删源 + source=deleted
+    # （文件删除/索引行清除面已由 S02/E-C7 既有用例覆盖，此处聚焦 v3 新增的账本字段）
+    implicit = write_decision(tmp_path, {"schema_version": 1, "client": "zcode",
+                                         "decisions": [absorb_decision(key_a, pend[key_a]["hash"])]})
+    res1 = apply_run(root, source, implicit)
+    assert res1.returncode == 0, f"D-C22: default apply must exit 0; output: {out_of(res1)}"
+    assert not (source / POOL_A / "memory" / "fact-a.md").exists(), (
+        "D-C22: default (no delete_source key) must keep v2 delete behavior"
+    )
+    assert ledger_entries(root)[key_a]["source"] == "deleted", (
+        "D-C22: default path must record source=deleted"
+    )
+
+    # 面 2：显式 delete_source: true → 同 v2 行为
+    explicit = write_decision(tmp_path, {"schema_version": 1, "client": "zcode", "delete_source": True,
+                                         "decisions": [absorb_decision(key_b, pend[key_b]["hash"])]})
+    res2 = apply_run(root, source, explicit)
+    assert res2.returncode == 0, f"D-C22: explicit-true apply must exit 0; output: {out_of(res2)}"
+    assert not (source / POOL_A / "memory" / "fact-b.md").exists(), (
+        "D-C22: explicit delete_source=true must delete the source"
+    )
+    assert ledger_entries(root)[key_b]["source"] == "deleted", (
+        "D-C22: explicit-true path must record source=deleted"
+    )
+
+    # 面 3：旧账本（v2 形态，条目缺 source 字段）+ 同 hash 文件在场 → 仍按 deleted 报 residue
+    write_file(source / POOL_A / "memory" / "fact-a.md", FACT_A)  # 同内容文件回到源
+    ledger_data = yaml.safe_load(ledger_path(root).read_text(encoding="utf-8"))
+    del ledger_data["entries"][key_a]["source"]  # 手工降级为 v2 旧账本形态
+    write_file(ledger_path(root), yaml.safe_dump(ledger_data, allow_unicode=True, sort_keys=False))
+    legacy = collect_manifest(tmp_path, root, source, tag="d22g")
+    assert key_a in residue_map(legacy), (
+        "D-C22: legacy ledger entry without source must be treated as deleted (residue applies)"
+    )
+
+
+def test_D_C22_keep_mode_does_not_gate_explicit_cleanup(tmp_path):
+    """D-C22：keep 模式只豁免本次 absorbed 的删源；显式 cleanup 清单照常执行（引擎能力不变）。"""
+    root, source = make_kit(tmp_path), make_source(tmp_path)
+    manifest = collect_manifest(tmp_path, root, source, tag="d22h")
+    pend = pending_map(manifest)
+    key_a, key_b = key_of(POOL_A, "fact-a.md"), key_of(POOL_A, "fact-b.md")
+
+    # 预置 residue：v2 吸收 fact-a 后同内容文件回到源
+    setup = write_decision(tmp_path, {"schema_version": 1, "client": "zcode",
+                                      "decisions": [absorb_decision(key_a, pend[key_a]["hash"])]})
+    assert apply_run(root, source, setup).returncode == 0
+    write_file(source / POOL_A / "memory" / "fact-a.md", FACT_A)
+    ledger_hash = ledger_entries(root)[key_a]["hash"]
+    memory_before = (source / POOL_A / "memory" / "MEMORY.md").read_bytes()
+
+    # keep 模式决策：absorb fact-b（保留）+ 显式 cleanup fact-a（补删）
+    mixed = write_decision(tmp_path, {
+        "schema_version": 1, "client": "zcode", "delete_source": False,
+        "decisions": [absorb_decision(key_b, pend[key_b]["hash"])],
+        "cleanup": [{"key": key_a, "hash": ledger_hash}],
+    })
+    res = apply_run(root, source, mixed)
+    assert res.returncode == 0, f"D-C22: keep-mode apply with explicit cleanup must exit 0; output: {out_of(res)}"
+    assert "deleted source:" in res.stdout, (
+        f"D-C22: explicit cleanup must still delete in keep mode; got: {res.stdout}"
+    )
+    assert not (source / POOL_A / "memory" / "fact-a.md").exists(), "D-C22: cleanup target must be deleted"
+    fact_b = source / POOL_A / "memory" / "fact-b.md"
+    assert fact_b.exists(), "D-C22: keep-mode absorb target must survive"
+    assert (source / POOL_A / "memory" / "MEMORY.md").read_bytes() == memory_before, (
+        "D-C22: keep-mode round must not rewrite MEMORY.md (no index line removed)"
+    )
+    entries = ledger_entries(root)
+    assert entries[key_a]["source"] == "deleted" and entries[key_b]["source"] == "kept", (
+        "D-C22: ledger must record per-decision provenance (setup deleted, keep-mode kept)"
+    )
+    final = collect_manifest(tmp_path, root, source, tag="d22i")
+    assert final["summary"]["pending"] == 0 and final["summary"]["residue"] == 0, (
+        f"D-C22: mixed keep+cleanup round must converge; got {final['summary']}"
+    )
+
+
+def test_D_C22_ledger_source_enum_and_flag_validation(tmp_path):
+    """D-C22 校验面：账本 source ∉ {deleted,kept} → COLLECT_LEDGER_INVALID（collect/apply 双面）；合法枚举通过且 kept 豁免 residue；delete_source 非布尔 → APPLY_DECISION_INVALID。"""
+    root, source = make_kit(tmp_path), make_source(tmp_path)
+    key_a, key_b = key_of(POOL_A, "fact-a.md"), key_of(POOL_A, "fact-b.md")
+
+    # 面 1：非法 source 枚举 → collect fatal exit 2，apply 同口径 fatal，零写入
+    write_ledger(root, {
+        key_a: {"hash": "sha256:" + "0" * 64, "state": "absorbed",
+                "raw": "raw/2026-11-13_x_0000000000000000.md",
+                "decided_at": "2026-11-13", "source": "vanished"},
+    })
+    corrupt_bytes = ledger_path(root).read_bytes()
+    res = collect_run(root, source)
+    assert res.returncode == 2, f"D-C22: invalid ledger source must fatal collect; got {res.returncode}"
+    assert "COLLECT_LEDGER_INVALID" in out_of(res), f"D-C22: error code expected; got: {out_of(res)}"
+    decision = write_decision(tmp_path, {"schema_version": 1, "client": "zcode",
+                                         "decisions": [absorb_decision(key_a, sha_of(source / POOL_A / "memory" / "fact-a.md"))]})
+    res2 = apply_run(root, source, decision)
+    assert res2.returncode == 2, f"D-C22: invalid ledger source must fatal apply; got {res2.returncode}"
+    assert "COLLECT_LEDGER_INVALID" in out_of(res2), f"D-C22: apply error code expected; got: {out_of(res2)}"
+    assert ledger_path(root).read_bytes() == corrupt_bytes, "D-C22: fatal path must not rewrite the ledger"
+    assert raw_files(root) == [], "D-C22: fatal path must not write raw files"
+
+    # 面 2：合法枚举（kept+deleted 并存）→ 解析通过；manifest 层 kept 豁免 residue、deleted 照报
+    write_ledger(root, {
+        key_a: {"hash": sha_of(source / POOL_A / "memory" / "fact-a.md"), "state": "absorbed",
+                "raw": "raw/2026-11-13_x_1111111111111111.md",
+                "decided_at": "2026-11-13", "source": "kept"},
+        key_b: {"hash": sha_of(source / POOL_A / "memory" / "fact-b.md"), "state": "absorbed",
+                "raw": "raw/2026-11-13_x_2222222222222222.md",
+                "decided_at": "2026-11-13", "source": "deleted"},
+    })
+    res3 = collect_run(root, source)
+    assert res3.returncode == 0, f"D-C22: valid source enum must pass; got: {out_of(res3)}"
+    valid_bytes = ledger_path(root).read_bytes()
+    manifest = collect_manifest(tmp_path, root, source, tag="d22j")
+    assert key_a not in residue_map(manifest) and manifest["summary"]["pending"] == 0, (
+        "D-C22: kept entry at the same hash must be exempt from residue"
+    )
+    assert key_b in residue_map(manifest), "D-C22: deleted entry at the same hash must still be residue"
+
+    # 面 3：decision delete_source 非布尔 → APPLY_DECISION_INVALID（fatal exit 2，零写入）
+    bad_flag = write_decision(tmp_path, {"schema_version": 1, "client": "zcode",
+                                         "delete_source": "false", "decisions": []})
+    res4 = apply_run(root, source, bad_flag)
+    assert res4.returncode == 2, f"D-C22: non-bool delete_source must fatal; got {res4.returncode}"
+    assert "APPLY_DECISION_INVALID" in out_of(res4), f"D-C22: error code expected; got: {out_of(res4)}"
+    assert ledger_path(root).read_bytes() == valid_bytes, "D-C22: invalid flag must not touch the ledger"
