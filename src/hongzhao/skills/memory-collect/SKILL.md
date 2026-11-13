@@ -18,16 +18,29 @@
 - 记忆根判定与诊断：`hongzhao root`；账本位于 `<root>/collect/<client>/ledger.yaml`。
 - manifest 与 decision file 是临时产物：放会话临时目录（不入记忆根、不入被采集的客户端目录），会话结束可清理。
 
-## 四步协议
+## 四步协议（会话协议 v2）
 
-1. **跑增量**：`hongzhao collect --out <临时路径>`；向用户报告摘要（pools/files/pending/residue/unparsable/empty_pools）。首次采集≈全量 pending 属正常（账本冷启动）。
-2. **语义提取**（模型，第一道自审）：读 `compiled/memory-index.yaml` 与 `compiled/effective-memory/` 相关视图、`render/bootstrap.md` 建立全局视野；逐候选判定：
-   - absorb：长期事实/偏好/决策/经验才收；正文改写为档案语气（去会话性、保事实与来源）；定 scope 与 project_id（对照注册表）、topic（kebab-case）、summary（单行 ≤300）、kind（默认映射 `user→profile`、`feedback→preference`、`project/reference→memory`，人可改）、activation（默认 on-demand，bootstrap 慎用——它会进每会话注入）。
-   - discard：一次性过程记录、已过时结论、与既有记忆无增量的内容；给一句话 reason。
-   - **两证据字段每条必填**（人审轻量化的关键）：`why`（为什么值得留，一句话说清具体价值）+ `similar`（与哪条已有记忆最相似：mem-id 或 raw 文件名或 none，加差异点）。
-   - **分批**：每批 ≤10 条或单池一批；residue 默认全部列入 cleanup；unparsable 与空池呈报用户定夺，不自行处置。
-3. **CHECKPOINT**：把本批清单贴对话等人确认，表格列「#｜池/文件｜动作｜scope→project｜kind/act｜topic｜摘要｜为什么留｜最相似&差异」；秒级逐条 确认/改/砍；**未获确认不得进入 apply**。
-4. **落盘**：按拍板写 decision file（模板见下）→ `hongzhao collect --apply <file>` → 核对引擎报告（absorbed/discarded/stale/失败计数与 residue 变化）→ 向用户汇报，并**提醒新 raw 待 memory-compile**。
+1. **跑增量**：`hongzhao collect --out <临时路径>`（分批可加 `--pool <池名>`，可重复）；向用户报告摘要（池数/条目/待处理/残留/解析失败/空池）。首次采集≈全量待处理属正常（账本冷启动）。**空池首次呈报后静默**（不批复述）。
+2. **语义提取**（模型，第一道自审）：读 `compiled/memory-index.yaml` 与相关有效视图建立全局视野；manifest 的 `mentioned_in` 字段是引擎给的判重线索（哪些 raw 正文点名了本条目），**必看但须核实原文**，不代决策。逐候选判定：
+   - **收编**（absorb）：长期事实/偏好/决策/经验才收；正文改写为档案语气（去会话性、保事实与来源）；定 scope 与 project_id（对照注册表）、topic（kebab-case）、summary（单行 ≤300）、kind（默认映射 `user→profile`、`feedback→preference`、`project/reference→memory`，人可改）、activation（默认 on-demand，bootstrap 慎用——进每会话注入）。
+   - **弃用**（discard）：一次性过程记录、已过时结论、与既有记忆无增量的内容；给一句话理由。
+   - **两证据字段每条必填**：`why`（为什么值得留，一句话具体价值）+ `similar`（最相似的 mem-id 或 raw 文件名或 none，加差异点）。
+   - **分批节奏**（用户已确认）：**弃用大批 + 收编小批**——弃用类可整池汇总处理；收编类 ≤10 条详审一批。
+3. **预演门（必过）**：decision 文件生成后先跑 `hongzhao collect --apply <file> --dry-run`，引擎校验全部条目（STALE/重复/字段/项目映射）零问题才进入人审；有报错先修再呈。
+4. **CHECKPOINT（全中文呈现，人终审）**：先给**动作图例**（见下），再两张表——
+   - **收编详表**（逐行）：「序号｜客户端记忆｜入库定位（全局/项目 × 偏好/经验 × 按需/注入）｜主题（落盘标识）｜一句话摘要｜为什么值得留｜与库内最相似条目的差异」
+   - **弃用汇总**（按证据类型合并行）：「证据类型（如「已被库内条目合并来源点名」）｜条目数｜代表条目｜对应库内条目」
+   - 同时明示本批删源设置（`delete_source`）与是否瘦身索引（`slim_index`）及后果；**未获确认不得进入 apply**。
+5. **落盘**：按拍板改 decision → `hongzhao collect --apply <file>` → 核对引擎报告 → 汇报，并**提醒新 raw 待 memory-compile**。
+
+### 动作图例（CHECKPOINT 必附）
+
+| 动作 | 中文 | 对客户端池的影响 |
+|---|---|---|
+| absorb | 收编 | 由 `delete_source` 决定：`true` 删源文件+索引行；`false` 文件内容一字不动 |
+| discard | 弃用 | 文件永不删；`slim_index: true` 时索引行移除（退出每会话注入） |
+| cleanup | 补删残留 | 仅对历史「已收编但删源未完成」条目，显式列出才执行 |
+| prune | 空池修剪 | 仅删无记忆内容的空壳目录，显式列出才执行 |
 
 ## 决策文件模板
 
@@ -57,7 +70,8 @@ decisions:
 cleanup:                                # residue 补删（可空；保留源策略下不主动提议）
   - {key: …, hash: sha256:…}
 prune_empty_pools: []                   # 空池修剪（用户点头才列；保留源策略下不主动提议）
-delete_source: true                     # false=收编不删源（保留客户端原始记录）；按用户策略定，缺省 true
+delete_source: true                     # false=收编不删源（保留客户端记忆文件与内容）；按用户策略定
+slim_index: false                       # true=本批已决条目（收编+弃用）只删 MEMORY.md 索引行，文件与内容不动
 ```
 
 ## 引擎报告处置

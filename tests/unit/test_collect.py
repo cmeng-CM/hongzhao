@@ -419,6 +419,67 @@ def test_ledger_source_enum_validation(tmp_path):
     assert excinfo.value.code == "COLLECT_LEDGER_INVALID"
 
 
+def test_slim_index_mode(tmp_path, capsys):
+    """v4/D-C23：slim_index=true 只删 MEMORY.md 索引行，文件与内容一字不动。"""
+    root, source = make_kit(tmp_path), make_source(tmp_path)
+    manifest = manifest_of(root, source)
+    entries = {e["key"]: e for e in manifest["pending"]}
+    memory_md_before = (source / "pool-a1b2c3d4e5f60718/memory/MEMORY.md").read_bytes()
+    decision = decision_file(tmp_path, {
+        "schema_version": 1, "delete_source": False, "slim_index": True, "decisions": [
+            absorb_decision(entries["pool-a1b2c3d4e5f60718/memory/fact-a.md"]),
+            {"key": "pool-a1b2c3d4e5f60718/memory/fact-b.md",
+             "hash": entries["pool-a1b2c3d4e5f60718/memory/fact-b.md"]["hash"],
+             "action": "discard", "reason": "过程记录"}]})
+    assert cmd_apply(root, str(decision), client="zcode", source_dir=str(source)) == 0
+    out = capsys.readouterr().out
+    assert "index slimmed" in out
+    # 事实文件与内容保留；索引行全部移除（含 fact-a 行与悬空行保留差异）
+    assert (source / "pool-a1b2c3d4e5f60718/memory/fact-a.md").exists()
+    assert (source / "pool-a1b2c3d4e5f60718/memory/fact-b.md").exists()
+    index_text = (source / "pool-a1b2c3d4e5f60718/memory/MEMORY.md").read_text(encoding="utf-8")
+    assert "fact-a.md" not in index_text and "fact-b" not in index_text
+    assert "悬空" in index_text  # 未决条目的索引行不动
+    assert memory_md_before != (source / "pool-a1b2c3d4e5f60718/memory/MEMORY.md").read_bytes()
+    # 幂等：同决策复跑（DUPLICATE 条目级）不影响索引；重跑 slim no-match 不报错
+
+
+def test_pool_filter_and_mentions(tmp_path, capsys):
+    """v4/D-C24/D-C25：--pool 过滤 + mentioned_in 字面提示。"""
+    root, source = make_kit(tmp_path), make_source(tmp_path)
+    manifest = manifest_of(root, source)
+    entry = manifest["pending"][0]
+    absorb = decision_file(tmp_path, {"schema_version": 1, "delete_source": False,
+                                      "decisions": [absorb_decision(entry)]})
+    assert cmd_apply(root, str(absorb), client="zcode", source_dir=str(source)) == 0
+    # 新池加一条同名 name 的候选 → mentioned_in 应点名刚才的 raw
+    make_pool(source, "other-4444444444444ddd", {"fact-a.md": FACT_A + "\n改。\n"},
+              memory_md="- [T](fact-a.md) — H\n")
+    from hongzhao.collect import build_manifest
+    m = build_manifest(root, "zcode", source, pools=["other-4444444444444ddd"])
+    assert m["summary"]["pools"] == 1 and m["summary"]["pending"] == 1
+    pending = m["pending"][0]
+    assert pending["name"] == "fact-a"
+    ledger = yaml.safe_load((root / "collect/zcode/ledger.yaml").read_text(encoding="utf-8"))
+    absorbed_raw = ledger["entries"][entry["key"]]["raw"].split("/")[-1]  # 正文脚注含 name → 应被点名
+    assert absorbed_raw in pending["mentioned_in"]
+    # 过滤后其他池不出现
+    assert all(e["key"].startswith("other-4444") for e in m["pending"])
+
+
+def test_subcommand_dry_run_flag(tmp_path, capsys):
+    """v4/D-C25：子命令级 --dry-run（放子命令后）与全局位置等价。"""
+    root, source = make_kit(tmp_path), make_source(tmp_path)
+    manifest = manifest_of(root, source)
+    entry = manifest["pending"][0]
+    decision = decision_file(tmp_path, {"schema_version": 1, "decisions": [absorb_decision(entry)]})
+    assert cli.main(["--root", str(root), "collect", "--apply", str(decision),
+                     "--source-dir", str(source), "--dry-run"]) == 0
+    out = capsys.readouterr().out
+    assert "would absorb" in out and "no writes performed" in out
+    assert list((root / "raw").glob("*.md")) == []
+
+
 def test_empty_decision_is_ok(tmp_path, capsys):
     root, source = make_kit(tmp_path), make_source(tmp_path)
     decision = decision_file(tmp_path, {"schema_version": 1, "decisions": []})

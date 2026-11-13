@@ -140,6 +140,10 @@ def build_parser() -> argparse.ArgumentParser:
     collect_cmd.add_argument("--client", default="zcode", help="client source (v1: zcode)")
     collect_cmd.add_argument("--source-dir", dest="source_dir", help="override client source root path")
     collect_cmd.add_argument("--out", help="write the manifest to this path (default: stdout)")
+    collect_cmd.add_argument("--pool", action="append", dest="pool",
+                             help="filter the manifest to this pool directory (repeatable)")
+    collect_cmd.add_argument("--dry-run", dest="collect_dry_run", action="store_true",
+                             help="read-only preview (same as the global --dry-run; accepted after the subcommand)")
     reg_cmd = sub.add_parser("project-register", help="register a project (contract lifecycle J1-J6; legacy proj-<UUID> alias supported)")
     reg_cmd.add_argument("target", help="project root path, or legacy proj-<UUID> with --kind/--path")
     reg_cmd.add_argument("--key")
@@ -219,12 +223,13 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "collect":
             from hongzhao import collect as collectmod
             from hongzhao.collect import CollectError
+            dry = args.dry_run or getattr(args, "collect_dry_run", False)
             try:
                 if args.apply_file:
                     return collectmod.cmd_apply(root, args.apply_file, client=args.client,
-                                                source_dir=args.source_dir, dry_run=args.dry_run)
+                                                source_dir=args.source_dir, dry_run=dry)
                 return collectmod.cmd_collect(root, client=args.client, source_dir=args.source_dir,
-                                              out_path=args.out, dry_run=args.dry_run)
+                                              out_path=args.out, dry_run=dry, pools=args.pool)
             except CollectError as exc:
                 print(f"[{exc.code}] {exc.message}", file=sys.stderr)
                 return exc.exit_code

@@ -284,9 +284,45 @@ def resolve_source_dir(client: str, source_dir: str | None) -> Path:
     return resolved
 
 
-def build_manifest(root: Path, client: str, source_dir: Path) -> dict[str, Any]:
+def _filter_scan(scan: dict[str, Any], pools: list[str] | None) -> dict[str, Any]:
+    """v4/D-C25：--pool 过滤（池目录名精确匹配；未匹配任何池时保持空结果）。"""
+    if not pools:
+        return scan
+    wanted = set(pools)
+    scan = dict(scan)
+    scan["entries"] = {k: v for k, v in scan["entries"].items() if k.split("/", 1)[0] in wanted}
+    scan["pool_files"] = {p: v for p, v in scan["pool_files"].items() if p in wanted}
+    scan["unparsable"] = [u for u in scan["unparsable"] if u["key"].split("/", 1)[0] in wanted]
+    scan["dangling_index"] = [d for d in scan["dangling_index"] if d["pool"] in wanted]
+    scan["empty_pools"] = [p for p in scan["empty_pools"] if p in wanted]
+    return scan
+
+
+def _mentions(root: Path, names: list[str]) -> dict[str, list[str]]:
+    """v4/D-C24：字面提示——条目 name 出现在哪些 raw 正文（判重线索，不代决策）。"""
+    result = {name: [] for name in names}
+    if not names:
+        return result
+    raw_dir = root / load_config(root)["paths"]["raw"]
+    if not raw_dir.is_dir():
+        return result
+    for path in sorted(raw_dir.glob("*.md")):
+        if path.name.startswith("_"):
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        for name in result:
+            if name in text:
+                result[name].append(path.name)
+    return result
+
+
+def build_manifest(root: Path, client: str, source_dir: Path,
+                   pools: list[str] | None = None) -> dict[str, Any]:
     ledger = load_ledger(root, client)
-    scan = scan_source(source_dir)
+    scan = _filter_scan(scan_source(source_dir), pools)
     pending: list[dict[str, Any]] = []
     residue: list[dict[str, Any]] = []
     for key in sorted(scan["entries"]):
@@ -299,7 +335,10 @@ def build_manifest(root: Path, client: str, source_dir: Path) -> dict[str, Any]:
             # discarded 同 hash：不冒回（S11）；kept 同 hash：保留源终态
             continue
         pending.append(entry)
-    pools = sorted(scan["pool_files"])
+    mentions = _mentions(root, [e["name"] for e in pending])
+    for entry in pending:
+        entry["mentioned_in"] = mentions.get(entry["name"], [])
+    pool_names = sorted(scan["pool_files"])
     files = sum(len(v) for v in scan["pool_files"].values())
     return {
         "schema_version": 1,
@@ -307,7 +346,7 @@ def build_manifest(root: Path, client: str, source_dir: Path) -> dict[str, Any]:
         "generated_at": dt.datetime.now().astimezone().isoformat(timespec="seconds"),
         "source_dir": str(source_dir),
         "summary": {
-            "pools": len(pools),
+            "pools": len(pool_names),
             "files": files,
             "pending": len(pending),
             "residue": len(residue),
@@ -323,11 +362,12 @@ def build_manifest(root: Path, client: str, source_dir: Path) -> dict[str, Any]:
 
 
 def cmd_collect(root: Path, client: str = "zcode", source_dir: str | None = None,
-                out_path: str | None = None, dry_run: bool = False) -> int:
+                out_path: str | None = None, dry_run: bool = False,
+                pools: list[str] | None = None) -> int:
     resolved = resolve_source_dir(client, source_dir)
     if dry_run:
         print("collect is read-only; --dry-run has no additional effect", file=sys.stderr)
-    manifest = build_manifest(root, client, resolved)
+    manifest = build_manifest(root, client, resolved, pools=pools)
     text = yaml.safe_dump(manifest, sort_keys=False, allow_unicode=True, default_flow_style=False)
     if out_path:
         write_atomic(Path(os.path.expanduser(out_path)).resolve(), text)
@@ -495,6 +535,8 @@ def _load_decision(path_text: str) -> tuple[dict[str, Any], Path]:
             raise CollectError("APPLY_DECISION_INVALID", f"{path}: {field} must be a list")
     if data.get("delete_source") is not None and not isinstance(data.get("delete_source"), bool):
         raise CollectError("APPLY_DECISION_INVALID", f"{path}: delete_source must be a boolean")
+    if data.get("slim_index") is not None and not isinstance(data.get("slim_index"), bool):
+        raise CollectError("APPLY_DECISION_INVALID", f"{path}: slim_index must be a boolean")
     return data, path
 
 
@@ -562,6 +604,8 @@ def _apply_plan(root: Path, decision_file: str, client: str, source_dir: str | N
         print(f"would delete source {key} (conditional on hash)")
     for pool in data.get("prune_empty_pools") or []:
         print(f"would prune empty pool {pool} (re-verified at apply time)")
+    if data.get("slim_index"):
+        print("would slim MEMORY.md index lines for decided entries (files untouched)")
     if code == 0 and not data["decisions"] and not data.get("cleanup") and not data.get("prune_empty_pools"):
         print("apply: nothing to do")
     print("dry-run: no writes performed")
@@ -587,6 +631,7 @@ def _apply_locked(root: Path, decision_file: str, client: str, source_dir: str |
 
     # 步骤 1-3：逐条校验并写 raw（先 validate 后写；不合格该条目失败，零部分文件）
     absorbed_keys: list[str] = []
+    decided_keys: list[str] = []  # 本批全部成功决策（absorbed+discarded，slim_index 用）
     absorbed_n = 0
     discarded_n = 0
     for decision in data["decisions"]:
@@ -614,6 +659,7 @@ def _apply_locked(root: Path, decision_file: str, client: str, source_dir: str |
             ledger[key] = {"hash": decision["hash"], "state": "discarded",
                            "reason": reason, "decided_at": today}
             discarded_n += 1
+            decided_keys.append(key)
             print(f"discarded: {key}")
             continue
         if action != "absorb":
@@ -640,6 +686,7 @@ def _apply_locked(root: Path, decision_file: str, client: str, source_dir: str |
                        "raw": f"{config['paths']['raw']}/{filename}", "decided_at": today,
                        "source": "kept" if not data.get("delete_source", True) else "deleted"}
         absorbed_keys.append(key)
+        decided_keys.append(key)
         absorbed_n += 1
         keep_note = "" if data.get("delete_source", True) else " (source kept)"
         print(f"absorbed{keep_note}: {key} -> {config['paths']['raw']}/{filename}")
@@ -686,6 +733,22 @@ def _apply_locked(root: Path, decision_file: str, client: str, source_dir: str |
             print(f"index note: {pool}/MEMORY.md {result}")
     if _fault_active("after-deletes"):
         _crash("after-deletes")
+
+    # 步骤 5b：瘦身索引（v4/D-C23，缺省关闭）——本批已决条目只删 MEMORY.md 索引行，
+    # 事实文件与其内容一字不动；与删源正交（文件刚被删的条目已随之清行，此处天然 no-match 跳过）。
+    if data.get("slim_index"):
+        slim_by_pool: dict[str, set[str]] = {}
+        for key in decided_keys:
+            pool, _, name = key.partition("/memory/")
+            slim_by_pool.setdefault(pool, set()).add(name)
+        for pool, names in sorted(slim_by_pool.items()):
+            result = _prune_index_lines(resolved, pool, names - deleted.get(pool, set()))
+            if result.startswith("removed-"):
+                print(f"index slimmed: {pool}/MEMORY.md ({result}; files untouched)")
+            elif result == "unreadable":
+                _entry_fail(report, f"{pool}/MEMORY.md", "APPLY_DELETE_MISMATCH", "slim skipped: unreadable")
+            else:
+                print(f"index note: {pool}/MEMORY.md {result} (slim)")
 
     # 步骤 6：空池修剪（现场复核）
     for pool in data.get("prune_empty_pools") or []:
