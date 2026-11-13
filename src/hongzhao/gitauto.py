@@ -31,18 +31,18 @@ def _git(root: Path, *args: str, check: bool = True) -> subprocess.CompletedProc
     )
 
 
-def maybe_auto_commit(root: Path, config: dict[str, Any], index: dict[str, Any]) -> None:
-    """compile 成功写出后调用：按 config.git.auto_commit 决定是否自动提交整个记忆库。"""
+def _guards_ok(root: Path, config: dict[str, Any]) -> bool:
+    """提交前置守卫（auto_commit 配置 / git 在场 / 独立仓库围栏）；不满足=跳过并说明。"""
     git_conf = (config or {}).get("git") or {}
     # 缺省开启（v0.1 决策：git 是备份的默认姿态）；显式 false 才关闭
     if git_conf.get("auto_commit", True) is not True:
-        return
+        return False
     if shutil.which("git") is None:
         print("warning AUTO_COMMIT_SKIP - git not on PATH; auto-commit disabled for this run")
-        return
+        return False
     if not (root / ".git").exists():
         print("note: auto-commit skipped; memory root is not a git repo (run `git init` to enable)")
-        return
+        return False
     # 围栏：只提交「记忆库自身就是仓库根」的情况；嵌套在外层仓库里时 add -A 会吞掉
     # 外层工作区改动，属于越界写入，宁可不做
     probe = _git(root, "rev-parse", "--show-toplevel", check=False)
@@ -59,7 +59,12 @@ def maybe_auto_commit(root: Path, config: dict[str, Any], index: dict[str, Any])
             "warning AUTO_COMMIT_SKIP - memory root is nested inside another git repo "
             f"(toplevel: {toplevel or 'unknown'}); keep the kit as a standalone repo to auto-commit"
         )
-        return
+        return False
+    return True
+
+
+def _commit_all(root: Path, message: str) -> None:
+    """add -A + 判空 + commit；任何 git 失败降级 warning，永不阻断调用方。"""
     staged = _git(root, "add", "-A", ".", check=False)
     if staged.returncode != 0:
         first_line = (staged.stdout + staged.stderr).strip().splitlines()
@@ -69,12 +74,6 @@ def maybe_auto_commit(root: Path, config: dict[str, Any], index: dict[str, Any])
     if _git(root, "diff", "--cached", "--quiet", check=False).returncode == 0:
         print("auto-commit: no changes")
         return
-    counts = index.get("counts", {})
-    message = (
-        f"hongzhao compile v{__version__} {index.get('generated_at', '')} "
-        f"health={index.get('health', 'unknown')} "
-        f"effective={counts.get('effective', 0)} pending={counts.get('pending', 0)}"
-    )
     commit = _git(root, "commit", "-m", message, check=False)
     if commit.returncode != 0:
         output = (commit.stdout + commit.stderr).strip()
@@ -84,3 +83,24 @@ def maybe_auto_commit(root: Path, config: dict[str, Any], index: dict[str, Any])
     short = _git(root, "rev-parse", "--short", "HEAD", check=False)
     sha = short.stdout.strip() if short.returncode == 0 else "?"
     print(f"auto-commit: {sha}")
+
+
+def maybe_auto_commit(root: Path, config: dict[str, Any], index: dict[str, Any]) -> None:
+    """compile 成功写出后调用：按 config.git.auto_commit 决定是否自动提交整个记忆库。"""
+    if not _guards_ok(root, config):
+        return
+    counts = index.get("counts", {})
+    message = (
+        f"hongzhao compile v{__version__} {index.get('generated_at', '')} "
+        f"health={index.get('health', 'unknown')} "
+        f"effective={counts.get('effective', 0)} pending={counts.get('pending', 0)}"
+    )
+    _commit_all(root, message)
+
+
+def auto_commit_with_message(root: Path, config: dict[str, Any], message: str) -> None:
+    """collect --apply 用（D-C18）：同一守卫与降级纪律、自定义提交信息；
+    「raw 进 git 保底」在删源同一事务窗口生效，不等下次 compile。"""
+    if not _guards_ok(root, config):
+        return
+    _commit_all(root, message)

@@ -133,6 +133,13 @@ def build_parser() -> argparse.ArgumentParser:
     uninstall_cmd.add_argument("--yes", dest="uninstall_yes", action="store_true", help="execute the plan")
     sub.add_parser("doctor", help="health check with severity levels")
     sub.add_parser("upgrade", help="full upgrade sequence: validate, skills-install, compile, bridge-install, doctor")
+    collect_cmd = sub.add_parser(
+        "collect", help="collect client auto-memory: read-only pending manifest; --apply executes a decision file")
+    collect_cmd.add_argument("--apply", dest="apply_file", metavar="DECISION_FILE",
+                             help="apply a decision file: write raw + ledger + conditional source delete")
+    collect_cmd.add_argument("--client", default="zcode", help="client source (v1: zcode)")
+    collect_cmd.add_argument("--source-dir", dest="source_dir", help="override client source root path")
+    collect_cmd.add_argument("--out", help="write the manifest to this path (default: stdout)")
     reg_cmd = sub.add_parser("project-register", help="register a project (contract lifecycle J1-J6; legacy proj-<UUID> alias supported)")
     reg_cmd.add_argument("target", help="project root path, or legacy proj-<UUID> with --kind/--path")
     reg_cmd.add_argument("--key")
@@ -209,6 +216,18 @@ def main(argv: list[str] | None = None) -> int:
             return 2
     try:
         root = resolve_root(args.root)
+        if args.command == "collect":
+            from hongzhao import collect as collectmod
+            from hongzhao.collect import CollectError
+            try:
+                if args.apply_file:
+                    return collectmod.cmd_apply(root, args.apply_file, client=args.client,
+                                                source_dir=args.source_dir, dry_run=args.dry_run)
+                return collectmod.cmd_collect(root, client=args.client, source_dir=args.source_dir,
+                                              out_path=args.out, dry_run=args.dry_run)
+            except CollectError as exc:
+                print(f"[{exc.code}] {exc.message}", file=sys.stderr)
+                return exc.exit_code
         if args.command == "validate":
             return cmd_validate(root, verbose=args.verbose)
         if args.command in ("compile", "render"):

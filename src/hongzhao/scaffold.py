@@ -78,7 +78,7 @@ PRESET_CLIENTS: dict[str, dict[str, Any]] = {
         "mode": "inline",
     },
 }
-SKILL_NAMES = ["memory-write", "memory-compile", "memory-project-context", "work-closeout"]
+SKILL_NAMES = ["memory-write", "memory-compile", "memory-project-context", "work-closeout", "memory-collect"]
 
 RAW_TEMPLATE = """---
 schema_version: 2

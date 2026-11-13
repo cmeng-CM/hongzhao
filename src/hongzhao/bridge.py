@@ -336,6 +336,14 @@ def cmd_skills_install(root: Path, client: str, force: bool = False, manifest_on
         print("skills-install: manifest-only complete")
         return 0
     code = sync_package_to_root(root, force=force)
+    # D-C20：包内有、config.skills 未列 → 装而不链，明示补一行（不代改 kit 自有 config）
+    packaged_skills = sorted(
+        {relative.split("/", 2)[1] for _source, relative in _package_tree() if relative.startswith("skills/")}
+    )
+    for name in packaged_skills:
+        if name not in config.get("skills", []):
+            print(f"warning [SKILL_UNLISTED] {name}: present in package but not in config.skills; "
+                  "add it to config.yaml 'skills:' to link it")
     clients = config.get("clients", {})
     selected = (
         [client] if client != "all" else [n for n, s in clients.items() if s.get("enabled")]
@@ -438,6 +446,12 @@ def cmd_doctor(root: Path) -> int:
     for code, message, path in contract_state_issues(root, registry):
         hint = CONTRACT_HINTS.get(code, "")
         add("degraded", code, "-", path, message + (f"; {hint}" if hint else ""))
+
+    # 采集账本（D-C21）：损坏只影响采集不影响记忆库本体 → 警告级，不 degraded
+    from hongzhao.collect import collect_ledger_issues
+
+    for client, code, message in collect_ledger_issues(root):
+        add("warning", code, client, "-", message)
 
     # 升级偏斜检测：kit 同步版本 / bootstrap 生成版本落后于当前引擎 → 提示升级序列
     # （manifest 缺失键=版本追踪之前的老 kit；bootstrap 无 engine_version 行=旧引擎生成）
