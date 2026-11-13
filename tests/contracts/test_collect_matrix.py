@@ -10,7 +10,11 @@ hongzhao v0.4 客户端记忆采集（collect）合同矩阵（design
 - 8 章验收项 E-C6（删源条件语义）、E-C7（端到端）、E-C8（MEMORY.md 行尾纪律）、
   E-C12/E-C14（compile 对拍）、D-C18（apply auto-commit）；
 - v3/D-C22 保留源模式（decision `delete_source: false`：absorb 不删源、不动
-  MEMORY.md、账本记 `source: kept`、kept 同 hash 在场豁免 residue；缺省 true=v2 行为）。
+  MEMORY.md、账本记 `source: kept`、kept 同 hash 在场豁免 residue；缺省 true=v2 行为）；
+- v4/D-C23 瘦身索引（`slim_index: true`：本批已决条目 MEMORY.md 索引行删除、事实
+  文件与内容一字不动；与 delete_source 正交组合；no-match 幂等不报错；非布尔
+  fatal exit 2）、D-C24 manifest `mentioned_in` 字面提示（含来源脚注 key 命中）、
+  D-C25 `--pool` 池过滤 + collect 子命令级 `--dry-run` 与全局位置等价。
 
 纪律（design 第 7 章「合同测试作者 ≠ 实现者」）：
 - 全部走真实文件系统 + 子进程 CLI（sys.executable -m hongzhao，包公开入口），
@@ -1462,3 +1466,400 @@ def test_D_C22_ledger_source_enum_and_flag_validation(tmp_path):
     assert res4.returncode == 2, f"D-C22: non-bool delete_source must fatal; got {res4.returncode}"
     assert "APPLY_DECISION_INVALID" in out_of(res4), f"D-C22: error code expected; got: {out_of(res4)}"
     assert ledger_path(root).read_bytes() == valid_bytes, "D-C22: invalid flag must not touch the ledger"
+
+
+# ---------------------------------------------------------------------------
+# v4 批：D-C23 瘦身索引 / D-C24 mentioned_in / D-C25 --pool 过滤 + 子命令级 --dry-run
+#（design「v3 → v4 变更记录」+ 3.3 决策表 D-C23–D-C25 + 4.3 v4 注记 + 5.1/5.2/5.3；
+#  续写纪律与前文一致：真实文件系统 + 子进程 CLI、fixture 自建、断言可读可定位）
+# ---------------------------------------------------------------------------
+
+# D-C23 基线池：三事实（fact-a/fact-b 本批已决、fact-c 未决留对照）+ 重复行 + 悬空行
+POOL_SLIM = "slim-e6f70718a1b2c3d4"
+# D-C23 no-match 面 / D-C24 同名回流面专用池
+POOL_NM = "nomatch-e8f90718a1b2c3d4"
+POOL_M = "omega-f70718a1b2c3d4e5"
+
+MEMORY_MD_SLIM = (
+    "# Memory Index\n"
+    "- [Fact A](fact-a.md) — hook a\n"
+    "- [Fact B](fact-b.md) — hook b\n"
+    "- [Fact C](fact-c.md) — hook c\n"
+    "- [Fact A dup](fact-a.md) — hook a again\n"
+    "- [Gone](gone.md) — dangling line\n"
+)
+# 已决（absorb fact-a 含重复行 + discard fact-b）slim 后的期望字节：未决 fact-c 行与悬空行原样保留
+MEMORY_MD_SLIM_AFTER = (
+    "# Memory Index\n"
+    "- [Fact C](fact-c.md) — hook c\n"
+    "- [Gone](gone.md) — dangling line\n"
+)
+FACT_N = (
+    "---\n"
+    "name: fact-n\n"
+    "description: Fact N description line\n"
+    "metadata:\n"
+    "  type: reference\n"
+    "---\n"
+    "\n"
+    "Fact N body.\n"
+)
+
+
+def make_slim_source(tmp_path: Path) -> Path:
+    """D-C23 基线源：单池三事实 + 全量索引（重复行/未决行/悬空行齐备）。"""
+    source = tmp_path / "projects"
+    source.mkdir()
+    make_pool(source, POOL_SLIM,
+              {"fact-a.md": FACT_A, "fact-b.md": FACT_B, "fact-c.md": FACT_C},
+              memory_md=MEMORY_MD_SLIM)
+    return source
+
+
+def test_D_C23_slim_keeps_files_removes_decided_index_lines(tmp_path):
+    """D-C23 主面：false+true 组合（保留源+瘦身）→ 本批已决条目（absorbed 与 discarded）索引行全删
+    （含重复行、原字节拼接），事实文件与其内容一字不动；未决条目行与悬空行原样保留。"""
+    root, source = make_kit(tmp_path), make_slim_source(tmp_path)
+    memory = source / POOL_SLIM / "memory"
+    fact_a, fact_b, fact_c = memory / "fact-a.md", memory / "fact-b.md", memory / "fact-c.md"
+    bytes_a, bytes_b, bytes_c = fact_a.read_bytes(), fact_b.read_bytes(), fact_c.read_bytes()
+    manifest = collect_manifest(tmp_path, root, source, tag="d23a")
+    pend = pending_map(manifest)
+    key_a, key_b = key_of(POOL_SLIM, "fact-a.md"), key_of(POOL_SLIM, "fact-b.md")
+    decision = write_decision(tmp_path, {
+        "schema_version": 1, "client": "zcode",
+        "delete_source": False, "slim_index": True,
+        "decisions": [
+            absorb_decision(key_a, pend[key_a]["hash"]),
+            discard_decision(key_b, pend[key_b]["hash"]),
+        ],
+    })
+    res = apply_run(root, source, decision)
+    assert res.returncode == 0, f"D-C23: slim keep-mode apply must exit 0; output: {out_of(res)}"
+    assert "index slimmed" in res.stdout and "files untouched" in res.stdout, (
+        f"D-C23: slim report line expected; got: {res.stdout}"
+    )
+    assert "deleted source" not in res.stdout, "D-C23: keep mode must not delete any source"
+
+    # 事实文件与其内容一字不动（已决 absorbed / 已决 discarded / 未决 三类全部逐字节保留）
+    assert fact_a.read_bytes() == bytes_a, "D-C23: absorbed fact file must stay byte-identical under slim"
+    assert fact_b.read_bytes() == bytes_b, "D-C23: discarded fact file must stay byte-identical under slim"
+    assert fact_c.read_bytes() == bytes_c, "D-C23: undecided fact file must stay byte-identical under slim"
+
+    # MEMORY.md：已决条目索引行（absorbed 含重复行 + discarded）全删，其余行原字节
+    got = memory.joinpath("MEMORY.md").read_bytes()
+    assert got == MEMORY_MD_SLIM_AFTER.encode("utf-8"), (
+        f"D-C23: slimmed MEMORY.md must equal the expected surviving bytes; got {got!r}"
+    )
+
+    # raw 与账本照常（slim 不改变写序前段：absorbed 带 raw 且 source=kept、discarded 带 reason）
+    assert len(raw_files(root)) == 1, "D-C23: slim keep mode must still write exactly one raw"
+    entries = ledger_entries(root)
+    assert entries[key_a]["state"] == "absorbed" and entries[key_a]["source"] == "kept", (
+        f"D-C23: absorbed ledger record must stay correct under slim; got {entries.get(key_a)}"
+    )
+    assert entries[key_b]["state"] == "discarded" and entries[key_b]["reason"] == "session-scoped note"
+
+    # 收敛：kept 终态不 residue、discarded 不冒回，仅未决 fact-c 保持 pending
+    after = collect_manifest(tmp_path, root, source, tag="d23b")
+    assert after["summary"]["pending"] == 1 and after["summary"]["residue"] == 0, (
+        f"D-C23: only the undecided fact-c must stay pending; got {after['summary']}"
+    )
+    assert key_of(POOL_SLIM, "fact-c.md") in pending_map(after)
+
+
+def test_D_C23_slim_orthogonal_with_delete_source_true(tmp_path):
+    """D-C23 正交组合：true+true → absorbed 随删源清行（slim 对其天然 no-match 跳过），
+    discarded 文件保留但索引行仍被 slim 移除；未决行原字节保留。"""
+    root, source = make_kit(tmp_path), make_slim_source(tmp_path)
+    memory = source / POOL_SLIM / "memory"
+    fact_b, fact_c = memory / "fact-b.md", memory / "fact-c.md"
+    bytes_b, bytes_c = fact_b.read_bytes(), fact_c.read_bytes()
+    manifest = collect_manifest(tmp_path, root, source, tag="d23c")
+    pend = pending_map(manifest)
+    key_a, key_b = key_of(POOL_SLIM, "fact-a.md"), key_of(POOL_SLIM, "fact-b.md")
+    decision = write_decision(tmp_path, {
+        "schema_version": 1, "client": "zcode",
+        "delete_source": True, "slim_index": True,
+        "decisions": [
+            absorb_decision(key_a, pend[key_a]["hash"]),
+            discard_decision(key_b, pend[key_b]["hash"]),
+        ],
+    })
+    res = apply_run(root, source, decision)
+    assert res.returncode == 0, f"D-C23: delete+slim apply must exit 0; output: {out_of(res)}"
+    # absorbed：文件走删源路径；discarded：文件保留（S3）但索引行被 slim 移除
+    assert not memory.joinpath("fact-a.md").exists(), (
+        "D-C23: delete_source=true must still delete the absorbed file under slim"
+    )
+    assert fact_b.read_bytes() == bytes_b, "D-C23: discarded file must stay byte-identical under slim"
+    assert fact_c.read_bytes() == bytes_c, "D-C23: undecided file must stay byte-identical under slim"
+    # 与 false+true 收敛到同一份幸存字节（正交性：行清理结果一致，文件去留由 delete_source 决定）
+    got = memory.joinpath("MEMORY.md").read_bytes()
+    assert got == MEMORY_MD_SLIM_AFTER.encode("utf-8"), (
+        f"D-C23: delete+slim must converge to the same surviving bytes as keep+slim; got {got!r}"
+    )
+    # 两类输出都在场：删源清行（步骤 5）与瘦身（步骤 5b，作用于 discarded）
+    assert "index pruned" in res.stdout, f"D-C23: delete-path index prune expected; got: {res.stdout}"
+    assert "index slimmed" in res.stdout, f"D-C23: slim line expected for the discarded entry; got: {res.stdout}"
+    assert ledger_entries(root)[key_a]["source"] == "deleted", (
+        "D-C23: delete path must record source=deleted"
+    )
+
+
+def test_D_C23_slim_no_match_idempotent(tmp_path):
+    """D-C23 幂等面：索引行本就不在（index_missing 条目 / 已 slim 过的回流再决策）→ no-match 跳过
+    不报错（exit 0）、MEMORY.md 一个字节不动。"""
+    root = make_kit(tmp_path)
+    source = tmp_path / "projects"
+    source.mkdir()
+
+    # 面 1：本批已决条目从未有过索引行（index_missing）→ slim no-match，无条目级失败
+    memory_md_nm = "- [Unrelated](unrelated.md) — dangling only\n"
+    make_pool(source, POOL_NM, {"fact-n.md": FACT_N}, memory_md=memory_md_nm)
+    nm_bytes = (source / POOL_NM / "memory" / "MEMORY.md").read_bytes()
+    manifest = collect_manifest(tmp_path, root, source, tag="d23d")
+    key_n = key_of(POOL_NM, "fact-n.md")
+    assert pending_map(manifest)[key_n]["index_missing"] is True, (
+        "D-C23 premise: fact-n must be an index_missing pending entry"
+    )
+    nm_decision = write_decision(tmp_path, {
+        "schema_version": 1, "client": "zcode", "delete_source": False, "slim_index": True,
+        "decisions": [discard_decision(key_n, pending_map(manifest)[key_n]["hash"])],
+    })
+    res1 = apply_run(root, source, nm_decision)
+    assert res1.returncode == 0, f"D-C23: no-match slim must not fail; output: {out_of(res1)}"
+    assert "no-match (slim)" in res1.stdout, f"D-C23: no-match note expected; got: {res1.stdout}"
+    assert (source / POOL_NM / "memory" / "MEMORY.md").read_bytes() == nm_bytes, (
+        "D-C23: no-match slim must not touch MEMORY.md"
+    )
+    assert (source / POOL_NM / "memory" / "fact-n.md").exists(), "D-C23: no-match slim keeps the file"
+
+    # 面 2：round1 keep+slim 吸收 fact-a（行已删）→ 内容回流再决策 → 第二次 slim no-match 不报错
+    make_pool(source, POOL_A, {"fact-a.md": FACT_A}, memory_md=MEMORY_MD_A)
+    first = collect_manifest(tmp_path, root, source, tag="d23e")
+    key_a = key_of(POOL_A, "fact-a.md")
+    old_hash = pending_map(first)[key_a]["hash"]
+    round1 = write_decision(tmp_path, {"schema_version": 1, "client": "zcode",
+                                       "delete_source": False, "slim_index": True,
+                                       "decisions": [absorb_decision(key_a, old_hash)]})
+    assert apply_run(root, source, round1).returncode == 0
+    slimmed_bytes = (source / POOL_A / "memory" / "MEMORY.md").read_bytes()
+    assert b"fact-a.md" not in slimmed_bytes, "D-C23 premise: round1 slim removed the fact-a lines"
+
+    write_file(source / POOL_A / "memory" / "fact-a.md", FACT_A2)  # 内容变化 → 回流（S10）
+    reflow = collect_manifest(tmp_path, root, source, tag="d23f")
+    new_hash = pending_map(reflow)[key_a]["hash"]
+    round2 = write_decision(tmp_path, {"schema_version": 1, "client": "zcode",
+                                       "delete_source": False, "slim_index": True,
+                                       "decisions": [absorb_decision(key_a, new_hash)]})
+    res2 = apply_run(root, source, round2)
+    assert res2.returncode == 0, f"D-C23: repeated slim must stay no-op clean; output: {out_of(res2)}"
+    assert "no-match (slim)" in res2.stdout, f"D-C23: no-match note expected on re-decision; got: {res2.stdout}"
+    assert (source / POOL_A / "memory" / "MEMORY.md").read_bytes() == slimmed_bytes, (
+        "D-C23: already-slimmed MEMORY.md must stay byte-identical on the second slim"
+    )
+    record = ledger_entries(root)[key_a]
+    assert record["hash"] == new_hash and record["source"] == "kept", (
+        "D-C23: re-decision must overwrite the ledger record at the new hash, still kept"
+    )
+
+
+def test_D_C23_dry_run_reports_slim_zero_writes(tmp_path):
+    """D-C23 dry-run 面：--apply --dry-run 输出 "would slim MEMORY.md index lines"，零写入。"""
+    root, source = make_kit(tmp_path), make_slim_source(tmp_path)
+    memory = source / POOL_SLIM / "memory"
+    memory_before = memory.joinpath("MEMORY.md").read_bytes()
+    fact_a_before = memory.joinpath("fact-a.md").read_bytes()
+    manifest = collect_manifest(tmp_path, root, source, tag="d23g")
+    key_a = key_of(POOL_SLIM, "fact-a.md")
+    decision = write_decision(tmp_path, {
+        "schema_version": 1, "client": "zcode", "delete_source": False, "slim_index": True,
+        "decisions": [absorb_decision(key_a, pending_map(manifest)[key_a]["hash"])],
+    })
+    res = run_cli(["--root", root, "--dry-run", "collect", "--apply", decision,
+                   "--source-dir", source], root)
+    assert res.returncode == 0, f"D-C23: dry-run must exit 0; output: {out_of(res)}"
+    for marker in ("would absorb (keep source)", "would slim MEMORY.md index lines",
+                   "dry-run: no writes performed"):
+        assert marker in res.stdout, f"D-C23: dry-run marker {marker!r} expected; got: {res.stdout}"
+    # 零写入：无 raw、无账本、MEMORY.md 与事实文件一字不动
+    assert raw_files(root) == [], "D-C23: dry-run must not write raw files"
+    assert not (Path(root) / "collect").exists(), "D-C23: dry-run must not create the ledger"
+    assert memory.joinpath("MEMORY.md").read_bytes() == memory_before, (
+        "D-C23: dry-run must not slim MEMORY.md"
+    )
+    assert memory.joinpath("fact-a.md").read_bytes() == fact_a_before, (
+        "D-C23: dry-run must not touch fact files"
+    )
+
+
+def test_D_C23_non_bool_slim_index_rejected(tmp_path):
+    """D-C23 校验面：decision `slim_index` 非布尔 → [APPLY_DECISION_INVALID] exit 2，零写入。"""
+    root, source = make_kit(tmp_path), make_source(tmp_path)
+    memory_before = (source / POOL_A / "memory" / "MEMORY.md").read_bytes()
+    fact_a = source / POOL_A / "memory" / "fact-a.md"
+    key_a = key_of(POOL_A, "fact-a.md")
+    bad = write_decision(tmp_path, {"schema_version": 1, "client": "zcode",
+                                    "slim_index": "true",  # YAML 字符串，非布尔
+                                    "decisions": [absorb_decision(key_a, sha_of(fact_a))]})
+    res = apply_run(root, source, bad)
+    assert res.returncode == 2, f"D-C23: non-bool slim_index must fatal exit 2; got {res.returncode}"
+    assert "APPLY_DECISION_INVALID" in out_of(res) and "slim_index" in out_of(res), (
+        f"D-C23: APPLY_DECISION_INVALID naming slim_index expected; got: {out_of(res)}"
+    )
+    # 零写入：无 raw、无账本、源文件与 MEMORY.md 不动
+    assert raw_files(root) == [], "D-C23: invalid flag must not write raw files"
+    assert not (Path(root) / "collect").exists(), "D-C23: invalid flag must not create the ledger"
+    assert fact_a.exists(), "D-C23: invalid flag must not delete sources"
+    assert (source / POOL_A / "memory" / "MEMORY.md").read_bytes() == memory_before, (
+        "D-C23: invalid flag must not touch MEMORY.md"
+    )
+
+
+def test_D_C24_mentioned_in_literal_match_and_empty(tmp_path):
+    """D-C24 基础面：pending 条目带 mentioned_in（raw 正文字面命中的文件名清单）；
+    未命中为 []；`_` 前缀 raw 不参与提示。"""
+    root, source = make_kit(tmp_path), make_source(tmp_path)
+    hit_raw = root / "raw" / "2026-11-01_seed-topic-aabb0011.md"
+    write_file(hit_raw, "Merged-source note: covers fact-a tooling preferences.\n")
+    draft_raw = root / "raw" / "_draft-fact-a.md"  # _ 前缀 raw：提示必须跳过
+    write_file(draft_raw, "draft also mentions fact-a but must be skipped\n")
+    manifest = collect_manifest(tmp_path, root, source, tag="d24a")
+    pend = pending_map(manifest)
+    key_a, key_b = key_of(POOL_A, "fact-a.md"), key_of(POOL_A, "fact-b.md")
+    assert pend[key_a]["mentioned_in"] == [hit_raw.name], (
+        f"D-C24: literal body hit must list exactly the matching raw file name; "
+        f"got {pend[key_a]['mentioned_in']}"
+    )
+    assert pend[key_b]["mentioned_in"] == [], (
+        f"D-C24: unmatched entry must carry an empty list; got {pend[key_b]['mentioned_in']}"
+    )
+
+
+def test_D_C24_mentioned_in_points_at_absorbed_raw_on_reflow(tmp_path):
+    """D-C24 判重线索语义：吸收后以同名新内容回流的新候选 → mentioned_in 点名该 raw
+    （命中来源=引擎生成的来源脚注中的原始 key）。"""
+    root, source = make_kit(tmp_path), make_source(tmp_path)
+    manifest = collect_manifest(tmp_path, root, source, tag="d24b")
+    key_a = key_of(POOL_A, "fact-a.md")
+    keep = write_decision(tmp_path, {"schema_version": 1, "client": "zcode", "delete_source": False,
+                                     "decisions": [absorb_decision(key_a, pending_map(manifest)[key_a]["hash"])]})
+    assert apply_run(root, source, keep).returncode == 0
+    absorbed_raw = ledger_entries(root)[key_a]["raw"].split("/")[-1]
+    raw_text = (Path(root) / "raw" / absorbed_raw).read_text(encoding="utf-8")
+    # 前提：决策改写正文不含 fact-a，raw 中该 name 的唯一出现处=脚注里的原始 key
+    assert key_a in raw_text and raw_text.count("fact-a") == 1, (
+        "D-C24 premise: the only fact-a occurrence in the raw must be inside the footnote key"
+    )
+    # 新池回流：同名 fact-a、内容不同 → 新 (key,hash) → pending，能点名被吸收的 raw
+    make_pool(source, POOL_M, {"fact-a.md": FACT_A + "Reflowed variant body.\n"},
+              memory_md="- [Fact A again](fact-a.md) — hook m\n")
+    reflow = collect_manifest(tmp_path, root, source, tag="d24c")
+    pend = pending_map(reflow)
+    key_m = key_of(POOL_M, "fact-a.md")
+    assert key_m in pend, "D-C24 premise: same-name new-content candidate must reflow as pending"
+    assert absorbed_raw in pend[key_m]["mentioned_in"], (
+        f"D-C24: reflowed same-name candidate must be pointed at the absorbed raw "
+        f"(footnote key hit, dedup-clue semantics); got {pend[key_m]['mentioned_in']}"
+    )
+
+
+def test_D_C25_pool_filter_manifest_and_summary(tmp_path):
+    """D-C25 --pool 面：manifest 仅含所列池、summary 计数同步（pending/unparsable/
+    dangling/empty_pools 全部随池过滤；旗标可重复；未匹配池=空结果不报错）。"""
+    root = make_kit(tmp_path)
+    source = tmp_path / "projects"
+    source.mkdir()
+    make_pool(source, POOL_A, {"fact-a.md": FACT_A, "fact-b.md": FACT_B}, memory_md=MEMORY_MD_A)
+    make_pool(source, POOL_B, {"fact-b.md": FACT_B}, memory_md="- [Fact B](fact-b.md) — hook b\n")
+    make_pool(source, POOL_G, {"broken.md": "plain body without frontmatter\n"},
+              memory_md="- [Broken](broken.md) — hook g\n")
+    (source / POOL_P).mkdir()  # 空池：无 memory/ 子目录
+
+    def filtered(pools, tag):
+        out_file = tmp_path / f"manifest-{tag}-{uuid.uuid4().hex[:6]}.yaml"
+        args = ["--root", root, "collect", "--source-dir", source]
+        for pool in pools:
+            args += ["--pool", pool]
+        args += ["--out", out_file]
+        res = run_cli(args, root)
+        assert res.returncode == 0, f"D-C25: filtered collect must exit 0; output: {out_of(res)}"
+        return yaml.safe_load(out_file.read_text(encoding="utf-8"))
+
+    # 基线（无过滤）：全部 4 池可见
+    full = filtered([], tag="d25full")
+    assert full["summary"]["pools"] == 4 and full["summary"]["pending"] == 3, (
+        f"D-C25 premise: unfiltered manifest sees all pools; got {full['summary']}"
+    )
+    assert full["summary"]["unparsable"] == 1 and full["summary"]["empty_pools"] == 1
+
+    # 单池：仅 POOL_A 条目与该池悬空行；其他池的 pending/unparsable/空池全部排除
+    only_a = filtered([POOL_A], tag="d25a")
+    assert only_a["summary"]["pools"] == 1 and only_a["summary"]["files"] == 2, (
+        f"D-C25: single-pool summary must sync; got {only_a['summary']}"
+    )
+    assert only_a["summary"]["pending"] == 2 and only_a["summary"]["residue"] == 0
+    assert only_a["summary"]["unparsable"] == 0 and only_a["summary"]["empty_pools"] == 0
+    assert sorted(pending_map(only_a)) == sorted([key_of(POOL_A, "fact-a.md"),
+                                                  key_of(POOL_A, "fact-b.md")]), (
+        f"D-C25: pending must contain exactly pool A entries; got {sorted(pending_map(only_a))}"
+    )
+    assert {d["pool"] for d in only_a["dangling_index"]} == {POOL_A}, (
+        f"D-C25: dangling_index must be filtered to the requested pool; got {only_a['dangling_index']}"
+    )
+
+    # 双池（旗标可重复）：两池合并计数
+    both = filtered([POOL_A, POOL_B], tag="d25ab")
+    assert both["summary"]["pools"] == 2 and both["summary"]["pending"] == 3, (
+        f"D-C25: repeatable --pool must union the pools; got {both['summary']}"
+    )
+    assert all(k.split("/", 1)[0] in {POOL_A, POOL_B} for k in pending_map(both)), (
+        "D-C25: no entry from outside the requested pools may appear"
+    )
+
+    # 未匹配任何池：空结果正常退出（不 fatal）
+    none_matched = filtered(["no-such-pool"], tag="d25none")
+    assert none_matched["summary"]["pools"] == 0 and none_matched["summary"]["pending"] == 0, (
+        f"D-C25: unknown pool must yield an empty (not failing) manifest; got {none_matched['summary']}"
+    )
+
+
+def test_D_C25_subcommand_dry_run_equivalent_to_global(tmp_path):
+    """D-C25 子命令级 --dry-run：旗标在子命令后与全局位置行为等价（零写入、相同计划输出）。"""
+    root, source = make_kit(tmp_path), make_source(tmp_path)
+    manifest = collect_manifest(tmp_path, root, source, tag="d25d")
+    key_a = key_of(POOL_A, "fact-a.md")
+    decision = write_decision(tmp_path, {"schema_version": 1, "client": "zcode",
+                                         "decisions": [absorb_decision(key_a, pending_map(manifest)[key_a]["hash"])]})
+    memory_before = (source / POOL_A / "memory" / "MEMORY.md").read_bytes()
+
+    # 写法 A：--dry-run 放在子命令之后
+    sub_flag = run_cli(["--root", root, "collect", "--apply", decision,
+                        "--source-dir", source, "--dry-run"], root)
+    assert sub_flag.returncode == 0, (
+        f"D-C25: subcommand-level --dry-run must exit 0; got rc={sub_flag.returncode}; output: {out_of(sub_flag)}"
+    )
+    assert raw_files(root) == [] and not (Path(root) / "collect").exists(), (
+        "D-C25: subcommand-level --dry-run must write nothing (no raw, no ledger)"
+    )
+    # 写法 B：--dry-run 在全局位置（子命令之前）
+    global_flag = run_cli(["--root", root, "--dry-run", "collect", "--apply", decision,
+                           "--source-dir", source], root)
+    assert global_flag.returncode == 0, (
+        f"D-C25: global --dry-run must exit 0; got rc={global_flag.returncode}; output: {out_of(global_flag)}"
+    )
+    # 等价性：同一决策、同一状态 → 计划输出逐字节一致
+    assert sub_flag.stdout == global_flag.stdout, (
+        f"D-C25: subcommand and global --dry-run must print identical plans; "
+        f"sub={sub_flag.stdout!r}; global={global_flag.stdout!r}"
+    )
+    for marker in ("would absorb", "dry-run: no writes performed"):
+        assert marker in sub_flag.stdout, f"D-C25: plan marker {marker!r} expected; got: {sub_flag.stdout}"
+    # 双跑之后仍零写入、源与 MEMORY.md 不动
+    assert raw_files(root) == [], "D-C25: both dry runs together must write no raw"
+    assert not (Path(root) / "collect").exists(), "D-C25: both dry runs must not create the ledger"
+    assert (source / POOL_A / "memory" / "fact-a.md").exists(), "D-C25: dry runs must not delete sources"
+    assert (source / POOL_A / "memory" / "MEMORY.md").read_bytes() == memory_before, (
+        "D-C25: dry runs must not touch MEMORY.md"
+    )
