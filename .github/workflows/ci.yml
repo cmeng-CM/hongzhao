@@ -31,4 +31,8 @@ jobs:
       - name: Print version
         run: hongzhao --version
       - name: Run tests
-        run: pytest
+        run: pytest --junitxml=report.xml
+      - name: Publish failure summary
+        if: failure()   # 公开仓日志下载需鉴权；摘要进 run summary 匿名可读，排障不再盲猜
+        shell: bash
+        run: python scripts/ci_failure_summary.py report.xml >> "$GITHUB_STEP_SUMMARY"
