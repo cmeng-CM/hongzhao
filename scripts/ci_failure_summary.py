@@ -44,7 +44,7 @@ def _annotations(root: ET.Element) -> int:
             break
         text = (node.text or node.get("message") or "").strip().splitlines()
         meaningful = [ln.strip() for ln in text if ln.strip()]
-        head = " | ".join(meaningful[:4])[:400]
+        head = " | ".join(meaningful[:2] + ["..."] + meaningful[-5:])[:400]
         title = _ascii(f"{classname}::{name}").replace("::", "»")  # :: 是命令分隔符，替换
         message = _ascii(head.replace("\r", " ").replace("\n", " "))
         print(f"::error title={kind} {title}::{message}")
