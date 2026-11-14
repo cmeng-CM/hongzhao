@@ -13,6 +13,18 @@ import platform
 import sys
 import xml.etree.ElementTree as ET
 
+# 自身免疫：CI bash 管道在 Windows 走 locale 编码（cp1252），打印中文即崩（与被诊断的
+# CLI 同族问题）。强制 UTF-8；注解内容再 ASCII 转义一层兜底。
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="backslashreplace")
+    except Exception:  # noqa: BLE001 —— 诊断脚本要活过一切
+        pass
+
+
+def _ascii(text: str) -> str:
+    return text.encode("ascii", "backslashreplace").decode("ascii")
+
 
 def _iter_failures(root: ET.Element):
     for case in root.iter("testcase"):
@@ -33,8 +45,8 @@ def _annotations(root: ET.Element) -> int:
         text = (node.text or node.get("message") or "").strip().splitlines()
         meaningful = [ln.strip() for ln in text if ln.strip()]
         head = " | ".join(meaningful[:4])[:400]
-        title = f"{classname}::{name}".replace("::", "»")  # :: 是命令分隔符，替换
-        message = head.replace("\r", " ").replace("\n", " ")
+        title = _ascii(f"{classname}::{name}").replace("::", "»")  # :: 是命令分隔符，替换
+        message = _ascii(head.replace("\r", " ").replace("\n", " "))
         print(f"::error title={kind} {title}::{message}")
         count += 1
     return 0
@@ -84,7 +96,7 @@ if __name__ == "__main__":
     except Exception as exc:  # noqa: BLE001 —— 诊断脚本要活过一切
         exists = os.path.exists(args[0])
         size = os.path.getsize(args[0]) if exists else -1
-        msg = f"{type(exc).__name__}: {exc} | cwd={os.getcwd()} | file={args[0]} exists={exists} size={size}"
+        msg = _ascii(f"{type(exc).__name__}: {exc} | cwd={os.getcwd()} | file={args[0]} exists={exists} size={size}")
         print(f"::error title=summary-script-crashed::{msg[:400]}")
         raise SystemExit(0)
     if annotations:
