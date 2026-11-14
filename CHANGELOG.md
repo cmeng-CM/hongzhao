@@ -4,7 +4,7 @@ Notable changes to hongzhao are documented here
 ([keep a changelog](https://keepachangelog.com/en/1.1.0/) format, starting
 from `0.1.0`).
 
-## [Unreleased]
+## [0.4.0] — 2026-11-14
 
 ### Added
 
