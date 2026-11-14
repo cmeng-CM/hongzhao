@@ -24,16 +24,17 @@ def _iter_failures(root: ET.Element):
 
 
 def _annotations(root: ET.Element) -> int:
-    """workflow 命令模式：每条失败一枚 ::error 注解（title=用例，message=首个错误行）。"""
+    """workflow 命令模式：每条失败一枚 ::error 注解（title=用例，message=栈顶摘要）。"""
     count = 0
     for classname, name, kind, node in _iter_failures(root):
         if count >= 10:  # GitHub 每步注解上限 10，超量截断
-            print(f"::error::(annotations 截断，共更多失败)")
+            print("::error title=more-failures::(annotations truncated; see summary)")
             break
         text = (node.text or node.get("message") or "").strip().splitlines()
-        last = next((ln.strip() for ln in reversed(text) if ln.strip()), kind)
+        meaningful = [ln.strip() for ln in text if ln.strip()]
+        head = " | ".join(meaningful[:4])[:400]
         title = f"{classname}::{name}".replace("::", "»")  # :: 是命令分隔符，替换
-        message = last.replace("\r", " ").replace("\n", " ")[:200]
+        message = head.replace("\r", " ").replace("\n", " ")
         print(f"::error title={kind} {title}::{message}")
         count += 1
     return 0
@@ -75,6 +76,17 @@ if __name__ == "__main__":
     if len(args) != 1:
         print("usage: ci_failure_summary.py [--annotations] <junit.xml>", file=sys.stderr)
         raise SystemExit(2)
+    # 自曝：任何崩溃都转成 ::error 注解（本脚本曾作为排障通道自身失败且不可见）
+    import os
+
+    try:
+        root = ET.parse(args[0]).getroot()
+    except Exception as exc:  # noqa: BLE001 —— 诊断脚本要活过一切
+        exists = os.path.exists(args[0])
+        size = os.path.getsize(args[0]) if exists else -1
+        msg = f"{type(exc).__name__}: {exc} | cwd={os.getcwd()} | file={args[0]} exists={exists} size={size}"
+        print(f"::error title=summary-script-crashed::{msg[:400]}")
+        raise SystemExit(0)
     if annotations:
-        raise SystemExit(_annotations(ET.parse(args[0]).getroot()))
+        raise SystemExit(_annotations(root))
     raise SystemExit(main(args[0]))
