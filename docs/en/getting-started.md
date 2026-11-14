@@ -59,25 +59,26 @@ hongzhao --root ~/my-memory project-check ~/code/my-app
 
 ## Collecting client memories (optional)
 
-Client-side auto-memory (ZCode in v1) piling up? `collect` incrementally
-absorbs the facts worth keeping into the ledger and removes the duplicates
-on the client side:
+Client-side auto-memory (ZCode and Claude Code, each harvesting its own)
+piling up? `collect` **read-only extracts** the facts worth keeping into
+the ledger — zero writes on the client side; original files and indexes
+are never touched:
 
 ```bash
-hongzhao --root ~/my-memory collect --out manifest.yaml   # read-only pending manifest
+hongzhao --root ~/my-memory collect --client zcode --out manifest.yaml   # read-only pending manifest
 # driven by the memory-collect skill: model extraction + your CHECKPOINT
-hongzhao --root ~/my-memory collect --apply decision.yaml  # raw + ledger + conditional delete
+hongzhao --root ~/my-memory collect --client zcode --apply decision.yaml  # writes hongzhao only: raw + ledger
 ```
 
+- **Strictly read-only**: the collection feature has no client-side write
+  capability at all (not an option — the capability does not exist); no
+  file deletions, no index edits, no directory pruning.
 - The three-state ledger `<root>/collect/<client>/ledger.yaml` records
   decided entries only: discards never resurface, changed content re-enters
   review, repeated collects produce zero duplicate candidates.
-- Source deletion is content-hash guarded (modified files bounce back to
-  review); `MEMORY.md` gets surgical line-level edits with original EOL
-  preserved; raws land first and are auto-committed via `git.auto_commit`.
 - The engine stays deterministic: "worth keeping?" and "duplicate of what?"
-  are the skill's model-stage calls, with the human CHECKPOINT as the final
-  gate.
+  are the skill's model-stage calls (the manifest's `mentioned_in` is a
+  dedup hint), with the human CHECKPOINT as the final gate.
 
 ## Registering knowledge
 

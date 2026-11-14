@@ -4,6 +4,26 @@ Notable changes to hongzhao are documented here
 ([keep a changelog](https://keepachangelog.com/en/1.1.0/) format, starting
 from `0.1.0`).
 
+## [Unreleased]
+
+### Removed
+
+- All client-side write capabilities from collection (design v6 / D-C28,
+  user-directed): `delete_source`, `slim_index`, `cleanup`, and
+  `prune_empty_pools` are gone from decision files — supplying any of them
+  is a fatal `APPLY_DECISION_INVALID`. `collect --apply` now writes the
+  memory root only (raw → ledger → auto-commit); client fact files and
+  `MEMORY.md` stay byte-identical under every decision, unconditionally.
+  The `residue` manifest section and the ledger `source` field are removed
+  with the write paths, and fault-injection points collapse to
+  `after-raws` / `after-ledger`. The skill no longer asks about — or even
+  offers — any client-side modification.
+
+### Changed
+
+- Collected raws record their true source client (`zcode` / `claude-code`)
+  with client-labeled provenance footnotes.
+
 ## [0.4.0] — 2026-11-14
 
 ### Added

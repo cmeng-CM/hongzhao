@@ -1,13 +1,14 @@
-"""客户端记忆采集（design：.delivery/2026-11-13-客户端记忆采集/design.md v2，已批准）。
+"""客户端记忆采集（design：.delivery/2026-11-13-客户端记忆采集/design.md v6，已确认）。
 
 collect                只读：解析客户端 auto-memory 池 → 账本 diff → 增量清单（manifest）
-collect --apply <f>    决策落盘：校验 decision file → 写 raw → 记账 → hash 条件删源 → auto-commit
+collect --apply <f>    决策落盘：校验 decision file → 写 raw → 记账 → auto-commit
 
-引擎纪律（D-C04/D-C11/D-C12/D-C14）：
+引擎纪律（D-C04/D-C11/D-C28）：
 - 纯确定性，零语义判断（判重/重要性归 skill 的模型环节，终审归人）；
-- 写序 raw → 账本 → 条件删源 → auto-commit：宁重复候选，不静默丢失；
-- 删源按内容 hash 条件删除 + MEMORY.md 行级原字节改写（删全部精确匹配行）；
-- apply 校验序与写序同临界区（.hongzhao.lock，与注册互斥）。
+- **严格只读采集：对客户端侧零写能力**——不删事实文件、不动 MEMORY.md、不剪目录，
+  亦不存在任何开启这些行为的选项（D-C12/D-C16/D-C18 写侧/D-C22/D-C23 已被 D-C28 取代）；
+- apply 写面只有：raw 文件、三态账本、kit auto-commit（均在 hongzhao 记忆根内）；
+- 全程持 .hongzhao.lock（校验序与写序同临界区，D-C14）。
 """
 from __future__ import annotations
 
@@ -44,8 +45,10 @@ CLIENT_SOURCE_DEFAULTS = {
 LEDGER_SCHEMA = 1
 TOPIC_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 INDEX_LINE = re.compile(r"^- \[(?P<title>.*)\]\((?P<file>[^\)]+)\) — (?P<hook>.*)$")
-# 故障注入点（对齐 contracts 双条件先例；合同测试走子进程触发）
-FAULTS = {"after-raws", "after-ledger", "mid-deletes", "after-deletes"}
+# v6/D-C28：删源类注入点随写路径一并移除，只剩 raw/账本两个落盘边界
+FAULTS = {"after-raws", "after-ledger"}
+# v6/D-C28：这些 decision 字段已被移除——出现即拒绝（零写能力不是选项）
+REMOVED_DECISION_FIELDS = {"delete_source", "slim_index", "cleanup", "prune_empty_pools"}
 
 
 class CollectError(Exception):
@@ -77,30 +80,13 @@ def _sha256(data: bytes) -> str:
     return "sha256:" + hashlib.sha256(data).hexdigest()
 
 
-def _atomic_write_bytes(path: Path, data: bytes) -> None:
-    """字节级原子写（MEMORY.md 行级保留需要按字节落盘，write_atomic 只收 str）。"""
-    import tempfile
-
-    path.parent.mkdir(parents=True, exist_ok=True)
-    fd, tmp_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
-    try:
-        with os.fdopen(fd, "wb") as handle:
-            handle.write(data)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(tmp_name, path)
-    finally:
-        if os.path.exists(tmp_name):
-            os.unlink(tmp_name)
-
-
 # ---------------------------------------------------------------------------
-# 源解析（D-C17：解析失败只报不猜）
+# 源解析（D-C17：解析失败只报不猜；D-C27：只认含 memory/ 的目录为记忆池）
 # ---------------------------------------------------------------------------
 
 
 def _parse_memory_index(text: str) -> dict[str, tuple[str, str]]:
-    """索引行 file → (title, hook)。同文件重复行取首行（重复行的全量删除在删源步骤）。"""
+    """索引行 file → (title, hook)。同文件重复行取首行（只读解析，不修改任何内容）。"""
     index: dict[str, tuple[str, str]] = {}
     for line in text.splitlines():
         matched = INDEX_LINE.match(line.strip())
@@ -113,13 +99,13 @@ def _parse_memory_index(text: str) -> dict[str, tuple[str, str]]:
 
 
 def scan_source(source_dir: Path) -> dict[str, Any]:
-    """扫描源根：{entries, index_map, dangling_index, unparsable, empty_pools, pool_files}。
+    """扫描源根（纯读）：{entries, index_map, dangling_index, unparsable, empty_pools, pool_files}。
 
-    entries: key("<pool>/memory/<file>") → 条目 dict（hash=name/title/hook/type/description/body/…）
-    pool_files: pool → [事实文件名]（删源与空池判定复用）
+    entries: key("<pool>/memory/<file>") → 条目 dict（hash/name/title/hook/type/description/body/…）
+    empty_pools / dangling_index：只读报告，本功能不治理（客户端侧零写，D-C28）。
     """
     entries: dict[str, dict[str, Any]] = {}
-    index_map: dict[str, dict[str, tuple[str, str]]] = {}  # pool → file → (title, hook)
+    index_map: dict[str, dict[str, tuple[str, str]]] = {}
     dangling: list[dict[str, str]] = []
     unparsable: list[dict[str, str]] = []
     empty_pools: list[str] = []
@@ -189,7 +175,7 @@ def scan_source(source_dir: Path) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# 三态账本（D-C09/D-C10：只记已决条目；<root>/collect/<client>/ledger.yaml）
+# 三态账本（D-C09/D-C10/D-C28：只记已决条目；<root>/collect/<client>/ledger.yaml）
 # ---------------------------------------------------------------------------
 
 
@@ -219,14 +205,11 @@ def _ledger_issues(path: Path, data: Any) -> list[str]:
             issues.append(f"entry {key}: absorbed requires raw")
         if state == "discarded" and not isinstance(record.get("reason"), str):
             issues.append(f"entry {key}: discarded requires reason")
-        source = record.get("source")
-        if source is not None and source not in {"deleted", "kept"}:
-            issues.append(f"entry {key}: source must be deleted or kept")
     return issues
 
 
 def load_ledger(root: Path, client: str) -> dict[str, dict[str, Any]]:
-    """缺失=冷启动空账本（S14）；损坏抛 COLLECT_LEDGER_INVALID（S15，判定口径见 design 5.1）。"""
+    """缺失=冷启动空账本；损坏抛 COLLECT_LEDGER_INVALID（判定口径见 design 5.1）。"""
     path = ledger_path(root, client)
     if not path.exists():
         return {}
@@ -328,16 +311,11 @@ def build_manifest(root: Path, client: str, source_dir: Path,
     ledger = load_ledger(root, client)
     scan = _filter_scan(scan_source(source_dir), pools)
     pending: list[dict[str, Any]] = []
-    residue: list[dict[str, Any]] = []
     for key in sorted(scan["entries"]):
         entry = dict(scan["entries"][key])
         record = ledger.get(key)
         if record is not None and record.get("hash") == entry["hash"]:
-            if record.get("state") == "absorbed" and record.get("source") != "kept":
-                # v3/D-C22：kept 条目同 hash 在场=正常终态，不算 residue
-                residue.append({"key": key, "hash": entry["hash"], "raw": record.get("raw", "")})
-            # discarded 同 hash：不冒回（S11）；kept 同 hash：保留源终态
-            continue
+            continue  # 已决同 hash（absorbed/discarded）＝正常终态，不冒回（D-C28：源永在，无 residue 概念）
         pending.append(entry)
     mentions = _mentions(root, [e["name"] for e in pending])
     for entry in pending:
@@ -353,12 +331,10 @@ def build_manifest(root: Path, client: str, source_dir: Path,
             "pools": len(pool_names),
             "files": files,
             "pending": len(pending),
-            "residue": len(residue),
             "unparsable": len(scan["unparsable"]),
             "empty_pools": len(scan["empty_pools"]),
         },
         "pending": pending,
-        "residue": residue,
         "unparsable": scan["unparsable"],
         "dangling_index": scan["dangling_index"],
         "empty_pools": sorted(scan["empty_pools"]),
@@ -377,7 +353,7 @@ def cmd_collect(root: Path, client: str = "zcode", source_dir: str | None = None
         write_atomic(Path(os.path.expanduser(out_path)).resolve(), text)
         summary = manifest["summary"]
         print(f"collect: pools={summary['pools']} files={summary['files']} pending={summary['pending']} "
-              f"residue={summary['residue']} unparsable={summary['unparsable']} empty_pools={summary['empty_pools']}")
+              f"unparsable={summary['unparsable']} empty_pools={summary['empty_pools']}")
         print(f"manifest: {os.path.expanduser(out_path)}")
     else:
         sys.stdout.write(text)
@@ -385,7 +361,7 @@ def cmd_collect(root: Path, client: str = "zcode", source_dir: str | None = None
 
 
 # ---------------------------------------------------------------------------
-# apply：校验 → raw → 账本 → 条件删源 → auto-commit（D-C11/D-C12/D-C13）
+# apply：校验 → raw → 账本 → auto-commit（D-C11/D-C28：只写 hongzhao 侧）
 # ---------------------------------------------------------------------------
 
 
@@ -394,8 +370,8 @@ def _entry_fail(report: list[tuple[str, str]], key: str, code: str, message: str
     report.append((key, code))
 
 
-def _absorb_metadata(decision: dict[str, Any], today: str) -> tuple[dict[str, Any], str]:
-    """组装 raw metadata+正文（引擎生成身份与来源脚注，D-C13）；字段问题抛 ValueError。"""
+def _absorb_metadata(decision: dict[str, Any], today: str, client: str) -> tuple[dict[str, Any], str]:
+    """组装 raw metadata（引擎生成身份与来源脚注，D-C13）；字段问题抛 ValueError。"""
     required = ("scope", "topic", "kind", "activation", "summary", "body")
     for field in required:
         if not isinstance(decision.get(field), str) or not decision[field].strip():
@@ -423,7 +399,7 @@ def _absorb_metadata(decision: dict[str, Any], today: str) -> tuple[dict[str, An
         "schema_version": 2,
         "id": f"mem-{ident}",
         "created": today,
-        "source": "zcode",
+        "source": client.replace("_", "-"),  # zcode | claude-code（core SOURCES 枚举既含两者）
         "topic": decision["topic"],
         "kind": decision["kind"],
         "scope": scope,
@@ -448,72 +424,13 @@ def _raw_filename(root: Path, today: str, topic: str, ident: str) -> str:
     return name
 
 
-def _footnote(key: str, digest: str, evidence: dict[str, Any]) -> str:
+def _footnote(key: str, digest: str, evidence: dict[str, Any], client: str) -> str:
+    label = {"zcode": "ZCode", "claude_code": "Claude Code"}.get(client, client)
     similar = evidence["similar"]
     return (
-        f"> 来源：ZCode auto-memory {key}（{digest[:8]}，{_today()} collect 采集）\n"
+        f"> 来源：{label} auto-memory {key}（{digest[:8]}，{_today()} collect 采集）\n"
         f"> 采集依据：值得留——{evidence['why']}；最相似——{similar['ref']}，差异：{similar['diff']}"
     )
-
-
-def _delete_source(source_dir: Path, key: str, expect_hash: str,
-                   deleted: dict[str, set[str]]) -> str:
-    """hash 条件删除 + 记录待清索引行；返回 deleted | absent | mismatch。"""
-    path = source_dir / key
-    if not path.is_file():
-        return "absent"
-    if _sha256(path.read_bytes()) != expect_hash:
-        return "mismatch"
-    path.unlink()
-    pool, _, name = key.partition("/memory/")
-    deleted.setdefault(pool, set()).add(name)
-    return "deleted"
-
-
-def _prune_index_lines(source_dir: Path, pool: str, filenames: set[str]) -> str:
-    """MEMORY.md 删除全部精确匹配行（行级原字节拼接；不用主导行尾策略）。"""
-    memory_md = source_dir / pool / "memory" / "MEMORY.md"
-    if not memory_md.is_file():
-        return "missing"
-    try:
-        raw = memory_md.read_bytes()
-        text = raw.decode("utf-8")
-    except (OSError, UnicodeDecodeError):
-        return "unreadable"
-    kept: list[str] = []
-    removed = 0
-    for line in text.splitlines(keepends=True):
-        matched = INDEX_LINE.match(line.strip())
-        if matched and matched.group("file") in filenames:
-            removed += 1
-            continue
-        kept.append(line)
-    if not removed:
-        return "no-match"
-    _atomic_write_bytes(memory_md, "".join(kept).encode("utf-8"))
-    return f"removed-{removed}"
-
-
-def _prune_empty_pool(source_dir: Path, pool: str) -> str:
-    """空池修剪（保守口径）：memory/ 无事实文件且无内容（仅允许 0 字节 MEMORY.md）才整目录删除；
-    有索引内容的池=客户端数据，报 not-empty 跳过（人工清理路径）。"""
-    pool_dir = source_dir / pool
-    if not pool_dir.is_dir():
-        return "absent"
-    memory = pool_dir / "memory"
-    if memory.is_dir():
-        children = list(memory.iterdir())
-        for child in children:
-            if child.name == "MEMORY.md" and child.is_file() and child.stat().st_size == 0:
-                continue
-            return "not-empty"
-        for child in children:
-            child.unlink()
-        memory.rmdir()
-    if any(pool_dir.iterdir()):
-        return "not-empty"
-    pool_dir.rmdir()
-    return "pruned"
 
 
 def cmd_apply(root: Path, decision_file: str, client: str = "zcode", source_dir: str | None = None,
@@ -533,14 +450,12 @@ def _load_decision(path_text: str) -> tuple[dict[str, Any], Path]:
     if not isinstance(data, dict) or data.get("schema_version") != 1 \
             or not isinstance(data.get("decisions"), list):
         raise CollectError("APPLY_DECISION_INVALID", f"{path}: schema_version must be 1 with a decisions list")
-    for field in ("cleanup", "prune_empty_pools"):
-        value = data.get(field)
-        if value is not None and not isinstance(value, list):
-            raise CollectError("APPLY_DECISION_INVALID", f"{path}: {field} must be a list")
-    if data.get("delete_source") is not None and not isinstance(data.get("delete_source"), bool):
-        raise CollectError("APPLY_DECISION_INVALID", f"{path}: delete_source must be a boolean")
-    if data.get("slim_index") is not None and not isinstance(data.get("slim_index"), bool):
-        raise CollectError("APPLY_DECISION_INVALID", f"{path}: slim_index must be a boolean")
+    removed = REMOVED_DECISION_FIELDS & set(data)
+    if removed:
+        raise CollectError(
+            "APPLY_DECISION_INVALID",
+            f"{path}: client-side write fields are removed under strict read-only collection "
+            f"(design v6/D-C28): {', '.join(sorted(removed))}")
     return data, path
 
 
@@ -577,40 +492,23 @@ def _apply_plan(root: Path, decision_file: str, client: str, source_dir: str | N
         action = decision.get("action")
         if action == "absorb":
             try:
-                _absorb_metadata(decision, _today())
+                _absorb_metadata(decision, _today(), client)
             except ValueError as exc:
                 print(f"[APPLY_RAW_INVALID] {key}: {exc}")
                 code = 1
                 continue
-            keep_note = "" if data.get("delete_source", True) else " (keep source)"
-            print(f"would absorb{keep_note} {key} -> {raw_dir}/<today>_{decision.get('topic')}_<uuid8>.md")
+            print(f"would absorb {key} (client side untouched) -> "
+                  f"{raw_dir}/<today>_{decision.get('topic')}_<uuid8>.md")
         elif action == "discard":
             if not isinstance(decision.get("reason"), str) or not decision["reason"].strip():
                 print(f"[APPLY_DECISION_INVALID] {key}: discard requires reason")
                 code = 1
                 continue
-            print(f"would discard {key}")
+            print(f"would discard {key} (ledger only; client side untouched)")
         else:
             print(f"[APPLY_DECISION_INVALID] {key}: action must be absorb or discard")
             code = 1
-    for item in data.get("cleanup") or []:
-        if not isinstance(item, dict) or not isinstance(item.get("key"), str):
-            print(f"[APPLY_DECISION_INVALID] cleanup entries must be {{key, hash}}: {item}")
-            code = 1
-            continue
-        key = item["key"]
-        record = ledger.get(key)
-        if not isinstance(record, dict) or record.get("state") != "absorbed" \
-                or record.get("hash") != item.get("hash"):
-            print(f"[APPLY_ENTRY_STALE] cleanup {key}: ledger premise mismatch")
-            code = 1
-            continue
-        print(f"would delete source {key} (conditional on hash)")
-    for pool in data.get("prune_empty_pools") or []:
-        print(f"would prune empty pool {pool} (re-verified at apply time)")
-    if data.get("slim_index"):
-        print("would slim MEMORY.md index lines for decided entries (files untouched)")
-    if code == 0 and not data["decisions"] and not data.get("cleanup") and not data.get("prune_empty_pools"):
+    if code == 0 and not data["decisions"]:
         print("apply: nothing to do")
     print("dry-run: no writes performed")
     return code
@@ -629,13 +527,11 @@ def _apply_locked(root: Path, decision_file: str, client: str, source_dir: str |
     report: list[tuple[str, str]] = []
     seen: set[str] = set()
 
-    if not data["decisions"] and not data.get("cleanup") and not data.get("prune_empty_pools"):
+    if not data["decisions"]:
         print("apply: nothing to do")
         return 0
 
-    # 步骤 1-3：逐条校验并写 raw（先 validate 后写；不合格该条目失败，零部分文件）
-    absorbed_keys: list[str] = []
-    decided_keys: list[str] = []  # 本批全部成功决策（absorbed+discarded，slim_index 用）
+    # 步骤 1：逐条校验并写 raw（先 validate 后写；不合格该条目失败，零部分文件）
     absorbed_n = 0
     discarded_n = 0
     for decision in data["decisions"]:
@@ -663,8 +559,7 @@ def _apply_locked(root: Path, decision_file: str, client: str, source_dir: str |
             ledger[key] = {"hash": decision["hash"], "state": "discarded",
                            "reason": reason, "decided_at": today}
             discarded_n += 1
-            decided_keys.append(key)
-            print(f"discarded: {key}")
+            print(f"discarded: {key} (ledger only; client side untouched)")
             continue
         if action != "absorb":
             _entry_fail(report, key, "APPLY_DECISION_INVALID", "action must be absorb or discard")
@@ -673,7 +568,7 @@ def _apply_locked(root: Path, decision_file: str, client: str, source_dir: str |
             _entry_fail(report, key, "APPLY_PROJECT_UNKNOWN", f"project_id {decision.get('project_id')} not in registry")
             continue
         try:
-            metadata, ident = _absorb_metadata(decision, today)
+            metadata, ident = _absorb_metadata(decision, today, client)
         except ValueError as exc:
             _entry_fail(report, key, "APPLY_RAW_INVALID", str(exc))
             continue
@@ -684,94 +579,25 @@ def _apply_locked(root: Path, decision_file: str, client: str, source_dir: str |
             _entry_fail(report, key, "APPLY_RAW_INVALID", f"{first.code}: {first.message}")
             continue
         digest = decision["hash"].removeprefix("sha256:")
-        body = decision["body"].rstrip("\n") + "\n\n" + _footnote(key, digest, decision["evidence"]) + "\n"
+        body = decision["body"].rstrip("\n") + "\n\n" + _footnote(key, digest, decision["evidence"], client) + "\n"
         write_atomic(raw_dir / filename, dump_frontmatter(metadata, body))
         ledger[key] = {"hash": decision["hash"], "state": "absorbed",
-                       "raw": f"{config['paths']['raw']}/{filename}", "decided_at": today,
-                       "source": "kept" if not data.get("delete_source", True) else "deleted"}
-        absorbed_keys.append(key)
-        decided_keys.append(key)
+                       "raw": f"{config['paths']['raw']}/{filename}", "decided_at": today}
         absorbed_n += 1
-        keep_note = "" if data.get("delete_source", True) else " (source kept)"
-        print(f"absorbed{keep_note}: {key} -> {config['paths']['raw']}/{filename}")
+        print(f"absorbed: {key} -> {config['paths']['raw']}/{filename} (client side untouched)")
     if _fault_active("after-raws"):
         _crash("after-raws")
 
-    # 步骤 4：账本原子更新（raw 已全部落盘后才记账——宁重复，不丢失）
+    # 步骤 2：账本原子更新（raw 已全部落盘后才记账——宁重复，不丢失）
     save_ledger(root, client, ledger)
     if _fault_active("after-ledger"):
         _crash("after-ledger")
 
-    # 步骤 5：条件删源（重读文件 hash 必须等于决策依据 hash；MEMORY.md 删全部精确匹配行）。
-    # v3/D-C22：delete_source=false 时本次 absorbed 不删源（cleanup 仍按显式清单执行）。
-    deleted: dict[str, set[str]] = {}
-    to_delete: list[tuple[str, str]] = []
-    if data.get("delete_source", True):
-        to_delete.extend((key, ledger[key]["hash"]) for key in absorbed_keys)
-    for item in data.get("cleanup") or []:
-        if not isinstance(item, dict) or not isinstance(item.get("key"), str):
-            _entry_fail(report, str(item), "APPLY_DECISION_INVALID", "cleanup entries must be {key, hash}")
-            continue
-        key = item["key"]
-        record = ledger.get(key)
-        if not isinstance(record, dict) or record.get("state") != "absorbed" \
-                or record.get("hash") != item.get("hash"):
-            _entry_fail(report, key, "APPLY_ENTRY_STALE", "cleanup premise mismatch (ledger)")
-            continue
-        to_delete.append((key, record["hash"]))
-    for key, expect_hash in to_delete:
-        outcome = _delete_source(resolved, key, expect_hash, deleted)
-        if outcome == "mismatch":
-            _entry_fail(report, key, "APPLY_DELETE_MISMATCH", "source changed since decision; kept (residue)")
-        elif outcome == "deleted":
-            print(f"deleted source: {key}")
-        if _fault_active("mid-deletes"):
-            _crash("mid-deletes")
-    for pool, names in sorted(deleted.items()):
-        result = _prune_index_lines(resolved, pool, names)
-        if result.startswith("removed-"):
-            print(f"index pruned: {pool}/MEMORY.md ({result})")
-        elif result == "unreadable":
-            _entry_fail(report, f"{pool}/MEMORY.md", "APPLY_DELETE_MISMATCH", "index rewrite skipped: unreadable")
-        else:
-            print(f"index note: {pool}/MEMORY.md {result}")
-    if _fault_active("after-deletes"):
-        _crash("after-deletes")
-
-    # 步骤 5b：瘦身索引（v4/D-C23，缺省关闭）——本批已决条目只删 MEMORY.md 索引行，
-    # 事实文件与其内容一字不动；与删源正交（文件刚被删的条目已随之清行，此处天然 no-match 跳过）。
-    if data.get("slim_index"):
-        slim_by_pool: dict[str, set[str]] = {}
-        for key in decided_keys:
-            pool, _, name = key.partition("/memory/")
-            slim_by_pool.setdefault(pool, set()).add(name)
-        for pool, names in sorted(slim_by_pool.items()):
-            result = _prune_index_lines(resolved, pool, names - deleted.get(pool, set()))
-            if result.startswith("removed-"):
-                print(f"index slimmed: {pool}/MEMORY.md ({result}; files untouched)")
-            elif result == "unreadable":
-                _entry_fail(report, f"{pool}/MEMORY.md", "APPLY_DELETE_MISMATCH", "slim skipped: unreadable")
-            else:
-                print(f"index note: {pool}/MEMORY.md {result} (slim)")
-
-    # 步骤 6：空池修剪（现场复核）
-    for pool in data.get("prune_empty_pools") or []:
-        if not isinstance(pool, str):
-            _entry_fail(report, str(pool), "APPLY_DECISION_INVALID", "prune_empty_pools entries must be pool names")
-            continue
-        result = _prune_empty_pool(resolved, pool)
-        if result == "pruned":
-            print(f"pruned empty pool: {pool}")
-        elif result == "not-empty":
-            _entry_fail(report, pool, "APPLY_DECISION_INVALID", "pool is not empty; skipped")
-        else:
-            print(f"prune note: {pool} {result}")
-
-    # 步骤 7：auto-commit（同 git.auto_commit 配置与守卫；失败降级 warning 不阻断）
-    cleaned = sum(len(names) for names in deleted.values())
+    # 步骤 3：auto-commit（同 git.auto_commit 配置与守卫；失败降级 warning 不阻断）
     auto_commit_with_message(root, config,
                              f"hongzhao collect apply {dt.datetime.now().isoformat(timespec='seconds')} "
-                             f"absorbed={absorbed_n} discarded={discarded_n} cleaned={cleaned}")
+                             f"absorbed={absorbed_n} discarded={discarded_n}")
     failures = len(report)
-    print(f"apply: done ({'ok' if not failures else f'{failures} entry-level issue(s)'})")
+    print(f"apply: done ({'ok, client side untouched' if not failures else f'{failures} entry-level issue(s)'}); "
+          "raw/ledger committed to the memory root only")
     return 1 if failures else 0

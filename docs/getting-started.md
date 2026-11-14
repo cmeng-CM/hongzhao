@@ -65,17 +65,17 @@ hongzhao --root ~/my-memory knowledge-register docs/rust-async.md \
 
 ## 采集客户端记忆（可选）
 
-客户端（首版支持 ZCode）自带的 auto-memory 越攒越多？`collect` 把其中值得长期保留的事实增量收编进账本，删掉客户端侧的重复份：
+客户端（支持 ZCode 与 Claude Code，采各自自己的）自带的 auto-memory 越攒越多？`collect` 把其中值得长期保留的事实**只读抽取**进账本——客户端侧零写入，原始文件与索引一个字节都不动：
 
 ```bash
-hongzhao --root ~/my-memory collect --out manifest.yaml   # 只读：待处理增量清单
+hongzhao --root ~/my-memory collect --client zcode --out manifest.yaml   # 只读：待处理增量清单
 # 由 memory-collect 技能驱动：模型判重/判重要 + 你确认（CHECKPOINT）后生成决策文件
-hongzhao --root ~/my-memory collect --apply decision.yaml  # 写 raw + 记账 + 条件删源
+hongzhao --root ~/my-memory collect --client zcode --apply decision.yaml  # 只写 hongzhao：raw + 账本
 ```
 
+- **严格只读**：采集功能对客户端侧没有任何写能力（不是选项，是没有）——不删文件、不动索引、不剪目录。
 - 三态账本 `<root>/collect/<client>/ledger.yaml` 只记已决条目：弃用的不再冒回、内容变化自动回流重审、重复 collect 零重复候选。
-- 删源按内容 hash 条件删除（改过的内容会被拦下重审），MEMORY.md 只做行级改写并保留原行尾；raw 先落盘并随 `git.auto_commit` 入库保底。
-- 引擎零语义判断：值得留吗、与哪条重复，由 `memory-collect` 技能中的模型判断，重要性终审留给你。
+- 引擎零语义判断：值得留吗、与哪条重复，由 `memory-collect` 技能中的模型判断（manifest 的 `mentioned_in` 是判重线索），重要性终审留给你。
 
 ## 客户端（可选）
 
