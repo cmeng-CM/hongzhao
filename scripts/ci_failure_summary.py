@@ -1,14 +1,42 @@
 """CI 失败摘要：解析 pytest junitxml，把失败用例与栈顶写入 run summary。
 
 背景：公开仓的 Actions 日志下载需要鉴权，Windows 腿失败时排障靠盲猜；
-run summary 对公开仓匿名可读，把失败清单放那里可自取。
-用法：python scripts/ci_failure_summary.py report.xml（输出 Markdown 到 stdout）。
+两条匿名可读通道：①run summary（网页）②`--annotations` 模式输出 workflow
+`::error` 命令 → check-run annotations（API 公开，最可靠的自取路径）。
+用法：
+  python scripts/ci_failure_summary.py report.xml            # Markdown 到 stdout
+  python scripts/ci_failure_summary.py --annotations report.xml  # ::error 命令到 stdout
 """
 from __future__ import annotations
 
 import platform
 import sys
 import xml.etree.ElementTree as ET
+
+
+def _iter_failures(root: ET.Element):
+    for case in root.iter("testcase"):
+        for kind in ("failure", "error"):
+            node = case.find(kind)
+            if node is not None:
+                yield case.get("classname", "?"), case.get("name", "?"), kind, node
+                break
+
+
+def _annotations(root: ET.Element) -> int:
+    """workflow 命令模式：每条失败一枚 ::error 注解（title=用例，message=首个错误行）。"""
+    count = 0
+    for classname, name, kind, node in _iter_failures(root):
+        if count >= 10:  # GitHub 每步注解上限 10，超量截断
+            print(f"::error::(annotations 截断，共更多失败)")
+            break
+        text = (node.text or node.get("message") or "").strip().splitlines()
+        last = next((ln.strip() for ln in reversed(text) if ln.strip()), kind)
+        title = f"{classname}::{name}".replace("::", "»")  # :: 是命令分隔符，替换
+        message = last.replace("\r", " ").replace("\n", " ")[:200]
+        print(f"::error title={kind} {title}::{message}")
+        count += 1
+    return 0
 
 
 def main(path: str) -> int:
@@ -42,7 +70,11 @@ def main(path: str) -> int:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("usage: ci_failure_summary.py <junit.xml>", file=sys.stderr)
+    args = [a for a in sys.argv[1:] if not a.startswith("-")]
+    annotations = "--annotations" in sys.argv
+    if len(args) != 1:
+        print("usage: ci_failure_summary.py [--annotations] <junit.xml>", file=sys.stderr)
         raise SystemExit(2)
-    raise SystemExit(main(sys.argv[1]))
+    if annotations:
+        raise SystemExit(_annotations(ET.parse(args[0]).getroot()))
+    raise SystemExit(main(args[0]))

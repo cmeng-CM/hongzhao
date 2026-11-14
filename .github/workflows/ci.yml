@@ -33,6 +33,8 @@ jobs:
       - name: Run tests
         run: pytest --junitxml=report.xml
       - name: Publish failure summary
-        if: failure()   # 公开仓日志下载需鉴权；摘要进 run summary 匿名可读，排障不再盲猜
+        if: failure()   # 公开仓日志下载需鉴权；摘要进 run summary + ::error 注解（annotations API 公开可读）
         shell: bash
-        run: python scripts/ci_failure_summary.py report.xml >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          python scripts/ci_failure_summary.py report.xml >> "$GITHUB_STEP_SUMMARY"
+          python scripts/ci_failure_summary.py --annotations report.xml
