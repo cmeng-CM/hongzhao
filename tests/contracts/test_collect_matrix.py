@@ -1109,7 +1109,8 @@ def _snapshot_compiled(root: Path) -> dict:
             continue
         for path in sorted(directory.rglob("*")):
             if path.is_file():
-                snapshot[str(path.relative_to(root))] = path.read_text(encoding="utf-8")
+                # CI windows 维护注记：str(relative_to) 在 Windows 产反斜杠键，posix 断言必假——统一 as_posix（同引擎 F-16 教训）
+                snapshot[path.relative_to(root).as_posix()] = path.read_text(encoding="utf-8")
     return snapshot
 
 
